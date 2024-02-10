@@ -1,6 +1,6 @@
 {
   "name": "@kindspells/astro-sri-csp",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "An Astro plugin to compute and inject SRI hashes for script and style tags",
   "private": false,
   "type": "module",
@@ -36,11 +36,15 @@
     "@biomejs/biome": "^1.5.3",
     "astro": "^4.3.5"
   },
-  "repository": "github:KindSpells/astro-csp-sri-postbuild",
+  "repository": "github:KindSpells/astro-sri-csp",
   "funding": [
     {
       "type": "opencollective",
       "url": "https://opencollective.com/kindspells-labs"
+    },
+    {
+      "type": "individual",
+      "url": "https://ko-fi.com/coderspirit"
     }
   ]
 }
