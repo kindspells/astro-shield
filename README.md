@@ -18,13 +18,13 @@ hook performs 3 steps:
 
 ```bash
 # With NPM
-npm install @kindspells/astro-sri-scp
+npm install @kindspells/astro-sri-csp
 
 # With Yarn
-yarn add @kindspells/astro-sri-scp
+yarn add @kindspells/astro-sri-csp
 
 # With PNPM
-pnpm add @kindspells/astro-sri-scp
+pnpm add @kindspells/astro-sri-csp
 ```
 
 ## How to use
@@ -35,7 +35,7 @@ In your `astro.config.mjs` file:
 import { join } from 'node:path'
 
 import { defineConfig } from 'astro/config'
-import { sriCSP } from '@kindspells/astro-sri-scp'
+import { sriCSP } from '@kindspells/astro-sri-csp'
 
 const rootDir = new URL('.', import.meta.url).pathname
 
