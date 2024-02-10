@@ -14,6 +14,11 @@ hook performs 3 steps:
    them later for other purposes, such as configuring your
    `Content-Security-Policy` headers.
 
+### Known limitations
+
+- For now, the SRI hashes calculation is done only for inlined resources. This
+  will be solved in future releases.
+
 ## How to install
 
 ```bash
