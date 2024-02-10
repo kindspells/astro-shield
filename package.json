@@ -1,12 +1,16 @@
 {
   "name": "@kindspells/astro-sri-csp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "An Astro plugin to compute and inject SRI hashes for script and style tags",
   "private": false,
   "type": "module",
   "main": "main.mjs",
-  "exports": { ".": "./main.mjs" },
-  "files": ["main.mjs"],
+  "types": "main.d.ts",
+  "exports": {
+    "types": "./main.d.ts",
+    "default": "./main.mjs"
+  },
+  "files": ["main.d.ts", "main.mjs"],
   "scripts": {
     "format": "biome format --write .",
     "lint": "biome lint ."
