@@ -18,6 +18,9 @@ hook performs 3 steps:
 
 - For now, the SRI hashes calculation is done only for inlined resources. This
   will be solved in future releases.
+- For now, this integration only works for generated static content (the
+  exported subresource integrity hashes could be used in dynamic contexts, but
+  that does not cover the whole SSG use case)
 
 ## How to install
 
