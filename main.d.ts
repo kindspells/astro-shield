@@ -1,10 +1,8 @@
 declare function sriCSP(
 	distDir: string,
 	hashesOutputModule?: string | undefined,
-): {
-	name: string
-	hooks: {
-		'astro:build:done': () => Promise<void>
-		'astro:server:setup': () => Promise<void>
-	}
+): import('astro').AstroIntegration
+
+declare module '@kindspells/astro-sri-csp' {
+	export default sriCSP
 }

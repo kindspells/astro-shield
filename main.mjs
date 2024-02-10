@@ -222,3 +222,5 @@ export const sriCSP = (distDir, hashesOutputModule) => ({
 			await generateSRIHashes(distDir, hashesOutputModule),
 	},
 })
+
+export default sriCSP
