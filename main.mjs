@@ -6,7 +6,8 @@
 
 import { createHash } from 'node:crypto'
 import { readFile, readdir, stat, writeFile } from 'node:fs/promises'
-import { extname, join } from 'node:path'
+import { extname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 /**
  * @param {string} data
@@ -109,7 +110,7 @@ const scanDirectory = async dirPath => {
 	const inlineStyleHashes = /** @type {Set<string>} */ (new Set())
 
 	for (const file of await readdir(dirPath)) {
-		const filePath = join(dirPath, file)
+		const filePath = resolve(dirPath, file)
 		const stats = await stat(filePath)
 
 		const hashes = stats.isDirectory()
@@ -168,26 +169,25 @@ const arraysEqual = (a, b) => {
 }
 
 /**
- * @param {string} distDir
- * @param {string | undefined} hashesOutputModule
+ * @param {import('./main.d.ts').StrictSriCspOptions} sriCspOptions
  */
-const generateSRIHashes = async (distDir, hashesOutputModule) => {
+const generateSRIHashes = async ({ distDir, sriHashesModule }) => {
 	const hashes = await scanDirectory(distDir)
 
 	const inlineScriptHashes = Array.from(hashes.inlineScriptHashes).sort()
 	const inlineStyleHashes = Array.from(hashes.inlineStyleHashes).sort()
 
-	if (!hashesOutputModule) {
+	if (!sriHashesModule) {
 		return
 	}
 
 	let persistHashes = false
 
-	if (await doesFileExist(hashesOutputModule)) {
+	if (await doesFileExist(sriHashesModule)) {
 		const hashesModule = /** @type {{
 			inlineScriptHashes?: string[] | undefined
 			inlineStyleHashes?: string[] | undefined
-		}} */ (await import(hashesOutputModule))
+		}} */ (await import(sriHashesModule))
 
 		persistHashes =
 			!arraysEqual(inlineScriptHashes, hashesModule.inlineScriptHashes ?? []) ||
@@ -205,22 +205,24 @@ const generateSRIHashes = async (distDir, hashesOutputModule) => {
 			inlineStyleHashes,
 		)})\n`
 
-		await writeFile(hashesOutputModule, hashesFileContent)
+		await writeFile(sriHashesModule, hashesFileContent)
 	}
 }
 
 /**
- * @param {string} distDir
- * @param {string | undefined} hashesOutputModule
+ * @param {import('./main.d.ts').SriCspOptions} sriCspOptions
+ * @returns {import('astro').AstroIntegration}
  */
-export const sriCSP = (distDir, hashesOutputModule) => ({
-	name: 'scp-sri-postbuild',
-	hooks: {
-		'astro:build:done': async () =>
-			await generateSRIHashes(distDir, hashesOutputModule),
-		'astro:server:setup': async () =>
-			await generateSRIHashes(distDir, hashesOutputModule),
-	},
-})
+export const sriCSP = sriCspOptions =>
+	/** @type {import('astro').AstroIntegration} */ ({
+		name: 'scp-sri-postbuild',
+		hooks: {
+			'astro:build:done': async ({ dir }) =>
+				await generateSRIHashes({
+					distDir: fileURLToPath(dir),
+					sriHashesModule: sriCspOptions.sriHashesModule,
+				}),
+		},
+	})
 
 export default sriCSP

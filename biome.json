@@ -16,13 +16,8 @@
 		"indentWidth": 2,
 		"lineWidth": 80,
 		"lineEnding": "lf",
-		"ignore": [
-			"./.sst/**/*",
-			"./dist/**/*",
-			"./node_modules/**/*",
-			"./src/content/emailTemplates/**/*"
-		],
-		"include": ["./*.json", "./*.js", "./*.mjs", "./*.d.ts"]
+		"ignore": ["./node_modules/**/*"],
+		"include": ["./*.json", "./*.mjs", "./*.d.ts"]
 	},
 	"javascript": {
 		"formatter": {

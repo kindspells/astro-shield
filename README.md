@@ -14,25 +14,17 @@ hook performs 3 steps:
    them later for other purposes, such as configuring your
    `Content-Security-Policy` headers.
 
-### Known limitations
-
-- For now, the SRI hashes calculation is done only for inlined resources. This
-  will be solved in future releases.
-- For now, this integration only works for generated static content (the
-  exported subresource integrity hashes could be used in dynamic contexts, but
-  that does not cover the whole SSG use case)
-
 ## How to install
 
 ```bash
 # With NPM
-npm install @kindspells/astro-sri-csp
+npm install --save-dev @kindspells/astro-sri-csp
 
 # With Yarn
-yarn add @kindspells/astro-sri-csp
+yarn add --dev @kindspells/astro-sri-csp
 
 # With PNPM
-pnpm add @kindspells/astro-sri-csp
+pnpm add --save-dev @kindspells/astro-sri-csp
 ```
 
 ## How to use
@@ -40,29 +32,38 @@ pnpm add @kindspells/astro-sri-csp
 In your `astro.config.mjs` file:
 
 ```javascript
-import { join } from 'node:path'
+import { resolve } from 'node:path'
 
 import { defineConfig } from 'astro/config'
 import { sriCSP } from '@kindspells/astro-sri-csp'
 
 const rootDir = new URL('.', import.meta.url).pathname
 
-// In this example we set dist/client because we assume a "hybrid" output, and
-// in that case it makes no sense to traverse the server-side generated code.
-// If your site is 100% static, we shouldn't add the 'client' part.
-const distDir = join(rootDir, 'dist', 'client')
-
-// This is the path where we'll generate the module containing the SRI hashes
-// for your scripts and styles. There's no need to pass this parameter if you
-// don't need this data, but it can be useful to configure your CSP policies.
-const sriHashesModule = join(rootDir, 'src', 'utils', 'sriHashes.mjs')
-
 export default defineConfig({
   integrations: [
-    sriCSP(distDir, sriHashesModule)
+    sriCSP({
+      // This is the path where we'll generate the module containing the SRI
+      // hashes for your scripts and styles. There's no need to pass this
+      // parameter if you don't need this data, but it can be useful to
+      // configure your CSP policies.
+      sriHashesModule: resolve(rootDir, 'src', 'utils', 'sriHashes.mjs'),
+    })
   ]
 })
 ```
+
+## Known limitations
+
+- For now, the SRI hashes calculation is done only for inlined resources. This
+  will be solved in future releases.
+
+- For now, this integration only works for generated static content (the
+  exported subresource integrity hashes could be used in dynamic contexts, but
+  that does not cover the whole SSG use case)
+
+- The SRI hashes will be regenerated only when running `astro build`. This means
+  that if you need them to be up to date when you run `astro dev`, then you will
+  have to manually run `astro build`.
 
 ## License
 
