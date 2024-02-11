@@ -1,0 +1,36 @@
+{
+	"compilerOptions": {
+		"target": "es2022",
+		"module": "Node16",
+		"moduleResolution": "Node16",
+
+		"baseUrl": ".",
+		"noEmit": true,
+
+		"allowJs": true,
+		"checkJs": true,
+
+		"isolatedModules": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+
+		"strict": true,
+		"noImplicitAny": true,
+		"strictNullChecks": true,
+		"strictFunctionTypes": true,
+		"strictBindCallApply": true,
+		"strictPropertyInitialization": true,
+		"noImplicitThis": true,
+		"useUnknownInCatchVariables": true,
+		"alwaysStrict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"exactOptionalPropertyTypes": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+		"noPropertyAccessFromIndexSignature": true,
+
+		"skipLibCheck": true
+	},
+	"include": ["*.mjs", "*.d.ts", "*.ts"]
+}
