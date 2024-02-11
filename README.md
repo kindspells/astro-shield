@@ -6,11 +6,11 @@
 ## Introduction
 
 This library will help you to compute the subresource integrity hashes for your
-_inline_ JS scripts and CSS stylesheets.
+JS scripts and CSS stylesheets.
 
 It works by installing an Astro hook that runs once the build step is done. This
 hook performs 3 steps:
-1. Computes the Subresource Integrity hashes for your inline scripts and inline styles.
+1. Computes the Subresource Integrity hashes for your scripts and styles.
 2. Modifies the generated HTML to include the integrity hashes.
 3. In case you specified a filepath for your SRI hashes module, it will generate
    (or update) a module that exports the associated SRI hashes, so you can use
