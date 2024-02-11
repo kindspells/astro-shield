@@ -28,7 +28,7 @@
 		"exactOptionalPropertyTypes": true,
 		"noUncheckedIndexedAccess": true,
 		"noImplicitOverride": true,
-		"noPropertyAccessFromIndexSignature": true,
+		"noPropertyAccessFromIndexSignature": false,
 
 		"skipLibCheck": true
 	},
