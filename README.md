@@ -1,5 +1,8 @@
 # @kindspells/astro-sri-scp
 
+[![NPM Version](https://img.shields.io/npm/v/%40kindspells%2Fastro-sri-csp)](https://www.npmjs.com/package/@kindspells/astro-sri-csp)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/kindspells/astro-sri-csp)
+
 ## Introduction
 
 This library will help you to compute the subresource integrity hashes for your
