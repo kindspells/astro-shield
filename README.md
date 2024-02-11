@@ -54,9 +54,6 @@ export default defineConfig({
 
 ## Known limitations
 
-- For now, the SRI hashes calculation is done only for inlined resources. This
-  will be solved in future releases.
-
 - For now, this integration only works for generated static content (the
   exported subresource integrity hashes could be used in dynamic contexts, but
   that does not cover the whole SSG use case)
@@ -64,6 +61,14 @@ export default defineConfig({
 - The SRI hashes will be regenerated only when running `astro build`. This means
   that if you need them to be up to date when you run `astro dev`, then you will
   have to manually run `astro build`.
+
+- It seems that when a script is loaded with a _static_ import rather than
+  directly included with a `<script>` tag, having its hash present in the
+  `script-src` directive is not enough to ensure that the browser will accept
+  it.
+  
+  This means that, for now, it is advisable to add `'self'` to the `script-src`
+  directive (adding `'strict-dynamic'` does not help either).
 
 ## License
 
