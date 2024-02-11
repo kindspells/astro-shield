@@ -42,12 +42,6 @@ const rootDir = new URL('.', import.meta.url).pathname
 export default defineConfig({
   integrations: [
     sriCSP({
-      // This parameter is only "necessary" if you are working on something like
-      // "hybrid" output mode. It allows you to constrain the directories and
-      // files scan to just the generated client-side files (therefore saving
-      // time).
-      distDir: 'client',
-
       // This is the path where we'll generate the module containing the SRI
       // hashes for your scripts and styles. There's no need to pass this
       // parameter if you don't need this data, but it can be useful to

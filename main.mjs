@@ -219,7 +219,7 @@ export const sriCSP = sriCspOptions =>
 		hooks: {
 			'astro:build:done': async ({ dir }) =>
 				await generateSRIHashes({
-					distDir: resolve(fileURLToPath(dir), sriCspOptions.distDir ?? ''),
+					distDir: fileURLToPath(dir),
 					sriHashesModule: sriCspOptions.sriHashesModule,
 				}),
 		},
