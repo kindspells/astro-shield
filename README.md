@@ -73,6 +73,26 @@ export default defineConfig({
   This means that, for now, it is advisable to add `'self'` to the `script-src`
   directive (adding `'strict-dynamic'` does not help either).
 
+## Some guarantees for peace of mind
+
+Astro generates files in a very deterministic way, which means that for both JS
+and CSS files:
+  - Their pseudo-random names are stable across different builds
+  - The files' contents do not change from build to build (unless, of course, we
+    change them on purpose), so their hashes are stable as well (this is nice
+    for hot reloading, which does not trigger the logic of this integration).
+
+## Other Relevant Guidelines
+
+- [Code of Conduct](https://github.com/KindSpells/astro-sri-csp?tab=coc-ov-file)
+- [Contributing Guidelines](https://github.com/KindSpells/astro-sri-csp/blob/main/CONTRIBUTING.md)
+- [Security Policy](https://github.com/KindSpells/astro-sri-csp/security/policy)
+
+## Main Contributors
+
+This library has been created and is being maintained by
+[KindSpells Labs](https://kindspells.dev/?utm_source=github&utm_medium=astro_sri_scp&utm_campaign=floss).
+
 ## License
 
-This library is released under [MIT License](LICENSE).
+This library is released under [MIT License](https://github.com/KindSpells/astro-sri-csp?tab=MIT-1-ov-file).
