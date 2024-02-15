@@ -6,7 +6,7 @@
 		"rules": {
 			"recommended": true
 		},
-		"ignore": ["./node_modules/**/*"],
+		"ignore": ["./coverage/**/*", "./node_modules/**/*"],
 		"include": ["./*.json", "./*.js", "./*.mjs", "./*.mts", "./*.d.ts"]
 	},
 	"formatter": {

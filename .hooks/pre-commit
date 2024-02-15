@@ -1,0 +1,7 @@
+#!/bin/sh
+
+set -eu
+set -o pipefail
+
+pnpm lint
+pnpm test

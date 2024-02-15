@@ -17,9 +17,12 @@
 	],
 	"scripts": {
 		"format": "biome format --write .",
-		"lint": "pnpm run lint:biome && pnpm run lint:tsc",
+		"install-githooks": "if [ -d .git ]; then git config core.hooksPath .hooks; fi",
+		"lint": "pnpm run lint:biome && pnpm run lint:tsc && pnpm run lint:publint",
 		"lint:biome": "biome lint .",
+		"lint:publint": "publint",
 		"lint:tsc": "tsc -p .",
+		"prepublishOnly": "pnpm lint && pnpm test",
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage"
 	},
@@ -50,6 +53,7 @@
 		"@types/node": "^20.11.19",
 		"@vitest/coverage-v8": "^1.2.2",
 		"astro": "^4.4.0",
+		"publint": "^0.2.7",
 		"typescript": "^5.3.3",
 		"vitest": "^1.2.2"
 	},

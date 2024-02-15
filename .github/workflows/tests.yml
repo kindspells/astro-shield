@@ -1,0 +1,42 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  merge_group:
+    branches: [ main]
+
+defaults:
+  run:
+    working-directory: .
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        node-version: [ 18, 20 ]
+        os: [ubuntu-22.04]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout repository # v4.0.0
+      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac
+    - name: Install PNPM # v2.4.0
+      uses: pnpm/action-setup@d882d12c64e032187b2edb46d3a0d003b7a43598
+      with:
+        version: 8
+    - name: Use Node.js ${{ matrix.node-version }} # v3.8.1
+      uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    - name: Run Linters
+      run: pnpm lint
+    - name: Run Tests
+      run: pnpm test:coverage
