@@ -1,6 +1,7 @@
 # @kindspells/astro-sri-scp
 
 [![NPM Version](https://img.shields.io/npm/v/%40kindspells%2Fastro-sri-csp)](https://www.npmjs.com/package/@kindspells/astro-sri-csp)
+![NPM Downloads](https://img.shields.io/npm/dw/%40kindspells%2Fastro-sri-csp)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/kindspells/astro-sri-csp)
 
 ## Introduction
