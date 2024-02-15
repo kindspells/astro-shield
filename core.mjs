@@ -69,7 +69,7 @@ export const updateSriHashes = async (logger, distDir, content, h) => {
 		{
 			t: 'Script',
 			regex:
-				/<script(?<attrs>(\s+[a-z][a-z0-9\-_]*(=('[^']*?'|"[^"]*?"))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*script>/gi,
+				/<script(?<attrs>(\s+[a-z][a-z0-9\-_]*(=('[^']*?'|"[^"]*?"))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*script\s*>/gi,
 			replacer: scriptReplacer,
 			hasContent: true,
 			attrsRegex: undefined,
@@ -77,7 +77,7 @@ export const updateSriHashes = async (logger, distDir, content, h) => {
 		{
 			t: 'Style',
 			regex:
-				/<style(?<attrs>(\s+[a-z][a-z0-9\-_]*(=('[^']*?'|"[^"]*?"))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*style>/gi,
+				/<style(?<attrs>(\s+[a-z][a-z0-9\-_]*(=('[^']*?'|"[^"]*?"))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*style\s*>/gi,
 			replacer: styleReplacer,
 			hasContent: true,
 			attrsRegex: undefined,

@@ -191,7 +191,7 @@ describe('updateSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="/core.mjs" integrity="sha256-wX1IJSSLt2R7euylvbWLqrh+JTZCJlJleWlAUMjY6U8="></script>
+				<script type="module" src="/core.mjs" integrity="sha256-GlpkA8WAeGW9d6jr04eDhYbHj9yNtaB4+Q/5HwOc05M="></script>
 			</body>
 		</html>`
 
@@ -205,7 +205,7 @@ describe('updateSriHashes', () => {
 
 		expect(updated).toEqual(expected)
 		expect(h.extScriptHashes.size).toBe(1)
-		expect(h.extScriptHashes.has('sha256-wX1IJSSLt2R7euylvbWLqrh+JTZCJlJleWlAUMjY6U8=')).toBe(true)
+		expect(h.extScriptHashes.has('sha256-GlpkA8WAeGW9d6jr04eDhYbHj9yNtaB4+Q/5HwOc05M=')).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)
 		expect(h.inlineStyleHashes.size).toBe(0)
 		expect(h.extStyleHashes.size).toBe(0)
