@@ -7,7 +7,7 @@
 			"recommended": true
 		},
 		"ignore": ["./node_modules/**/*"],
-		"include": ["./*.json", "./*.js", "./*.mjs", "./*.d.ts"]
+		"include": ["./*.json", "./*.js", "./*.mjs", "./*.mts", "./*.d.ts"]
 	},
 	"formatter": {
 		"enabled": true,
@@ -17,7 +17,7 @@
 		"lineWidth": 80,
 		"lineEnding": "lf",
 		"ignore": ["./node_modules/**/*"],
-		"include": ["./*.json", "./*.mjs", "./*.d.ts"]
+		"include": ["./*.json", "./*.mjs", "./*.mts", "./*.d.ts"]
 	},
 	"javascript": {
 		"formatter": {

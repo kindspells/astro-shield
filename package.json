@@ -20,7 +20,8 @@
 		"lint": "pnpm run lint:biome && pnpm run lint:tsc",
 		"lint:biome": "biome lint .",
 		"lint:tsc": "tsc -p .",
-		"test": "pnpm run lint"
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage"
 	},
 	"keywords": [
 		"astro",
@@ -47,8 +48,10 @@
 	"devDependencies": {
 		"@biomejs/biome": "^1.5.3",
 		"@types/node": "^20.11.19",
+		"@vitest/coverage-v8": "^1.2.2",
 		"astro": "^4.4.0",
-		"typescript": "^5.3.3"
+		"typescript": "^5.3.3",
+		"vitest": "^1.2.2"
 	},
 	"repository": "github:KindSpells/astro-sri-csp",
 	"funding": [

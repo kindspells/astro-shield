@@ -5,8 +5,8 @@ import { generateSRIHashes } from './core.mjs'
  * @param {import('./main.d.ts').SriCspOptions} sriCspOptions
  * @returns {import('./main.d.ts').Integration}
  */
-export const sriCSP = sriCspOptions =>
-	/** @satisfies {import('astro').AstroIntegration} */ ({
+export const sriCSP =
+	sriCspOptions => /** @satisfies {import('astro').AstroIntegration} */ ({
 		name: 'scp-sri-postbuild',
 		hooks: {
 			'astro:build:done': async ({ dir, logger }) =>
