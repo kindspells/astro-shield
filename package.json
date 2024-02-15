@@ -1,6 +1,6 @@
 {
 	"name": "@kindspells/astro-sri-csp",
-	"version": "0.3.1",
+	"version": "0.4.0",
 	"description": "An Astro plugin to compute and inject SRI hashes for script and style tags",
 	"private": false,
 	"type": "module",
@@ -11,6 +11,7 @@
 		"default": "./main.mjs"
 	},
 	"files": [
+		"core.mjs",
 		"main.d.ts",
 		"main.mjs"
 	],
@@ -18,7 +19,8 @@
 		"format": "biome format --write .",
 		"lint": "pnpm run lint:biome && pnpm run lint:tsc",
 		"lint:biome": "biome lint .",
-		"lint:tsc": "tsc -p ."
+		"lint:tsc": "tsc -p .",
+		"test": "pnpm run lint"
 	},
 	"keywords": [
 		"astro",
@@ -32,15 +34,20 @@
 		"subresource-integrity",
 		"withastro"
 	],
-	"author": "KindSpells Labs S.L.",
+	"contributors": [
+		{
+			"name": "Andres Correa Casablanca",
+			"url": "https://blog.coderspirit.xyz/about/"
+		}
+	],
 	"license": "MIT",
 	"peerDependencies": {
-		"astro": "^4.3.5"
+		"astro": "^4.0.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.5.3",
-		"@types/node": "^20.11.17",
-		"astro": "^4.3.5",
+		"@types/node": "^20.11.19",
+		"astro": "^4.4.0",
 		"typescript": "^5.3.3"
 	},
 	"repository": "github:KindSpells/astro-sri-csp",

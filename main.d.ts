@@ -11,8 +11,17 @@ export type SriCspOptions = {
 
 export type StrictSriCspOptions = SriCspOptions & { distDir: string }
 
-export function sriCSP(
-	sriCspOptions: SriCspOptions,
-): import('astro').AstroIntegration
+type AstroBuildDoneOpts = {
+	dir: URL
+	logger: AstroIntegrationLogger
+	pages: { pathname: string }[]
+	routes: RouteData[]
+}
+export type Integration = {
+	name: string
+	hooks: { 'astro:build:done': (opts: AstroBuildDoneOpts) => Promise<void> }
+}
+
+export function sriCSP(sriCspOptions: SriCspOptions): Integration
 
 export default sriCSP
