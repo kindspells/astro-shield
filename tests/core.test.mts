@@ -131,7 +131,11 @@ describe('updateSriHashes', () => {
 
 		expect(updated).toEqual(expected)
 		expect(h.inlineScriptHashes.size).toBe(1)
-		expect(h.inlineScriptHashes.has('sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=')).toBe(true)
+		expect(
+			h.inlineScriptHashes.has(
+				'sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=',
+			),
+		).toBe(true)
 		expect(h.inlineStyleHashes.size).toBe(0)
 		expect(h.extScriptHashes.size).toBe(0)
 		expect(h.extStyleHashes.size).toBe(0)
@@ -170,7 +174,11 @@ describe('updateSriHashes', () => {
 
 		expect(updated).toEqual(expected)
 		expect(h.inlineStyleHashes.size).toBe(1)
-		expect(h.inlineStyleHashes.has('sha256-VATw/GI1Duwve1FGJ+z3c4gwulpBbeoGo1DqO20SdxM=')).toBe(true)
+		expect(
+			h.inlineStyleHashes.has(
+				'sha256-VATw/GI1Duwve1FGJ+z3c4gwulpBbeoGo1DqO20SdxM=',
+			),
+		).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)
 		expect(h.extScriptHashes.size).toBe(0)
 		expect(h.extStyleHashes.size).toBe(0)
@@ -191,7 +199,7 @@ describe('updateSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="/core.mjs" integrity="sha256-GlpkA8WAeGW9d6jr04eDhYbHj9yNtaB4+Q/5HwOc05M="></script>
+				<script type="module" src="/core.mjs" integrity="sha256-S6eKDKBDQlWQK9iS6q12Tz4pn1xZUIq11GbJ1Kj3iA8="></script>
 			</body>
 		</html>`
 
@@ -205,14 +213,19 @@ describe('updateSriHashes', () => {
 
 		expect(updated).toEqual(expected)
 		expect(h.extScriptHashes.size).toBe(1)
-		expect(h.extScriptHashes.has('sha256-GlpkA8WAeGW9d6jr04eDhYbHj9yNtaB4+Q/5HwOc05M=')).toBe(true)
+		expect(
+			h.extScriptHashes.has(
+				'sha256-S6eKDKBDQlWQK9iS6q12Tz4pn1xZUIq11GbJ1Kj3iA8=',
+			),
+		).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)
 		expect(h.inlineStyleHashes.size).toBe(0)
 		expect(h.extStyleHashes.size).toBe(0)
 	})
 
 	it('adds sri hash to external script (cross origin)', async () => {
-		const remoteScript = 'https://raw.githubusercontent.com/KindSpells/astro-sri-csp/ae9521048f2129f633c075b7f7ef24e11bbd1884/main.mjs'
+		const remoteScript =
+			'https://raw.githubusercontent.com/KindSpells/astro-sri-csp/ae9521048f2129f633c075b7f7ef24e11bbd1884/main.mjs'
 		const content = `<html>
 			<head>
 				<title>My Test Page</title>
@@ -227,7 +240,7 @@ describe('updateSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="${remoteScript}" integrity="sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q="></script>
+				<script type="module" src="${remoteScript}" integrity="sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q=" crossorigin="anonymous"></script>
 			</body>
 		</html>`
 
@@ -241,7 +254,11 @@ describe('updateSriHashes', () => {
 
 		expect(updated).toEqual(expected)
 		expect(h.extScriptHashes.size).toBe(1)
-		expect(h.extScriptHashes.has('sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q=')).toBe(true)
+		expect(
+			h.extScriptHashes.has(
+				'sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q=',
+			),
+		).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)
 		expect(h.inlineStyleHashes.size).toBe(0)
 		expect(h.extStyleHashes.size).toBe(0)

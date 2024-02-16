@@ -8,7 +8,7 @@ export default defineConfig({
 			include: ['*.mjs'],
 			exclude: ['tests/**/*'],
 			thresholds: {
-				branches: 55.00,
+				branches: 60.0,
 				lines: 50.0,
 				functions: 50.0,
 				statements: 60.0,

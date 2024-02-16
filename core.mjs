@@ -33,18 +33,32 @@ export const generateSRIHash = data => {
 	return `sha256-${hash.digest('base64')}`
 }
 
-/** @typedef {(hash: string, attrs: string, content?: string | undefined) => string} ElemReplacer */
+/**
+ * @typedef {(
+ *   hash: string,
+ *   attrs: string,
+ *   setCrossorigin: boolean,
+ *   content?: string | undefined,
+ * ) => string} ElemReplacer
+ */
 
 /** @type {ElemReplacer} */
-const scriptReplacer = (hash, attrs, content) =>
-	`<script${attrs} integrity="${hash}">${content ?? ''}</script>`
+const scriptReplacer = (hash, attrs, setCrossorigin, content) =>
+	`<script${attrs} integrity="${hash}"${
+		setCrossorigin ? ' crossorigin="anonymous"' : ''
+	}>${content ?? ''}</script>`
 
 /** @type {ElemReplacer} */
-const styleReplacer = (hash, attrs, content) =>
-	`<style${attrs} integrity="${hash}">${content ?? ''}</style>`
+const styleReplacer = (hash, attrs, setCrossorigin, content) =>
+	`<style${attrs} integrity="${hash}"${
+		setCrossorigin ? ' crossorigin="anonymous"' : ''
+	}>${content ?? ''}</style>`
 
 /** @type {ElemReplacer} */
-const linkStyleReplacer = (hash, attrs) => `<link${attrs} integrity="${hash}"/>`
+const linkStyleReplacer = (hash, attrs, setCrossorigin) =>
+	`<link${attrs} integrity="${hash}"${
+		setCrossorigin ? ' crossorigin="anonymous"' : ''
+	}/>`
 
 const srcRegex = /\s+(src|href)\s*=\s*("(?<src1>.*?)"|'(?<src2>.*?)')/i
 const integrityRegex =
@@ -103,6 +117,7 @@ export const updateSriHashes = async (logger, distDir, content, h) => {
 
 			/** @type {string | undefined} */
 			let sriHash = undefined
+			let setCrossorigin = false
 
 			if (attrs) {
 				if (attrsRegex && !attrsRegex.test(attrs)) {
@@ -133,6 +148,7 @@ export const updateSriHashes = async (logger, distDir, content, h) => {
 						const resourcePath = resolve(distDir, `.${src}`)
 						resourceContent = await readFile(resourcePath)
 					} else if (src.startsWith('http')) {
+						setCrossorigin = true
 						const resourceResponse = await fetch(src, { method: 'GET' })
 						resourceContent = await resourceResponse.arrayBuffer()
 					} else {
@@ -153,7 +169,7 @@ export const updateSriHashes = async (logger, distDir, content, h) => {
 			if (sriHash) {
 				updatedContent = updatedContent.replace(
 					match[0],
-					replacer(sriHash, attrs, content),
+					replacer(sriHash, attrs, setCrossorigin, content),
 				)
 			}
 		}
