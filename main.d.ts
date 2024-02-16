@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 export type SriCspOptions = {
 	/**
 	 * Specifies the path for the auto-generated module that will contain the SRI

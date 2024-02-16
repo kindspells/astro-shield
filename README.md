@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
 # @kindspells/astro-sri-scp
 
 [![NPM Version](https://img.shields.io/npm/v/%40kindspells%2Fastro-sri-csp)](https://www.npmjs.com/package/@kindspells/astro-sri-csp)
