@@ -1,0 +1,34 @@
+name: Publish Package to npmjs
+on:
+  release:
+    types: [created]
+jobs:
+  build:
+    strategy:
+      matrix:
+        node-version: [20]
+        os: [ubuntu-22.04]
+
+    runs-on: ${{ matrix.os }}
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: Checkout repository # v4.1.1
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - name: Install PNPM # v3.0.0
+      uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d
+      with:
+        version: '8.15.1'
+    - name: Use Node.js ${{ matrix.node-version }} # v4.0.2
+      uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
+      with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+    - run: pnpm publish --provenance
+      env:
+        NPM_CONFIG_PROVENANCE: 'true'
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

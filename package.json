@@ -1,6 +1,6 @@
 {
 	"name": "@kindspells/astro-sri-csp",
-	"version": "0.4.1",
+	"version": "0.4.2",
 	"description": "An Astro plugin to compute and inject SRI hashes for script and style tags",
 	"private": false,
 	"type": "module",
@@ -76,5 +76,8 @@
 	"packageManager": "pnpm@8.15.1",
 	"engines": {
 		"node": ">= 18.0.0"
+	},
+	"publishConfig": {
+		"provenance": true
 	}
 }
