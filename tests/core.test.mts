@@ -14,7 +14,6 @@ import {
 	updateSriHashes,
 } from '../core.mjs'
 import { AstroIntegrationLogger } from 'astro'
-import exp from 'node:constants'
 
 const testsDir = new URL('.', import.meta.url).pathname
 const rootDir = resolve(testsDir, '..')
@@ -115,6 +114,45 @@ describe('updateSriHashes', () => {
 			</head>
 			<body>
 				<script>console.log("Hello World!")</script>
+			</body>
+		</html>`
+
+		const expected = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<script integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=">console.log("Hello World!")</script>
+			</body>
+		</html>`
+
+		const h = getEmptyHashes()
+		const updated = await updateSriHashes(
+			console as unknown as AstroIntegrationLogger,
+			testsDir,
+			content,
+			h,
+		)
+
+		expect(updated).toEqual(expected)
+		expect(h.inlineScriptHashes.size).toBe(1)
+		expect(
+			h.inlineScriptHashes.has(
+				'sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=',
+			),
+		).toBe(true)
+		expect(h.inlineStyleHashes.size).toBe(0)
+		expect(h.extScriptHashes.size).toBe(0)
+		expect(h.extStyleHashes.size).toBe(0)
+	})
+
+	it('preserves sri hash in inline script', async () => {
+		const content = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<script integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=">console.log("Hello World!")</script>
 			</body>
 		</html>`
 
@@ -268,6 +306,51 @@ describe('updateSriHashes', () => {
 		expect(h.inlineScriptHashes.size).toBe(0)
 		expect(h.inlineStyleHashes.size).toBe(0)
 		expect(h.extStyleHashes.size).toBe(0)
+	})
+
+	it('adds sri hash to external style (same origin)', async () => {
+		const content = `<html>
+			<head>
+				<title>My Test Page</title>
+				<link rel="canonical" href="https://example.com" />
+				<link rel="stylesheet" href="/fake.css">
+			</head>
+			<body>
+				<h1>My Test Page</h1>
+				<p>Some text</p>
+			</body>
+		</html>`
+
+		const expected = `<html>
+			<head>
+				<title>My Test Page</title>
+				<link rel="canonical" href="https://example.com" />
+				<link rel="stylesheet" href="/fake.css" integrity="sha256-gl5rCtPAw9BpVpGpdLhrf4LFwVUQ0FgQ5D231KxY2/w="/>
+			</head>
+			<body>
+				<h1>My Test Page</h1>
+				<p>Some text</p>
+			</body>
+		</html>`
+
+		const h = getEmptyHashes()
+		const updated = await updateSriHashes(
+			console as unknown as AstroIntegrationLogger,
+			testsDir,
+			content,
+			h,
+		)
+
+		expect(updated).toEqual(expected)
+		expect(h.extStyleHashes.size).toBe(1)
+		expect(
+			h.extStyleHashes.has(
+				'sha256-gl5rCtPAw9BpVpGpdLhrf4LFwVUQ0FgQ5D231KxY2/w=',
+			),
+		).toBe(true)
+		expect(h.inlineScriptHashes.size).toBe(0)
+		expect(h.extScriptHashes.size).toBe(0)
+		expect(h.inlineStyleHashes.size).toBe(0)
 	})
 
 	// TODO: Add tests for external styles
