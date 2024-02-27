@@ -6,14 +6,18 @@
 
 import { createHash } from 'node:crypto'
 import { readFile, readdir, stat, writeFile } from 'node:fs/promises'
-import { extname, resolve } from 'node:path'
+import { extname, resolve, relative } from 'node:path'
 
 /**
+ * @typedef {{ scripts: Set<string>; styles: Set<String> }} PerPageHashes
+ * @typedef {Map<string, PerPageHashes>} PerPageHashesCollection
+ *
  * @typedef {{
  * 	inlineScriptHashes: Set<string>,
  * 	inlineStyleHashes: Set<string>,
  * 	extScriptHashes: Set<string>,
  * 	extStyleHashes: Set<string>,
+ * 	perPageSriHashes: PerPageHashesCollection,
  * }} HashesCollection
  */
 
@@ -74,11 +78,18 @@ const relStylesheetRegex = /\s+rel\s*=\s*('stylesheet'|"stylesheet")/i
  *
  * @param {import('astro').AstroIntegrationLogger} logger
  * @param {string} distDir
+ * @param {string} relativeFilepath
  * @param {string} content
  * @param {HashesCollection} h
  * @returns {Promise<string>}
  */
-export const updateSriHashes = async (logger, distDir, content, h) => {
+export const updateSriHashes = async (
+	logger,
+	distDir,
+	relativeFilepath,
+	content,
+	h,
+) => {
 	const processors = /** @type {const} */ ([
 		{
 			t: 'Script',
@@ -105,6 +116,14 @@ export const updateSriHashes = async (logger, distDir, content, h) => {
 			attrsRegex: relStylesheetRegex,
 		},
 	])
+
+	const pageHashes =
+		h.perPageSriHashes.get(relativeFilepath) ??
+		/** @type {PerPageHashes} */ ({
+			scripts: new Set(),
+			styles: new Set(),
+		})
+	h.perPageSriHashes.set(relativeFilepath, pageHashes)
 
 	let updatedContent = content
 	let match
@@ -135,6 +154,9 @@ export const updateSriHashes = async (logger, distDir, content, h) => {
 						;(srcMatch ? h[`ext${t}Hashes`] : h[`inline${t}Hashes`]).add(
 							sriHash,
 						)
+						pageHashes[
+							/** @type {'styles' | 'scripts'} */ (`${t.toLowerCase()}s`)
+						].add(sriHash)
 						continue
 					}
 				}
@@ -158,12 +180,18 @@ export const updateSriHashes = async (logger, distDir, content, h) => {
 
 					sriHash = generateSRIHash(resourceContent)
 					h[`ext${t}Hashes`].add(sriHash)
+					pageHashes[
+						/** @type {'styles' | 'scripts'} */ (`${t.toLowerCase()}s`)
+					].add(sriHash)
 				}
 			}
 
 			if (hasContent && !sriHash) {
 				sriHash = generateSRIHash(content)
 				h[`inline${t}Hashes`].add(sriHash)
+				pageHashes[
+					/** @type {'styles' | 'scripts'} */ (`${t.toLowerCase()}s`)
+				].add(sriHash)
 			}
 
 			if (sriHash) {
@@ -186,7 +214,13 @@ export const updateSriHashes = async (logger, distDir, content, h) => {
  */
 const processHTMLFile = async (logger, filePath, distDir, h) => {
 	const content = await readFile(filePath, 'utf8')
-	const updatedContent = await updateSriHashes(logger, distDir, content, h)
+	const updatedContent = await updateSriHashes(
+		logger,
+		distDir,
+		relative(distDir, filePath),
+		content,
+		h,
+	)
 
 	if (updatedContent !== content) {
 		await writeFile(filePath, updatedContent)
@@ -248,6 +282,36 @@ export const arraysEqual = (a, b) => {
 }
 
 /**
+ * @param {Record<string, { scripts: string[], styles: string[] }>} a
+ * @param {Record<string, { scripts: string[], styles: string[] }>} b
+ * @returns {boolean}
+ */
+export const pageHashesEqual = (a, b) => {
+	const aKeys = Object.keys(a).sort()
+	const bKeys = Object.keys(b).sort()
+
+	if (!arraysEqual(aKeys, bKeys)) {
+		return false
+	}
+
+	for (const [aKey, aValue] of Object.entries(a)) {
+		const bValue = b[aKey]
+		if (!bValue) {
+			return false
+		}
+
+		if (
+			!arraysEqual(aValue.scripts, bValue.scripts) ||
+			!arraysEqual(aValue.styles, bValue.styles)
+		) {
+			return false
+		}
+	}
+
+	return true
+}
+
+/**
  * This is a hack to scan for nested scripts in the `_astro` directory, but they
  * should be detected in a recursive way, when we process the JS files that are
  * being directly imported in the HTML files.
@@ -285,12 +349,13 @@ export const generateSRIHashes = async (
 	logger,
 	{ distDir, sriHashesModule },
 ) => {
-	const h = {
+	const h = /** @type {HashesCollection} */ ({
 		inlineScriptHashes: new Set(),
 		inlineStyleHashes: new Set(),
 		extScriptHashes: new Set(),
 		extStyleHashes: new Set(),
-	}
+		perPageSriHashes: new Map(),
+	})
 	await scanDirectory(logger, distDir, distDir, h)
 
 	// TODO: Remove temporary hack
@@ -306,20 +371,29 @@ export const generateSRIHashes = async (
 	const inlineStyleHashes = Array.from(h.inlineStyleHashes).sort()
 	const extScriptHashes = Array.from(h.extScriptHashes).sort()
 	const extStyleHashes = Array.from(h.extStyleHashes).sort()
+	const perPageHashes =
+		/** @type {Record<string, { scripts: string[]; styles: string [] }>} */ ({})
+	for (const [k, v] of h.perPageSriHashes.entries()) {
+		perPageHashes[k] = {
+			scripts: Array.from(v.scripts).sort(),
+			styles: Array.from(v.styles).sort(),
+		}
+	}
 
 	if (await doesFileExist(sriHashesModule)) {
-		const hModule = /** @type {{
-			inlineScriptHashes?: string[] | undefined
-			inlineStyleHashes?: string[] | undefined
-			extScriptHashes?: string[] | undefined
-			extStyleHashes?: string[] | undefined
-		}} */ (await import(sriHashesModule))
+		const hModule = /**
+			@type {{
+				[k in keyof HashesCollection]: HashesCollection[k] extends Set<string>
+					? string[] | undefined
+					: Record<string, { scripts: string[]; styles: string [] }>
+		  }} */ (await import(sriHashesModule))
 
 		persistHashes =
 			!arraysEqual(inlineScriptHashes, hModule.inlineScriptHashes ?? []) ||
 			!arraysEqual(inlineStyleHashes, hModule.inlineStyleHashes ?? []) ||
 			!arraysEqual(extScriptHashes, hModule.extScriptHashes ?? []) ||
-			!arraysEqual(extStyleHashes, hModule.extStyleHashes ?? [])
+			!arraysEqual(extStyleHashes, hModule.extStyleHashes ?? []) ||
+			!pageHashesEqual(perPageHashes, hModule.perPageSriHashes ?? {})
 	} else {
 		persistHashes = true
 	}
@@ -337,7 +411,21 @@ export const generateSRIHashes = async (
 			.join('')}${extScriptHashes.length > 0 ? '\n' : ''}])\n\n`
 		hashesFileContent += `export const extStyleHashes = /** @type {string[]} */ ([${extStyleHashes
 			.map(h => `\n\t'${h}',`)
-			.join('')}${extStyleHashes.length > 0 ? '\n' : ''}])\n`
+			.join('')}${extStyleHashes.length > 0 ? '\n' : ''}])\n\n`
+		hashesFileContent += `export const perPageSriHashes =\n\t/** @type {Record<string, { scripts: string[]; styles: string [] }>} */ ({${Object.entries(
+			perPageHashes,
+		)
+			.sort()
+			.map(([k, v]) => {
+				return `\n\t\t'${k}': {\n\t\t\tscripts: [${v.scripts
+					.map(h => `\n\t\t\t\t'${h}',`)
+					.join('')}${
+					v.scripts.length > 0 ? '\n\t\t\t' : ''
+				}],\n\t\t\tstyles: [${v.styles.map(h => `\n\t\t\t\t'${h}',`).join('')}${
+					v.styles.length > 0 ? '\n\t\t\t' : ''
+				}],\n\t\t}`
+			})
+			.join(',')}}\n)`
 
 		await writeFile(sriHashesModule, hashesFileContent)
 	}

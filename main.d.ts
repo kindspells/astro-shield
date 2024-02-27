@@ -28,6 +28,6 @@ export type Integration = {
 	hooks: { 'astro:build:done': (opts: AstroBuildDoneOpts) => Promise<void> }
 }
 
-export function sriCSP(sriCspOptions: ShieldOptions): Integration
+export function shield(sriCspOptions: ShieldOptions): Integration
 
-export default sriCSP
+export default shield

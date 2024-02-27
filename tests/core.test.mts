@@ -11,6 +11,7 @@ import {
 	arraysEqual,
 	doesFileExist,
 	generateSRIHash,
+	pageHashesEqual,
 	updateSriHashes,
 } from '../core.mjs'
 import { AstroIntegrationLogger } from 'astro'
@@ -48,6 +49,63 @@ describe('arraysEqual', () => {
 		(arr1: unknown[], arr2: unknown[]) => {
 			expect(arr1).not.toEqual(arr2)
 			expect(arraysEqual(arr1, arr2)).toBe(false)
+		},
+	)
+})
+
+type PageHashesCollection = Record<
+	string,
+	{
+		scripts: string[]
+		styles: string[]
+	}
+>
+
+describe('pageHashesEqual', () => {
+	it.each([
+		[{}, {}],
+		[
+			{ 'index.html': { scripts: [], styles: [] } },
+			{ 'index.html': { scripts: [], styles: [] } },
+		],
+		[
+			{ 'index.html': { scripts: ['abcdefg'], styles: [] } },
+			{ 'index.html': { scripts: ['abcdefg'], styles: [] } },
+		],
+		[
+			{
+				'index.html': { scripts: ['abcdefg'], styles: [] },
+				'about.html': { scripts: [], styles: ['xyz'] },
+			},
+			{
+				'index.html': { scripts: ['abcdefg'], styles: [] },
+				'about.html': { scripts: [], styles: ['xyz'] },
+			},
+		],
+	])(
+		'returns true for equal hash collections',
+		(a: PageHashesCollection, b: PageHashesCollection) => {
+			expect(pageHashesEqual(a, b)).toBe(true)
+		},
+	)
+
+	it.each([
+		[{}, { 'index.html': { scripts: [], styles: [] } }],
+		[
+			{ 'index.html': { scripts: [], styles: [] } },
+			{ 'index.html': { scripts: ['abcdefg'], styles: [] } },
+		],
+		[
+			{ 'index.html': { scripts: ['abcdefg'], styles: [] } },
+			{
+				'index.html': { scripts: ['abcdefg'], styles: [] },
+				'about.html': { scripts: [], styles: ['xyz'] },
+			},
+		],
+	])(
+		'returns false for non-equal hash collections',
+		(a: PageHashesCollection, b: PageHashesCollection) => {
+			expect(pageHashesEqual(a, b)).toBe(false)
 		},
 	)
 })
@@ -105,6 +163,10 @@ describe('updateSriHashes', () => {
 		inlineStyleHashes: new Set<string>(),
 		extScriptHashes: new Set<string>(),
 		extStyleHashes: new Set<string>(),
+		perPageSriHashes: new Map<
+			string,
+			{ scripts: Set<string>; styles: Set<string> }
+		>(),
 	})
 
 	it('adds sri hash to inline script', async () => {
@@ -130,6 +192,7 @@ describe('updateSriHashes', () => {
 		const updated = await updateSriHashes(
 			console as unknown as AstroIntegrationLogger,
 			testsDir,
+			'index.html',
 			content,
 			h,
 		)
@@ -169,6 +232,7 @@ describe('updateSriHashes', () => {
 		const updated = await updateSriHashes(
 			console as unknown as AstroIntegrationLogger,
 			testsDir,
+			'index.html',
 			content,
 			h,
 		)
@@ -212,6 +276,7 @@ describe('updateSriHashes', () => {
 		const updated = await updateSriHashes(
 			console as unknown as AstroIntegrationLogger,
 			testsDir,
+			'index.html',
 			content,
 			h,
 		)
@@ -243,7 +308,7 @@ describe('updateSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="/core.mjs" integrity="sha256-x7uRLb8+NGUBpUesXYoSUG1jjxycYKTUPY6xv7DFVRM="></script>
+				<script type="module" src="/core.mjs" integrity="sha256-kw3sUNwwIbNJd5X5nyEclIhbb9UoOHAC0ouWE6pUUKU="></script>
 			</body>
 		</html>`
 
@@ -251,6 +316,7 @@ describe('updateSriHashes', () => {
 		const updated = await updateSriHashes(
 			console as unknown as AstroIntegrationLogger,
 			rootDir,
+			'index.html',
 			content,
 			h,
 		)
@@ -259,7 +325,7 @@ describe('updateSriHashes', () => {
 		expect(h.extScriptHashes.size).toBe(1)
 		expect(
 			h.extScriptHashes.has(
-				'sha256-x7uRLb8+NGUBpUesXYoSUG1jjxycYKTUPY6xv7DFVRM=',
+				'sha256-kw3sUNwwIbNJd5X5nyEclIhbb9UoOHAC0ouWE6pUUKU=',
 			),
 		).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)
@@ -292,6 +358,7 @@ describe('updateSriHashes', () => {
 		const updated = await updateSriHashes(
 			console as unknown as AstroIntegrationLogger,
 			rootDir,
+			'index.html',
 			content,
 			h,
 		)
@@ -337,6 +404,7 @@ describe('updateSriHashes', () => {
 		const updated = await updateSriHashes(
 			console as unknown as AstroIntegrationLogger,
 			testsDir,
+			'index.html',
 			content,
 			h,
 		)
