@@ -279,7 +279,7 @@ const scanForNestedScripts = async (dirPath, extScriptHashes) => {
 
 /**
  * @param {import('astro').AstroIntegrationLogger} logger
- * @param {import('./main.d.ts').StrictSriCspOptions} sriCspOptions
+ * @param {import('./main.d.ts').StrictShieldOptions} shieldOptions
  */
 export const generateSRIHashes = async (
 	logger,

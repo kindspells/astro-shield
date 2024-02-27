@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-export type SriCspOptions = {
+export type ShieldOptions = {
 	/**
 	 * Specifies the path for the auto-generated module that will contain the SRI
 	 * hashes. Note that:
@@ -15,7 +15,7 @@ export type SriCspOptions = {
 	sriHashesModule?: string | undefined
 }
 
-export type StrictSriCspOptions = SriCspOptions & { distDir: string }
+export type StrictShieldOptions = ShieldOptions & { distDir: string }
 
 type AstroBuildDoneOpts = {
 	dir: URL
@@ -28,6 +28,6 @@ export type Integration = {
 	hooks: { 'astro:build:done': (opts: AstroBuildDoneOpts) => Promise<void> }
 }
 
-export function sriCSP(sriCspOptions: SriCspOptions): Integration
+export function sriCSP(sriCspOptions: ShieldOptions): Integration
 
 export default sriCSP

@@ -48,4 +48,4 @@ jobs:
       uses: codecov/codecov-action@v4.0.1
       env:
         token: ${{ secrets.CODECOV_TOKEN }}
-        slug: KindSpells/astro-sri-csp
+        slug: KindSpells/astro-shield

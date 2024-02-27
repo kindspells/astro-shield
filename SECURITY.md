@@ -18,7 +18,7 @@ possible.
 ## Reporting a Vulnerability
 
 You can report security vulnerabilities through our
-[Security Advisories section](https://github.com/KindSpells/astro-sri-csp/security/advisories).
+[Security Advisories section](https://github.com/KindSpells/astro-shield/security/advisories).
 
 If you want to learn more on how to report vulnerabilities, you can check these
 resources:

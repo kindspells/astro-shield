@@ -8,12 +8,12 @@ import { fileURLToPath } from 'node:url'
 import { generateSRIHashes } from './core.mjs'
 
 /**
- * @param {import('./main.d.ts').SriCspOptions} sriCspOptions
+ * @param {import('./main.d.ts').ShieldOptions} sriCspOptions
  * @returns {import('./main.d.ts').Integration}
  */
-export const sriCSP =
+export const shield =
 	sriCspOptions => /** @satisfies {import('astro').AstroIntegration} */ ({
-		name: 'astro-sri-csp',
+		name: '@kindspells/astro-shield',
 		hooks: {
 			'astro:build:done': async ({ dir, logger }) =>
 				await generateSRIHashes(logger, {
@@ -23,4 +23,4 @@ export const sriCSP =
 		},
 	})
 
-export default sriCSP
+export default shield

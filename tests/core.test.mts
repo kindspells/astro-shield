@@ -243,7 +243,7 @@ describe('updateSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="/core.mjs" integrity="sha256-S6eKDKBDQlWQK9iS6q12Tz4pn1xZUIq11GbJ1Kj3iA8="></script>
+				<script type="module" src="/core.mjs" integrity="sha256-x7uRLb8+NGUBpUesXYoSUG1jjxycYKTUPY6xv7DFVRM="></script>
 			</body>
 		</html>`
 
@@ -259,7 +259,7 @@ describe('updateSriHashes', () => {
 		expect(h.extScriptHashes.size).toBe(1)
 		expect(
 			h.extScriptHashes.has(
-				'sha256-S6eKDKBDQlWQK9iS6q12Tz4pn1xZUIq11GbJ1Kj3iA8=',
+				'sha256-x7uRLb8+NGUBpUesXYoSUG1jjxycYKTUPY6xv7DFVRM=',
 			),
 		).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)
@@ -269,7 +269,7 @@ describe('updateSriHashes', () => {
 
 	it('adds sri hash to external script (cross origin)', async () => {
 		const remoteScript =
-			'https://raw.githubusercontent.com/KindSpells/astro-sri-csp/ae9521048f2129f633c075b7f7ef24e11bbd1884/main.mjs'
+			'https://raw.githubusercontent.com/KindSpells/astro-shield/ae9521048f2129f633c075b7f7ef24e11bbd1884/main.mjs'
 		const content = `<html>
 			<head>
 				<title>My Test Page</title>

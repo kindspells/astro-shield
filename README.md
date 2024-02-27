@@ -5,10 +5,10 @@ SPDX-License-Identifier: CC-BY-4.0
 -->
 # @kindspells/astro-sri-scp
 
-[![NPM Version](https://img.shields.io/npm/v/%40kindspells%2Fastro-sri-csp)](https://www.npmjs.com/package/@kindspells/astro-sri-csp)
-![NPM Downloads](https://img.shields.io/npm/dw/%40kindspells%2Fastro-sri-csp)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/w/kindspells/astro-sri-csp)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/kindspells/astro-sri-csp/tests.yml)
+[![NPM Version](https://img.shields.io/npm/v/%40kindspells%2Fastro-shield)](https://www.npmjs.com/package/@kindspells/astro-shield)
+![NPM Downloads](https://img.shields.io/npm/dw/%40kindspells%2Fastro-shield)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/kindspells/astro-shield)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/kindspells/astro-shield/tests.yml)
 
 ## Introduction
 
@@ -28,13 +28,13 @@ hook performs 3 steps:
 
 ```bash
 # With NPM
-npm install --save-dev @kindspells/astro-sri-csp
+npm install --save-dev @kindspells/astro-shield
 
 # With Yarn
-yarn add --dev @kindspells/astro-sri-csp
+yarn add --dev @kindspells/astro-shield
 
 # With PNPM
-pnpm add --save-dev @kindspells/astro-sri-csp
+pnpm add --save-dev @kindspells/astro-shield
 ```
 
 ## How to use
@@ -45,7 +45,7 @@ In your `astro.config.mjs` file:
 import { resolve } from 'node:path'
 
 import { defineConfig } from 'astro/config'
-import { sriCSP } from '@kindspells/astro-sri-csp'
+import { sriCSP } from '@kindspells/astro-shield'
 
 const rootDir = new URL('.', import.meta.url).pathname
 
@@ -91,9 +91,9 @@ and CSS files:
 
 ## Other Relevant Guidelines
 
-- [Code of Conduct](https://github.com/KindSpells/astro-sri-csp?tab=coc-ov-file)
-- [Contributing Guidelines](https://github.com/KindSpells/astro-sri-csp/blob/main/CONTRIBUTING.md)
-- [Security Policy](https://github.com/KindSpells/astro-sri-csp/security/policy)
+- [Code of Conduct](https://github.com/KindSpells/astro-shield?tab=coc-ov-file)
+- [Contributing Guidelines](https://github.com/KindSpells/astro-shield/blob/main/CONTRIBUTING.md)
+- [Security Policy](https://github.com/KindSpells/astro-shield/security/policy)
 
 ## Main Contributors
 
@@ -102,4 +102,4 @@ This library has been created and is being maintained by
 
 ## License
 
-This library is released under [MIT License](https://github.com/KindSpells/astro-sri-csp?tab=MIT-1-ov-file).
+This library is released under [MIT License](https://github.com/KindSpells/astro-shield?tab=MIT-1-ov-file).
