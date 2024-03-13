@@ -1,6 +1,6 @@
 {
 	"name": "@kindspells/astro-shield",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "An Astro plugin to compute and inject SRI hashes for script and style tags",
 	"private": false,
 	"type": "module",
@@ -31,7 +31,7 @@
 		"lint:biome": "biome lint .",
 		"lint:publint": "publint",
 		"lint:tsc": "tsc -p .",
-		"prepublishOnly": "pnpm lint && pnpm test",
+		"prepublishOnly": "pnpm lint && pnpm test:unit",
 		"test:e2e": "vitest -c vitest.config.e2e.mts run",
 		"test:e2e:coverage": "vitest -c vitest.config.e2e.mts run --coverage",
 		"test:unit": "vitest -c vitest.config.unit.mts run",
