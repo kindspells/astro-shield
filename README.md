@@ -9,6 +9,7 @@ SPDX-License-Identifier: CC-BY-4.0
 ![NPM Downloads](https://img.shields.io/npm/dw/%40kindspells%2Fastro-shield)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/kindspells/astro-shield)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/kindspells/astro-shield/tests.yml)
+[![Socket Badge](https://socket.dev/api/badge/npm/package/@kindspells/astro-shield)](https://socket.dev/npm/package/@kindspells/astro-shield)
 
 ## Introduction
 
