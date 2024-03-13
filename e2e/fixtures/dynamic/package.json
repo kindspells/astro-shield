@@ -1,0 +1,19 @@
+{
+	"name": "dynamic",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"type": "module",
+	"scripts": {
+		"build": "astro build",
+		"clean": "rm -rf ./dist; rm -rf ./src/generated/*"
+	},
+	"license": "MIT",
+	"dependencies": {
+		"@astrojs/node": "^8.2.3",
+		"astro": "^4.5.2"
+	},
+	"devDependencies": {
+		"@kindspells/astro-shield": "link:../../.."
+	}
+}

@@ -8,4 +8,4 @@ set -eu
 set -o pipefail
 
 pnpm lint
-pnpm test
+pnpm test:unit
