@@ -52,6 +52,13 @@ const rootDir = new URL('.', import.meta.url).pathname
 export default defineConfig({
   integrations: [
     shield({
+      // Enables SRI hashes generation for statically generated pages
+      enableStatic_SRI: true, // true by default
+
+      // Enables a middleware that generates SRI hashes for dynamically
+      // generated pages
+      enableMiddleware_SRI: false, // false by default
+
       // This is the path where we'll generate the module containing the SRI
       // hashes for your scripts and styles. There's no need to pass this
       // parameter if you don't need this data, but it can be useful to
@@ -123,10 +130,6 @@ export const perPageSriHashes =
 > value.
 
 ## Known limitations
-
-- For now, this integration only works for generated static content (the
-  exported subresource integrity hashes could be used in dynamic contexts, but
-  that does not cover the whole SSG use case)
 
 - The SRI hashes will be regenerated only when running `astro build`. This means
   that if you need them to be up to date when you run `astro dev`, then you will
