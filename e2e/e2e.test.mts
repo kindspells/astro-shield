@@ -25,9 +25,13 @@ const execFile = promisify(_execFile)
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const fixturesDir = resolve(currentDir, 'fixtures')
 
-const _checkHtmlIsPatched = (content: string) => {
+const _checkHtmlIsPatched = (
+	content: string,
+	extResources: Record<string, string> = {},
+) => {
 	const integrityRegex =
 		/\s+integrity\s*=\s*("(?<integrity1>.*?)"|'(?<integrity2>.*?)')/i
+	const srcRegex = /\s+src\s*=\s*("(?<src1>.*?)"|'(?<src2>.*?)')/i
 	const scriptRegex =
 		/<script(?<attrs>(\s+[a-z][a-z0-9\-_]*(=('[^']*?'|"[^"]*?"))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*script\s*>/gi
 	const styleRegex =
@@ -41,17 +45,25 @@ const _checkHtmlIsPatched = (content: string) => {
 	const { attrs: scriptAttrs, content: scriptContent } =
 		scriptMatch.groups ?? {}
 	assert(scriptAttrs !== undefined)
-	assert(scriptContent !== undefined)
 
 	const scriptIntegrityMatch = integrityRegex.exec(scriptAttrs)
 	assert(scriptIntegrityMatch !== null)
-
 	const scriptIntegrity =
 		scriptIntegrityMatch.groups?.integrity1 ??
 		scriptIntegrityMatch.groups?.integrity2
 	assert(scriptIntegrity !== undefined)
 
-	expect(scriptIntegrity).toEqual(generateSRIHash(scriptContent))
+	const scriptSrcMatch = srcRegex.exec(scriptAttrs)
+
+	if (scriptSrcMatch === null) {
+		assert(scriptContent !== undefined)
+		expect(scriptIntegrity).toEqual(generateSRIHash(scriptContent))
+	} else {
+		assert(!scriptContent)
+		const src = scriptSrcMatch.groups?.src1 ?? scriptSrcMatch.groups?.src2
+		assert(src !== undefined && src.length > 0)
+		expect(scriptIntegrity).toEqual(extResources[src])
+	}
 
 	// Checking for inline styles
 	// -------------------------------------------------------------------------
@@ -219,8 +231,8 @@ describe('middleware', () => {
 		await execFile('pnpm', ['run', 'build'], execOpts)
 	})
 
-	beforeEach(async (...args) => {
-		port = 1024 + Math.floor(Math.random() * 64511)
+	beforeEach(async () => {
+		port = 9999 + Math.floor(Math.random() * 55536)
 		urlBase = `http://localhost:${port}`
 
 		await cleanServer()
@@ -251,5 +263,60 @@ describe('middleware', () => {
 
 	it('patches inline resources for dynamically generated pages', async () => {
 		await checkHtmlIsPatched('/')
+	})
+})
+
+describe('middleware (hybrid)', () => {
+	const hybridDir = resolve(fixturesDir, 'hybrid')
+	const execOpts = { cwd: hybridDir }
+
+	let urlBase: string
+	let server: PreviewServer | undefined
+	let port: number
+
+	beforeAll(async () => {
+		await execFile('pnpm', ['install'], execOpts)
+		await execFile('pnpm', ['run', 'clean'], execOpts)
+		const { stdout: buildStdout } = await execFile('pnpm', ['run', 'build'], execOpts)
+		expect(buildStdout).toMatch(/run the build step again/)
+		const { stdout: buildStdout2 } = await execFile('pnpm', ['run', 'build'], execOpts)
+		expect(buildStdout2).not.toMatch(/run the build step again/)
+	})
+
+	beforeEach(async () => {
+		port = 9999 + Math.floor(Math.random() * 55536)
+		urlBase = `http://localhost:${port}`
+
+		await cleanServer()
+		server = await preview({
+			root: hybridDir,
+			server: { port },
+			logLevel: 'debug',
+		})
+	})
+
+	const cleanServer = async () => {
+		if (server) {
+			if (!server.closed()) {
+				await server.stop()
+			}
+			server = undefined
+		}
+	}
+
+	afterEach(cleanServer)
+	afterAll(cleanServer) // Just in case
+
+	const checkHtmlIsPatched = async (
+		path: string,
+		extResources: Record<string, string> = {},
+	) => {
+		const response = await fetch(urlBase + path)
+		const content = await response.text()
+		return _checkHtmlIsPatched(content, extResources)
+	}
+
+	it('patches inline resources for dynamically generated pages referring static resources', async () => {
+		await checkHtmlIsPatched('/', { '/code.js': 'sha256-X7QGGDHgf6XMoabXvV9pW7gl3ALyZhZlgKq1s3pwmME=' })
 	})
 })

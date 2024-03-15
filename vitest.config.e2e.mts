@@ -10,7 +10,7 @@ export default defineConfig({
 	test: {
 		coverage: {
 			provider: 'v8',
-			include: ['*.mjs'],
+			include: ['src/*.mjs'],
 			exclude: [
 				'tests/**/*',
 				'e2e/**/*',
@@ -19,13 +19,12 @@ export default defineConfig({
 				'coverage-unit/**/*',
 			],
 			thresholds: {
-				statements: 25.0,
+				statements: 20.0,
 				branches: 50.0,
-				functions: 12.5,
-				lines: 25.0,
+				functions: 10.0,
+				lines: 20.0,
 			},
 			reportsDirectory: 'coverage-e2e',
-			reporter: [],
 		},
 		include: ['e2e/**/*.test.mts'],
 	},

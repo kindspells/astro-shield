@@ -877,7 +877,7 @@ describe('generateSRIHashesModule', () => {
 	const playgroundDir = resolve(testsDir, 'playground')
 
 	beforeEach(async () => {
-		for (const filename of await readdir(playgroundDir, { recursive: true})) {
+		for (const filename of await readdir(playgroundDir, { recursive: true })) {
 			if (filename.endsWith('.mjs')) {
 				await rm(resolve(playgroundDir, filename), {
 					force: true,
@@ -889,19 +889,12 @@ describe('generateSRIHashesModule', () => {
 	it('generates "empty" module when it does not exist and we pass empty hashes collection', async () => {
 		const modulePath = resolve(playgroundDir, 'sri.mjs')
 
-		expect(
-			await doesFileExist(modulePath),
-		).toBe(false)
+		expect(await doesFileExist(modulePath)).toBe(false)
 
 		const h = getEmptyHashes()
-		await generateSRIHashesModule(
-			h,
-			modulePath,
-		)
+		await generateSRIHashesModule(h, modulePath)
 
-		expect(
-			await doesFileExist(modulePath),
-		).toBe(true)
+		expect(await doesFileExist(modulePath)).toBe(true)
 
 		const hashesModule = await import(modulePath)
 
