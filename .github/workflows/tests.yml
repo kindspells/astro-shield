@@ -44,6 +44,5 @@ jobs:
       run: pnpm lint
     - name: Run Unit Tests
       run: pnpm test:unit:coverage
-    # Disabled until we discover how to run "network-related" tests in CI
-    # - name: Run End-to-End Tests
-    #   run: pnpm test:e2e:coverage
+    - name: Run End-to-End Tests
+      run: pnpm test:e2e:coverage

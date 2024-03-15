@@ -219,8 +219,8 @@ describe('middleware', () => {
 		await execFile('pnpm', ['run', 'build'], execOpts)
 	})
 
-	beforeEach(async (...args) => {
-		port = 1024 + Math.floor(Math.random() * 64511)
+	beforeEach(async () => {
+		port = 9999 + Math.floor(Math.random() * 55536)
 		urlBase = `http://localhost:${port}`
 
 		await cleanServer()
