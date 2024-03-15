@@ -168,24 +168,31 @@ export const updateStaticPageSriHashes = async (
 				}
 
 				if (src) {
-					/** @type {string | ArrayBuffer | Buffer} */
-					let resourceContent
-					if (src.startsWith('/')) {
-						const resourcePath = resolve(distDir, `.${src}`)
-						resourceContent = await readFile(resourcePath)
-					} else if (src.startsWith('http')) {
-						setCrossorigin = true
-						const resourceResponse = await fetch(src, { method: 'GET' })
-						resourceContent = await resourceResponse.arrayBuffer()
+					const cachedHash = h.perResourceSriHashes[t2].get(src)
+					if (cachedHash) {
+						sriHash = cachedHash
+						h[`ext${t}Hashes`].add(sriHash)
+						pageHashes[t2].add(sriHash)
 					} else {
-						logger.warn(`Unable to process external resource: "${src}"`)
-						continue
-					}
+						/** @type {string | ArrayBuffer | Buffer} */
+						let resourceContent
+						if (src.startsWith('/')) {
+							const resourcePath = resolve(distDir, `.${src}`)
+							resourceContent = await readFile(resourcePath)
+						} else if (src.startsWith('http')) {
+							setCrossorigin = true
+							const resourceResponse = await fetch(src, { method: 'GET' })
+							resourceContent = await resourceResponse.arrayBuffer()
+						} else {
+							logger.warn(`Unable to process external resource: "${src}"`)
+							continue
+						}
 
-					sriHash = generateSRIHash(resourceContent)
-					h[`ext${t}Hashes`].add(sriHash)
-					pageHashes[t2].add(sriHash)
-					h.perResourceSriHashes[t2].set(src, sriHash)
+						sriHash = generateSRIHash(resourceContent)
+						h[`ext${t}Hashes`].add(sriHash)
+						pageHashes[t2].add(sriHash)
+						h.perResourceSriHashes[t2].set(src, sriHash)
+					}
 				}
 			}
 
