@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
 
 SPDX-License-Identifier: CC-BY-4.0
 -->
-# @kindspells/astro-shield
+# Astro-Shield
 
 [![NPM Version](https://img.shields.io/npm/v/%40kindspells%2Fastro-shield)](https://www.npmjs.com/package/@kindspells/astro-shield)
 ![NPM Downloads](https://img.shields.io/npm/dw/%40kindspells%2Fastro-shield)
@@ -132,14 +132,19 @@ export const perPageSriHashes =
 
 ## Known limitations
 
+- ⚠️ In case your SSR (dynamic) pages refer to static `.js` or `.css` files, and
+  any of these resources change, then you will need to run the `astro build`
+  command **two consecutive times** (Astro-Shield will emit a warning message
+  telling you about it).
+
 - The SRI hashes will be regenerated only when running `astro build`. This means
   that if you need them to be up to date when you run `astro dev`, then you will
   have to manually run `astro build`.
 
-- It seems that when a script is loaded with a _static_ import rather than
-  directly included with a `<script>` tag, having its hash present in the
-  `script-src` directive is not enough to ensure that the browser will accept
-  it.
+- In the context of Content-Security-Policy: When a script is loaded with a
+  _static_ import rather than directly included with a `<script>` tag, having
+  its hash present in the `script-src` directive is not enough to ensure that
+  the browser will accept it.
   
   This means that, for now, it is advisable to add `'self'` to the `script-src`
   directive (adding `'strict-dynamic'` does not help either).
