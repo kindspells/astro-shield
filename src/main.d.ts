@@ -36,7 +36,10 @@ export type ShieldOptions = {
 	 */
 	sriHashesModule?: string | undefined
 }
-export type StrictShieldOptions = ShieldOptions & { distDir: string }
+export type StrictShieldOptions = ShieldOptions & {
+	distDir: string
+	enableMiddleware_SRI: boolean
+}
 
 // Main Integration
 // -----------------------------------------------------------------------------

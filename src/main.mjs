@@ -24,21 +24,29 @@ export const shield = ({
 	enableStatic_SRI,
 	sriHashesModule,
 }) => {
-	const astroBuildDone =
-		/** @satisfies {AstroHooks['astro:build:done']} */ async ({
-			dir,
-			logger,
-		}) =>
+	/**
+	 * @param {boolean} enableMiddleware_SRI
+	 * @returns {NonNullable<AstroHooks['astro:build:done']>}
+	 */
+	const getAstroBuildDone =
+		enableMiddleware_SRI =>
+		/** @satisfies {NonNullable<AstroHooks['astro:build:done']>} */
+		async ({ dir, logger }) =>
 			await processStaticFiles(logger, {
 				distDir: fileURLToPath(dir),
 				sriHashesModule,
+				enableMiddleware_SRI,
 			})
 
 	return /** @satisfies {AstroIntegration} */ {
 		name: '@kindspells/astro-shield',
 		hooks: {
 			...((enableStatic_SRI ?? true) === true
-				? { 'astro:build:done': astroBuildDone }
+				? {
+						'astro:build:done': getAstroBuildDone(
+							enableMiddleware_SRI ?? false,
+						),
+				  }
 				: undefined),
 			...(enableMiddleware_SRI === true
 				? {

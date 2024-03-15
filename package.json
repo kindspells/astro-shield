@@ -21,9 +21,7 @@
 			"default": "./src/state.mjs"
 		}
 	},
-	"files": [
-		"src/*"
-	],
+	"files": ["src/*"],
 	"scripts": {
 		"format": "biome format --write .",
 		"install-githooks": "if [ -d .git ]; then git config core.hooksPath .hooks; fi",

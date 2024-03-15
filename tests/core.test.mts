@@ -362,7 +362,7 @@ describe('updateStaticPageSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="/core.mjs" integrity="sha256-etOR/kKV9aCSESe7t5JeBixVQA1DjUU2Zxk13wsPU8M="></script>
+				<script type="module" src="/core.mjs" integrity="sha256-KnjtswtmvdHQSShp8mURE9kt/62bvYGd5jCdjmbFDiI="></script>
 			</body>
 		</html>`
 
@@ -379,7 +379,7 @@ describe('updateStaticPageSriHashes', () => {
 		expect(h.extScriptHashes.size).toBe(1)
 		expect(
 			h.extScriptHashes.has(
-				'sha256-etOR/kKV9aCSESe7t5JeBixVQA1DjUU2Zxk13wsPU8M=',
+				'sha256-KnjtswtmvdHQSShp8mURE9kt/62bvYGd5jCdjmbFDiI=',
 			),
 		).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)
@@ -892,7 +892,7 @@ describe('generateSRIHashesModule', () => {
 		expect(await doesFileExist(modulePath)).toBe(false)
 
 		const h = getEmptyHashes()
-		await generateSRIHashesModule(h, modulePath)
+		await generateSRIHashesModule(console, h, modulePath, false)
 
 		expect(await doesFileExist(modulePath)).toBe(true)
 

@@ -277,9 +277,17 @@ describe('middleware (hybrid)', () => {
 	beforeAll(async () => {
 		await execFile('pnpm', ['install'], execOpts)
 		await execFile('pnpm', ['run', 'clean'], execOpts)
-		const { stdout: buildStdout } = await execFile('pnpm', ['run', 'build'], execOpts)
+		const { stdout: buildStdout } = await execFile(
+			'pnpm',
+			['run', 'build'],
+			execOpts,
+		)
 		expect(buildStdout).toMatch(/run the build step again/)
-		const { stdout: buildStdout2 } = await execFile('pnpm', ['run', 'build'], execOpts)
+		const { stdout: buildStdout2 } = await execFile(
+			'pnpm',
+			['run', 'build'],
+			execOpts,
+		)
 		expect(buildStdout2).not.toMatch(/run the build step again/)
 	})
 
@@ -317,6 +325,8 @@ describe('middleware (hybrid)', () => {
 	}
 
 	it('patches inline resources for dynamically generated pages referring static resources', async () => {
-		await checkHtmlIsPatched('/', { '/code.js': 'sha256-X7QGGDHgf6XMoabXvV9pW7gl3ALyZhZlgKq1s3pwmME=' })
+		await checkHtmlIsPatched('/', {
+			'/code.js': 'sha256-X7QGGDHgf6XMoabXvV9pW7gl3ALyZhZlgKq1s3pwmME=',
+		})
 	})
 })
