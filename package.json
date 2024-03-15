@@ -1,6 +1,6 @@
 {
 	"name": "@kindspells/astro-shield",
-	"version": "1.0.1",
+	"version": "1.1.0",
 	"description": "An Astro plugin to compute and inject SRI hashes for script and style tags",
 	"private": false,
 	"type": "module",
