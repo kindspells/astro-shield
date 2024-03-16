@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 import { readFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { execFile as _execFile } from 'node:child_process'

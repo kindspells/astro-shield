@@ -446,7 +446,7 @@ describe('updateStaticPageSriHashes', () => {
 			<head>
 				<title>My Test Page</title>
 				<link rel="canonical" href="https://example.com" />
-				<link rel="stylesheet" href="/fixtures/fake.css" integrity="sha256-gl5rCtPAw9BpVpGpdLhrf4LFwVUQ0FgQ5D231KxY2/w="/>
+				<link rel="stylesheet" href="/fixtures/fake.css" integrity="sha256-a8DhsANlpipCfrn1UYtdKQaaeWgSyW4hBvqdxDOfoow="/>
 			</head>
 			<body>
 				<h1>My Test Page</h1>
@@ -467,7 +467,7 @@ describe('updateStaticPageSriHashes', () => {
 		expect(h.extStyleHashes.size).toBe(1)
 		expect(
 			h.extStyleHashes.has(
-				'sha256-gl5rCtPAw9BpVpGpdLhrf4LFwVUQ0FgQ5D231KxY2/w=',
+				'sha256-a8DhsANlpipCfrn1UYtdKQaaeWgSyW4hBvqdxDOfoow=',
 			),
 		).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)
@@ -716,7 +716,7 @@ describe('updateDynamicPageSriHashes', () => {
 			<head>
 				<title>My Test Page</title>
 				<link rel="canonical" href="https://example.com" />
-				<link rel="stylesheet" href="/fixtures/fake.css" integrity="sha256-gl5rCtPAw9BpVpGpdLhrf4LFwVUQ0FgQ5D231KxY2/w="/>
+				<link rel="stylesheet" href="/fixtures/fake.css" integrity="sha256-a8DhsANlpipCfrn1UYtdKQaaeWgSyW4hBvqdxDOfoow="/>
 			</head>
 			<body>
 				<h1>My Test Page</h1>
@@ -728,7 +728,7 @@ describe('updateDynamicPageSriHashes', () => {
 		const h = getMiddlewareHashes()
 		h.styles.set(
 			'/fixtures/fake.css',
-			'sha256-gl5rCtPAw9BpVpGpdLhrf4LFwVUQ0FgQ5D231KxY2/w=',
+			'sha256-a8DhsANlpipCfrn1UYtdKQaaeWgSyW4hBvqdxDOfoow=',
 		)
 
 		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
@@ -740,14 +740,14 @@ describe('updateDynamicPageSriHashes', () => {
 		expect(updatedContent).toEqual(expected)
 		expect(h.styles.size).toBe(1)
 		expect(h.styles.get('/fixtures/fake.css')).toEqual(
-			'sha256-gl5rCtPAw9BpVpGpdLhrf4LFwVUQ0FgQ5D231KxY2/w=',
+			'sha256-a8DhsANlpipCfrn1UYtdKQaaeWgSyW4hBvqdxDOfoow=',
 		)
 		expect(pageHashes.scripts.size).toBe(0)
 		expect(h.scripts.size).toBe(0)
 		expect(pageHashes.styles.size).toBe(1)
 		expect(
 			pageHashes.styles.has(
-				'sha256-gl5rCtPAw9BpVpGpdLhrf4LFwVUQ0FgQ5D231KxY2/w=',
+				'sha256-a8DhsANlpipCfrn1UYtdKQaaeWgSyW4hBvqdxDOfoow=',
 			),
 		).toBe(true)
 	})
@@ -857,11 +857,11 @@ describe('scanForNestedResources', () => {
 		await scanForNestedResources(console, fixturesDir, h)
 
 		expect(Array.from(h.extScriptHashes).sort()).toEqual([
-			'sha256-qltpXHhrYfCJ4kXfyK7x9wqFlMGSbesibKN3FVUpqMM=',
-			'sha256-uDDQGUSAjWHe2xxeUlsnqjUEki6AUou31AAMIDDEc2g=',
+			'sha256-Kr4BjT3RWkTAZwxpTtuWUtdtEV+9lXy7amiQ4EXlytQ=',
+			'sha256-qm2QDzbth03mDFQDvyNyUc7Ctvb9qRIhKL03a5eetaY=',
 		])
 		expect(Array.from(h.extStyleHashes).sort()).toEqual([
-			'sha256-gl5rCtPAw9BpVpGpdLhrf4LFwVUQ0FgQ5D231KxY2/w=',
+			'sha256-a8DhsANlpipCfrn1UYtdKQaaeWgSyW4hBvqdxDOfoow=',
 		])
 		expect(Array.from(h.perResourceSriHashes.scripts.keys()).sort()).toEqual([
 			'/fake.js',

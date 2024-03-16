@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 import { readFile } from 'node:fs/promises'
 import { relative, resolve } from 'node:path'
 
@@ -62,10 +68,10 @@ describe('scanDirectory', () => {
 			'nested/nested.js',
 		])
 		expect(h.perResourceSriHashes.scripts.get('fake.js')).toEqual(
-			'sha256-uDDQGUSAjWHe2xxeUlsnqjUEki6AUou31AAMIDDEc2g=',
+			'sha256-qm2QDzbth03mDFQDvyNyUc7Ctvb9qRIhKL03a5eetaY=',
 		)
 		expect(h.perResourceSriHashes.scripts.get('nested/nested.js')).toEqual(
-			'sha256-qltpXHhrYfCJ4kXfyK7x9wqFlMGSbesibKN3FVUpqMM=',
+			'sha256-Kr4BjT3RWkTAZwxpTtuWUtdtEV+9lXy7amiQ4EXlytQ=',
 		)
 	})
 })

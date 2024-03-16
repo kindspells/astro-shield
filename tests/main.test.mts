@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 import type { AstroIntegration } from 'astro'
 import { describe, expect, it } from 'vitest'
 

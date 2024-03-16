@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 import { describe, expect, it } from 'vitest'
 
 import { getGlobalHashes } from '../src/state.mjs'
