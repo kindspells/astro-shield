@@ -288,13 +288,9 @@ describe('middleware (hybrid)', () => {
 			['run', 'build'],
 			execOpts,
 		)
-		expect(buildStdout).toMatch(/run the build step again/)
-		const { stdout: buildStdout2 } = await execFile(
-			'pnpm',
-			['run', 'build'],
-			execOpts,
-		)
-		expect(buildStdout2).not.toMatch(/run the build step again/)
+		// TODO: Once we introduce more complex scripts, we might have to check
+		//       again for the "run the build step again" message
+		expect(buildStdout).not.toMatch(/run the build step again/)
 	})
 
 	beforeEach(async () => {

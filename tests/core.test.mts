@@ -362,7 +362,7 @@ describe('updateStaticPageSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="/core.mjs" integrity="sha256-KnjtswtmvdHQSShp8mURE9kt/62bvYGd5jCdjmbFDiI="></script>
+				<script type="module" src="/core.mjs" integrity="sha256-uuKlJNUZR/rbyOWMRTscDFZxsoXSYghDzld4ilR8Lrw="></script>
 			</body>
 		</html>`
 
@@ -379,7 +379,7 @@ describe('updateStaticPageSriHashes', () => {
 		expect(h.extScriptHashes.size).toBe(1)
 		expect(
 			h.extScriptHashes.has(
-				'sha256-KnjtswtmvdHQSShp8mURE9kt/62bvYGd5jCdjmbFDiI=',
+				'sha256-uuKlJNUZR/rbyOWMRTscDFZxsoXSYghDzld4ilR8Lrw=',
 			),
 		).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)

@@ -7,6 +7,8 @@
 import { createHash } from 'node:crypto'
 import { readFile, writeFile } from 'node:fs/promises'
 import { extname, resolve, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import { doesFileExist, scanDirectory } from './fs.mjs'
 
 /**
@@ -624,7 +626,6 @@ export const processStaticFiles = async (
 		file => extname(file) === '.html',
 	)
 
-	// TODO: Remove temporary hack
 	await scanForNestedResources(logger, distDir, h)
 
 	if (!sriHashesModule) {
@@ -649,8 +650,6 @@ export const getMiddlewareHandler = globalHashes => {
 		const response = await next()
 		const content = await response.text()
 
-		// TODO: Use a "good & async" function, as updateDynamicPageSriHashes cannot
-		//       perform certain async actions, like fetching external resources.
 		const { updatedContent } = await updateDynamicPageSriHashes(
 			console,
 			content,
@@ -676,15 +675,45 @@ const resolvedHashesVirtualModuleId = `\0${hashesVirtualModuleId}`
  * @param {Logger} logger
  * @param {boolean} enableStatic_SRI
  * @param {string | undefined} sriHashesModule
+ * @param {string} publicDir
  * @returns {Promise<string>}
  */
 const loadVirtualMiddlewareModule = async (
 	logger,
 	enableStatic_SRI,
 	sriHashesModule,
+	publicDir,
 ) => {
 	let extraImports = ''
 	let staticHashesModuleLoader = ''
+
+	if (
+		enableStatic_SRI &&
+		sriHashesModule &&
+		!(await doesFileExist(sriHashesModule))
+	) {
+		const h = /** @satisfies {HashesCollection} */ {
+			inlineScriptHashes: new Set(),
+			inlineStyleHashes: new Set(),
+			extScriptHashes: new Set(),
+			extStyleHashes: new Set(),
+			perPageSriHashes: new Map(),
+			perResourceSriHashes: {
+				scripts: new Map(),
+				styles: new Map(),
+			},
+		}
+
+		// We generate a provisional hashes module. It won't contain the hashes for
+		// resources created by Astro, but it can be useful nonetheless.
+		await scanForNestedResources(logger, publicDir, h)
+		await generateSRIHashesModule(
+			logger,
+			h,
+			sriHashesModule,
+			false, // So we don't get redundant warnings
+		)
+	}
 
 	if (
 		enableStatic_SRI &&
@@ -711,8 +740,10 @@ try {
 }
 `
 	} else if (enableStatic_SRI && sriHashesModule) {
+		// Highly unlikely that this happens because of the provisional hashes
+		// module, but the world is a strange place.
 		logger.warn(
-			`The SRI hashes module "${sriHashesModule}" did not exist at build time, run the build step again`,
+			`The SRI hashes module "${sriHashesModule}" did not exist at build time. You may have to run the build step again`,
 		)
 	}
 
@@ -759,9 +790,15 @@ export const perResourceSriHashes = { scripts: {}, styles: {} }
  * @param {Logger} logger
  * @param {boolean} enableStatic_SRI
  * @param {string | undefined} sriHashesModule
+ * @param {string} publicDir
  * @return {import('vite').Plugin}
  */
-const getViteMiddlewarePlugin = (logger, enableStatic_SRI, sriHashesModule) => {
+const getViteMiddlewarePlugin = (
+	logger,
+	enableStatic_SRI,
+	sriHashesModule,
+	publicDir,
+) => {
 	return {
 		name: 'vite-plugin-astro-shield',
 		resolveId(id) {
@@ -777,6 +814,7 @@ const getViteMiddlewarePlugin = (logger, enableStatic_SRI, sriHashesModule) => {
 						logger,
 						enableStatic_SRI,
 						sriHashesModule,
+						publicDir,
 					)
 				case resolvedHashesVirtualModuleId:
 					return await loadVirtualHashesModule(
@@ -798,11 +836,13 @@ const getViteMiddlewarePlugin = (logger, enableStatic_SRI, sriHashesModule) => {
  */
 export const getAstroConfigSetup = (enableStatic_SRI, sriHashesModule) => {
 	/** @type {Required<Integration['hooks']>['astro:config:setup']} */
-	return async ({ logger, addMiddleware, updateConfig }) => {
+	return async ({ logger, addMiddleware, config, updateConfig }) => {
+		const publicDir = fileURLToPath(config.publicDir)
 		const plugin = getViteMiddlewarePlugin(
 			logger,
 			enableStatic_SRI,
 			sriHashesModule,
+			publicDir,
 		)
 		updateConfig({ vite: { plugins: [plugin] } })
 
