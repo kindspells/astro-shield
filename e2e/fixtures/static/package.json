@@ -10,7 +10,7 @@
 	},
 	"license": "MIT",
 	"dependencies": {
-		"astro": "^4.5.4"
+		"astro": "^4.5.5"
 	},
 	"devDependencies": {
 		"@kindspells/astro-shield": "link:../../.."

@@ -32,9 +32,5 @@
 
 		"skipLibCheck": true
 	},
-	"include": [
-		"src/*",
-		"tests/**/*.mts",
-		"e2e/**/*.mts"
-	]
+	"include": ["src/*", "tests/**/*.mts", "e2e/**/*.mts"]
 }

@@ -64,7 +64,7 @@
 		"@biomejs/biome": "^1.6.1",
 		"@types/node": "^20.11.28",
 		"@vitest/coverage-v8": "^1.4.0",
-		"astro": "^4.5.4",
+		"astro": "^4.5.5",
 		"publint": "^0.2.7",
 		"typescript": "^5.4.2",
 		"vite": "^5.1.6",
