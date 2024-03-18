@@ -17,8 +17,8 @@ import {
 	sriHashesEqual,
 	updateDynamicPageSriHashes,
 	updateStaticPageSriHashes,
-} from '../src/core.mjs'
-import { doesFileExist } from '../src/fs.mjs'
+} from '#as/core.mjs'
+import { doesFileExist } from '#as/fs.mjs'
 
 type SriHashes = {
 	scripts: Record<string, string>
@@ -198,7 +198,7 @@ describe('generateSRIHash', () => {
 			'sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=',
 		],
 		['', 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='],
-	]
+	] as const
 
 	it.each(cases)(
 		'generates correct hash for utf8 strings',

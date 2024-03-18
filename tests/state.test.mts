@@ -6,7 +6,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { getGlobalHashes } from '../src/state.mjs'
+import { getGlobalHashes } from '#as/state.mjs'
 
 describe('getGlobalHashes', () => {
 	it('returns a singleton', () => {

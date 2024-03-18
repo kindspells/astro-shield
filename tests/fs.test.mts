@@ -9,9 +9,9 @@ import { relative, resolve } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-import type { HashesCollection } from '../src/core.mjs'
-import { generateSRIHash } from '../src/core.mjs'
-import { doesFileExist, scanDirectory } from '../src/fs.mjs'
+import type { HashesCollection } from '#as/core.mjs'
+import { generateSRIHash } from '#as/core.mjs'
+import { doesFileExist, scanDirectory } from '#as/fs.mjs'
 
 const testsDir = new URL('.', import.meta.url).pathname
 

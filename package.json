@@ -21,6 +21,9 @@
 			"default": "./src/state.mjs"
 		}
 	},
+	"imports": {
+		"#as/*": "./src/*"
+	},
 	"files": ["src/*"],
 	"scripts": {
 		"format": "biome format --write .",

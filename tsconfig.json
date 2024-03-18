@@ -33,12 +33,8 @@
 		"skipLibCheck": true
 	},
 	"include": [
-		"*.mjs",
-		"*.d.ts",
-		"*.ts",
-		"src/core.mjs",
-		"src/main.mjs",
-		"src/state.mjs",
-		"src/main.d.ts"
+		"src/*",
+		"tests/**/*.mts",
+		"e2e/**/*.mts"
 	]
 }

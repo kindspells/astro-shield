@@ -7,7 +7,7 @@
 import type { AstroIntegration } from 'astro'
 import { describe, expect, it } from 'vitest'
 
-import defaultIntegrationExport, { shield } from '../src/main.mjs'
+import defaultIntegrationExport, { shield } from '#as/main.mjs'
 
 describe('sriCSP', () => {
 	it('is exported as default', () => {
@@ -17,7 +17,7 @@ describe('sriCSP', () => {
 
 	const checkIntegration = (
 		integration: AstroIntegration,
-		keys = ['astro:build:done'],
+		keys: (keyof AstroIntegration['hooks'])[] = ['astro:build:done' as const],
 	) => {
 		expect(Object.keys(integration).sort()).toEqual(['hooks', 'name'])
 		expect(integration.name).toBe('@kindspells/astro-shield')

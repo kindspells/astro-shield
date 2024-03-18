@@ -23,8 +23,8 @@ import {
 	it,
 } from 'vitest'
 
-import { generateSRIHash } from '../src/core.mjs'
-import { doesFileExist } from '../src/fs.mjs'
+import { generateSRIHash } from '#as/core.mjs'
+import { doesFileExist } from '#as/fs.mjs'
 
 const execFile = promisify(_execFile)
 
@@ -261,7 +261,7 @@ describe('middleware', () => {
 	afterEach(cleanServer)
 	afterAll(cleanServer) // Just in case
 
-	const checkHtmlIsPatched = async path => {
+	const checkHtmlIsPatched = async (path: string) => {
 		const response = await fetch(urlBase + path)
 		const content = await response.text()
 		return _checkHtmlIsPatched(content)
