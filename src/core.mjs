@@ -498,6 +498,7 @@ export async function generateSRIHashesModule(
 	sriHashesModule,
 	enableMiddleware_SRI,
 ) {
+	let extResourceHashesChanged = false
 	let persistHashes = false
 
 	const inlineScriptHashes = Array.from(h.inlineScriptHashes).sort()
@@ -533,22 +534,23 @@ export async function generateSRIHashesModule(
 								: Record<'scripts' | 'styles', Record<string, string>>)
 		}} */ (await import(/* @vite-ignore */ sriHashesModule))
 
+		extResourceHashesChanged = !sriHashesEqual(
+			perResourceHashes,
+			hModule.perResourceSriHashes ?? { scripts: {}, styles: {} },
+		)
 		persistHashes =
+			extResourceHashesChanged ||
 			!arraysEqual(inlineScriptHashes, hModule.inlineScriptHashes ?? []) ||
 			!arraysEqual(inlineStyleHashes, hModule.inlineStyleHashes ?? []) ||
 			!arraysEqual(extScriptHashes, hModule.extScriptHashes ?? []) ||
 			!arraysEqual(extStyleHashes, hModule.extStyleHashes ?? []) ||
-			!pageHashesEqual(perPageHashes, hModule.perPageSriHashes ?? {}) ||
-			!sriHashesEqual(
-				perResourceHashes,
-				hModule.perResourceSriHashes ?? { scripts: {}, styles: {} },
-			)
+			!pageHashesEqual(perPageHashes, hModule.perPageSriHashes ?? {})
 	} else {
 		persistHashes = true
 	}
 
 	if (persistHashes) {
-		if (enableMiddleware_SRI) {
+		if (extResourceHashesChanged && enableMiddleware_SRI) {
 			logger.warn(
 				'SRI hashes have changed for static resources that may be used in dynamic pages. You should run the build step again',
 			)
