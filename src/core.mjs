@@ -668,9 +668,6 @@ export const getMiddlewareHandler = globalHashes => {
 const middlewareVirtualModuleId = 'virtual:@kindspells/astro-shield/middleware'
 const resolvedMiddlewareVirtualModuleId = `\0${middlewareVirtualModuleId}`
 
-const hashesVirtualModuleId = 'virtual:@kindspells/astro-shield/hashes'
-const resolvedHashesVirtualModuleId = `\0${hashesVirtualModuleId}`
-
 /**
  * @param {Logger} logger
  * @param {boolean} enableStatic_SRI
@@ -764,29 +761,6 @@ export const onRequest = await (async () => {
 }
 
 /**
- * @param {boolean} enableStatic_SRI
- * @param {string | undefined} sriHashesModule
- * @returns {Promise<string>}
- */
-const loadVirtualHashesModule = async (enableStatic_SRI, sriHashesModule) => {
-	if (
-		enableStatic_SRI &&
-		sriHashesModule &&
-		(await doesFileExist(sriHashesModule))
-	) {
-		return await readFile(sriHashesModule, 'utf8')
-	}
-	return `
-export const inlineScriptHashes = []
-export const inlineStyleHashes = []
-export const extScriptHashes = []
-export const extStyleHashes = []
-export const perPageSriHashes = {}
-export const perResourceSriHashes = { scripts: {}, styles: {} }
-`
-}
-
-/**
  * @param {Logger} logger
  * @param {boolean} enableStatic_SRI
  * @param {string | undefined} sriHashesModule
@@ -815,11 +789,6 @@ const getViteMiddlewarePlugin = (
 						enableStatic_SRI,
 						sriHashesModule,
 						publicDir,
-					)
-				case resolvedHashesVirtualModuleId:
-					return await loadVirtualHashesModule(
-						enableStatic_SRI,
-						sriHashesModule,
 					)
 				default:
 					return
