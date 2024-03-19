@@ -31,9 +31,11 @@ const execFile = promisify(_execFile)
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const fixturesDir = resolve(currentDir, 'fixtures')
 
-const _checkHtmlIsPatched = (
+const _checkHtmlIsPatched = async (
 	content: string,
-	extResources: Record<string, string> = {},
+	_baseUrl = 'http://localhost',
+	expectExtStyle = false,
+	extScripts: Record<string, string> = {},
 ) => {
 	const integrityRegex =
 		/\s+integrity\s*=\s*("(?<integrity1>.*?)"|'(?<integrity2>.*?)')/i
@@ -42,53 +44,102 @@ const _checkHtmlIsPatched = (
 		/<script(?<attrs>(\s+[a-z][a-z0-9\-_]*(=('[^']*?'|"[^"]*?"))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*script\s*>/gi
 	const styleRegex =
 		/<style(?<attrs>(\s+[a-z][a-z0-9\-_]*(=('[^']*?'|"[^"]*?"))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*style\s*>/gi
+	const linkRelRegex =
+		/<link(?<attrs>(\s+[a-z][a-z0-9\-_]*(=('[^']*?'|"[^"]*?"))?)*?)\s*\/?>/gi
+	const relStylesheetRegex = /\s+rel=("stylesheet"|'stylesheet')/i
 
-	// Checking for inline scripts
+	let match: RegExpExecArray | null
+
+	// Checking for scripts
 	// -------------------------------------------------------------------------
-	const scriptMatch = scriptRegex.exec(content)
-	assert(scriptMatch !== null)
+	let scriptMatches = 0
+	// biome-ignore lint/suspicious/noAssignInExpressions: only for testing
+	while ((match = scriptRegex.exec(content)) !== null) {
+		const { attrs: scriptAttrs, content: scriptContent } = match.groups ?? {}
+		assert(scriptAttrs !== undefined)
 
-	const { attrs: scriptAttrs, content: scriptContent } =
-		scriptMatch.groups ?? {}
-	assert(scriptAttrs !== undefined)
+		const scriptIntegrityMatch = integrityRegex.exec(scriptAttrs)
+		assert(scriptIntegrityMatch !== null)
+		const scriptIntegrity =
+			scriptIntegrityMatch.groups?.integrity1 ??
+			scriptIntegrityMatch.groups?.integrity2
+		assert(scriptIntegrity !== undefined)
 
-	const scriptIntegrityMatch = integrityRegex.exec(scriptAttrs)
-	assert(scriptIntegrityMatch !== null)
-	const scriptIntegrity =
-		scriptIntegrityMatch.groups?.integrity1 ??
-		scriptIntegrityMatch.groups?.integrity2
-	assert(scriptIntegrity !== undefined)
+		const scriptSrcMatch = srcRegex.exec(scriptAttrs)
 
-	const scriptSrcMatch = srcRegex.exec(scriptAttrs)
+		if (scriptSrcMatch === null) {
+			assert(scriptContent !== undefined)
+			expect(scriptIntegrity).toEqual(generateSRIHash(scriptContent))
+		} else {
+			assert(!scriptContent)
+			const src = scriptSrcMatch.groups?.src1 ?? scriptSrcMatch.groups?.src2
+			assert(src !== undefined && src.length > 0)
+			expect(scriptIntegrity).toEqual(extScripts[src])
+		}
 
-	if (scriptSrcMatch === null) {
-		assert(scriptContent !== undefined)
-		expect(scriptIntegrity).toEqual(generateSRIHash(scriptContent))
-	} else {
-		assert(!scriptContent)
-		const src = scriptSrcMatch.groups?.src1 ?? scriptSrcMatch.groups?.src2
-		assert(src !== undefined && src.length > 0)
-		expect(scriptIntegrity).toEqual(extResources[src])
+		scriptMatches += 1
 	}
+	assert(scriptMatches > 0)
 
 	// Checking for inline styles
 	// -------------------------------------------------------------------------
-	const styleMatch = styleRegex.exec(content)
-	assert(styleMatch !== null)
+	let styleMatches = 0
+	// biome-ignore lint/suspicious/noAssignInExpressions: only for testing
+	while ((match = styleRegex.exec(content)) !== null) {
+		const { attrs: styleAttrs, content: styleContent } = match.groups ?? {}
+		assert(styleAttrs !== undefined)
+		assert(styleContent !== undefined)
 
-	const { attrs: styleAttrs, content: styleContent } = styleMatch.groups ?? {}
-	assert(styleAttrs !== undefined)
-	assert(styleContent !== undefined)
+		const styleIntegrityMatch = integrityRegex.exec(styleAttrs)
+		assert(styleIntegrityMatch !== null)
 
-	const styleIntegrityMatch = integrityRegex.exec(styleAttrs)
-	assert(styleIntegrityMatch !== null)
+		const styleIntegrity =
+			styleIntegrityMatch.groups?.integrity1 ??
+			styleIntegrityMatch.groups?.integrity2
+		assert(styleIntegrity !== undefined)
 
-	const styleIntegrity =
-		styleIntegrityMatch.groups?.integrity1 ??
-		styleIntegrityMatch.groups?.integrity2
-	assert(styleIntegrity !== undefined)
+		expect(styleIntegrity).toEqual(generateSRIHash(styleContent))
 
-	expect(styleIntegrity).toEqual(generateSRIHash(styleContent))
+		styleMatches += 1
+	}
+	assert(styleMatches > 0)
+
+	// Checking for external styles
+	// -------------------------------------------------------------------------
+	if (expectExtStyle) {
+		let linkRelMatches = 0
+		const hrefRegex = /\s+href\s*=\s*("(?<href1>.*?)"|'(?<href2>.*?)')/i
+
+		// biome-ignore lint/suspicious/noAssignInExpressions: only for testing
+		while ((match = linkRelRegex.exec(content)) !== null) {
+			const { attrs } = match.groups ?? {}
+			assert(attrs !== undefined)
+			assert(relStylesheetRegex.exec(attrs) !== null)
+			const hrefMatch = hrefRegex.exec(attrs)
+			assert(hrefMatch !== null)
+			const href = hrefMatch.groups?.href1 ?? hrefMatch.groups?.href2
+			assert(href !== undefined && href.length > 0)
+
+			const integrityMatch = integrityRegex.exec(attrs)
+			assert(integrityMatch !== null)
+
+			const integrity =
+				integrityMatch.groups?.integrity1 ?? integrityMatch.groups?.integrity2
+			assert(integrity !== undefined)
+
+			// TODO: Uncomment this once the PR https://github.com/withastro/astro/pull/10491
+			//       is merged and released
+			// const response = await fetch(href.startsWith('/') ? baseUrl + href : href)
+			// const content = await response.text()
+			// expect(integrity).toEqual(generateSRIHash(content))
+
+			linkRelMatches += 1
+		}
+		assert(linkRelMatches > 0)
+	} else {
+		const linkMatch = linkRelRegex.exec(content)
+		assert(linkMatch === null || relStylesheetRegex.exec(linkMatch[0]) === null)
+	}
 }
 
 describe('static', () => {
@@ -105,7 +156,7 @@ describe('static', () => {
 
 	const checkHtmlIsPatched = async (filepath: string) => {
 		const content = await readFile(filepath, 'utf8')
-		return _checkHtmlIsPatched(content)
+		return await _checkHtmlIsPatched(content)
 	}
 
 	const checkHtmlIsNotPatched = async (filepath: string) => {
@@ -227,7 +278,7 @@ describe('middleware', () => {
 	const dynamicDir = resolve(fixturesDir, 'dynamic')
 	const execOpts = { cwd: dynamicDir }
 
-	let urlBase: string
+	let baseUrl: string
 	let server: PreviewServer | undefined
 	let port: number
 
@@ -239,7 +290,7 @@ describe('middleware', () => {
 
 	beforeEach(async () => {
 		port = 9999 + Math.floor(Math.random() * 55536)
-		urlBase = `http://localhost:${port}`
+		baseUrl = `http://localhost:${port}`
 
 		await cleanServer()
 		server = await preview({
@@ -262,9 +313,9 @@ describe('middleware', () => {
 	afterAll(cleanServer) // Just in case
 
 	const checkHtmlIsPatched = async (path: string) => {
-		const response = await fetch(urlBase + path)
+		const response = await fetch(baseUrl + path)
 		const content = await response.text()
-		return _checkHtmlIsPatched(content)
+		return await _checkHtmlIsPatched(content)
 	}
 
 	it('patches inline resources for dynamically generated pages', async () => {
@@ -276,7 +327,7 @@ describe('middleware (hybrid)', () => {
 	const hybridDir = resolve(fixturesDir, 'hybrid')
 	const execOpts = { cwd: hybridDir }
 
-	let urlBase: string
+	let baseUrl: string
 	let server: PreviewServer | undefined
 	let port: number
 
@@ -295,7 +346,7 @@ describe('middleware (hybrid)', () => {
 
 	beforeEach(async () => {
 		port = 9999 + Math.floor(Math.random() * 55536)
-		urlBase = `http://localhost:${port}`
+		baseUrl = `http://localhost:${port}`
 
 		await cleanServer()
 		server = await preview({
@@ -321,13 +372,86 @@ describe('middleware (hybrid)', () => {
 		path: string,
 		extResources: Record<string, string> = {},
 	) => {
-		const response = await fetch(urlBase + path)
+		const response = await fetch(baseUrl + path)
 		const content = await response.text()
-		return _checkHtmlIsPatched(content, extResources)
+		return await _checkHtmlIsPatched(content, baseUrl, false, extResources)
 	}
 
 	it('patches inline resources for dynamically generated pages referring static resources', async () => {
 		await checkHtmlIsPatched('/', {
+			'/code.js': 'sha256-X7QGGDHgf6XMoabXvV9pW7gl3ALyZhZlgKq1s3pwmME=',
+		})
+
+		await checkHtmlIsPatched('/static/', {
+			'/code.js': 'sha256-X7QGGDHgf6XMoabXvV9pW7gl3ALyZhZlgKq1s3pwmME=',
+		})
+	})
+})
+
+describe('middleware (hybrid 2)', () => {
+	const hybridDir = resolve(fixturesDir, 'hybrid2')
+	const execOpts = { cwd: hybridDir }
+
+	let baseUrl: string
+	let server: PreviewServer | undefined
+	let port: number
+
+	beforeAll(async () => {
+		await execFile('pnpm', ['install'], execOpts)
+		await execFile('pnpm', ['run', 'clean'], execOpts)
+		const { stdout: buildStdout } = await execFile(
+			'pnpm',
+			['run', 'build'],
+			execOpts,
+		)
+		expect(buildStdout).toMatch(/run the build step again/)
+		const { stdout: buildStdout2 } = await execFile(
+			'pnpm',
+			['run', 'build'],
+			execOpts,
+		)
+		expect(buildStdout2).not.toMatch(/run the build step again/)
+	})
+
+	beforeEach(async () => {
+		port = 9999 + Math.floor(Math.random() * 55536)
+		baseUrl = `http://localhost:${port}`
+
+		await cleanServer()
+		server = await preview({
+			root: hybridDir,
+			server: { port },
+			logLevel: 'debug',
+		})
+	})
+
+	const cleanServer = async () => {
+		if (server) {
+			if (!server.closed()) {
+				await server.stop()
+			}
+			server = undefined
+		}
+	}
+
+	afterEach(cleanServer)
+	afterAll(cleanServer) // Just in case
+
+	const checkHtmlIsPatched = async (
+		path: string,
+		extResources: Record<string, string> = {},
+	) => {
+		const response = await fetch(baseUrl + path)
+		const content = await response.text()
+		return await _checkHtmlIsPatched(content, baseUrl, true, extResources)
+	}
+
+	it('patches inline resources for dynamically generated pages referring static resources', async () => {
+		await checkHtmlIsPatched('/', {
+			'/code.js': 'sha256-X7QGGDHgf6XMoabXvV9pW7gl3ALyZhZlgKq1s3pwmME=',
+		})
+
+		await checkHtmlIsPatched('/static/', {
 			'/code.js': 'sha256-X7QGGDHgf6XMoabXvV9pW7gl3ALyZhZlgKq1s3pwmME=',
 		})
 	})
