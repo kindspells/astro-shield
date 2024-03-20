@@ -823,17 +823,12 @@ describe('updateDynamicPageSriHashes', () => {
 		let warnCalls = 0
 		let lastWarnMsg = ''
 		const testLogger = {
-			info(msg: string) {
-				return console.info(msg)
-			},
+			info(_msg: string) {},
 			warn(msg: string) {
 				warnCalls += 1
 				lastWarnMsg = msg
-				return console.warn(msg)
 			},
-			error(msg: string) {
-				return console.error(msg)
-			},
+			error(_msg: string) {},
 		}
 
 		const h = getMiddlewareHashes()
