@@ -24,6 +24,10 @@ export const shield = ({
 	enableStatic_SRI,
 	sriHashesModule,
 }) => {
+	if (sriHashesModule && enableStatic_SRI === false) {
+		console.warn('`sriHashesModule` is ignored when `enableStatic_SRI` is `false`')
+	}
+
 	/**
 	 * @param {boolean} enableMiddleware_SRI
 	 * @returns {NonNullable<AstroHooks['astro:build:done']>}
