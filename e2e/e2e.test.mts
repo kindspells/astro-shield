@@ -33,7 +33,7 @@ const fixturesDir = resolve(currentDir, 'fixtures')
 
 const _checkHtmlIsPatched = async (
 	content: string,
-	_baseUrl = 'http://localhost',
+	baseUrl = 'http://localhost',
 	expectExtStyle = false,
 	extScripts: Record<string, string> = {},
 ) => {
@@ -127,11 +127,9 @@ const _checkHtmlIsPatched = async (
 				integrityMatch.groups?.integrity1 ?? integrityMatch.groups?.integrity2
 			assert(integrity !== undefined)
 
-			// TODO: Uncomment this once the PR https://github.com/withastro/astro/pull/10491
-			//       is merged and released
-			// const response = await fetch(href.startsWith('/') ? baseUrl + href : href)
-			// const content = await response.text()
-			// expect(integrity).toEqual(generateSRIHash(content))
+			const response = await fetch(href.startsWith('/') ? baseUrl + href : href)
+			const content = await response.text()
+			expect(integrity).toEqual(generateSRIHash(content))
 
 			linkRelMatches += 1
 		}
