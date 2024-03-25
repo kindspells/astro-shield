@@ -24,7 +24,9 @@
 	"imports": {
 		"#as/*": "./src/*"
 	},
-	"files": ["src/*"],
+	"files": [
+		"src/*"
+	],
 	"scripts": {
 		"format": "biome format --write .",
 		"install-githooks": "if [ -d .git ]; then git config core.hooksPath .hooks; fi",
@@ -61,13 +63,13 @@
 		"astro": "^4.0.0"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^1.6.1",
+		"@biomejs/biome": "^1.6.2",
 		"@types/node": "^20.11.30",
 		"@vitest/coverage-v8": "^1.4.0",
-		"astro": "^4.5.7",
+		"astro": "^4.5.9",
 		"publint": "^0.2.7",
-		"typescript": "^5.4.2",
-		"vite": "^5.2.0",
+		"typescript": "^5.4.3",
+		"vite": "^5.2.6",
 		"vitest": "^1.4.0"
 	},
 	"repository": {
