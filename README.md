@@ -65,6 +65,25 @@ export default defineConfig({
       // parameter if you don't need this data, but it can be useful to
       // configure your CSP policies.
       sriHashesModule: resolve(rootDir, 'src', 'utils', 'sriHashes.mjs'),
+
+      // - If set, it controls how the security headers will be generated in the
+      //   middleware.
+      // - If not set, no security headers will be generated in the middleware.
+      securityHeaders: {
+        // For now, we can only control CSP headers, but we'll add more options
+        // in the future.
+        // - If set, it controls how the CSP (Content Security Policy) header will be
+        //   generated in the middleware.
+        // - If not set, no CSP header will be generated in the middleware.
+        contentSecurityPolicy: {
+          // - If set, it controls the "default" CSP directives (they can be overriden
+          //   at runtime).
+          // - If not set, the middleware will use a minimal set of default directives.
+          cspDirectives: {
+            'default-src': "'none'",
+          }
+        }
+      }
     })
   ]
 })
@@ -72,8 +91,19 @@ export default defineConfig({
 
 ### Generating Content-Security-Policy Headers
 
-Although `@kindspells/astro-shield` does not generate CSP headers for you (yet),
-it will make it much easier.
+You can enable automated CSP headers generation by setting the option
+`securityHeaders.contentSecurityPolicy` (it can be an empty object if you don't
+need to customise any specific behavior, but it must be defined).
+
+Besides enabling CSP, you can also configure its directives to some extent, via
+the `cspDirectives` option.
+
+> [!INFO]
+> It is advisable to set the option `sriHashesModule` in case your dynamic pages
+> include static JS or CSS resources (also: do not explicitly disable the
+> `enableStatic_SRI` option if you want support for those static assets).
+
+### Accessing metadata generated at build time
 
 Once you run `astro build`, `@kindspells/astro-shield` will analyse the static
 output and generate a new module that exports the SRI hashes, so you can use
