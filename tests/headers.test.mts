@@ -126,6 +126,18 @@ describe('patchHeaders', () => {
 		expect(patchedHeaders.has('content-security-policy')).toBe(false)
 	})
 
+	it('does not set csp header if no contentSecurityPolicy option is set', () => {
+		const headers = new Headers()
+		const pageHashes = {
+			scripts: new Set<string>(['abc1', 'xyz2']),
+			styles: new Set<string>(['dbc1', 'xyz3', 'abc2']),
+		}
+		const settings: SecurityHeadersOptions = { /* contentSecurityPolicy: {} */ }
+
+		const patchedHeaders = patchHeaders(headers, pageHashes, settings)
+		expect(patchedHeaders.has('content-security-policy')).toBe(false)
+	})
+
 	it('sets csp header based on settings', () => {
 		const headers = new Headers()
 		const pageHashes = { scripts: new Set<string>(), styles: new Set<string>() }
@@ -150,7 +162,7 @@ describe('patchHeaders', () => {
 			scripts: new Set<string>(['abc1', 'xyz2']),
 			styles: new Set<string>(['dbc1', 'xyz3', 'abc2']),
 		}
-		const settings: SecurityHeadersOptions = {}
+		const settings: SecurityHeadersOptions = { contentSecurityPolicy: {} }
 
 		const patchedHeaders = patchHeaders(headers, pageHashes, settings)
 		expect(patchedHeaders.get('content-security-policy')).toBe(

@@ -2,6 +2,7 @@
  * @typedef {import('./core.d.ts').PerPageHashes} PerPageHashes
  * @typedef {import('./main.d.ts').CSPDirectiveNames} CSPDirectiveNames
  * @typedef {import('./main.d.ts').CSPDirectives} CSPDirectives
+ * @typedef {import('./main.d.ts').CSPOptions} CSPOptions
  * @typedef {import('./main.d.ts').SecurityHeadersOptions} SecurityHeadersOptions
  */
 
@@ -79,23 +80,19 @@ export const parseCspDirectives = cspHeader => {
 }
 
 /**
- * @param {Headers} headers
+ * @param {Record<string, string>} plainHeaders
  * @param {PerPageHashes} pageHashes
- * @param {SecurityHeadersOptions} securityHeadersOpts
- * @returns {Headers}
+ * @param {CSPOptions} cspOpts
  */
-export const patchHeaders = (headers, pageHashes, securityHeadersOpts) => {
-	const directives = headers.has('content-security-policy')
+export const patchCspHeader = (plainHeaders, pageHashes, cspOpts) => {
+	const directives = Object.hasOwn(plainHeaders, 'content-security-policy')
 		? {
-				...securityHeadersOpts.contentSecurityPolicy?.cspDirectives,
+				...cspOpts.cspDirectives,
 				...parseCspDirectives(
-					/** @type {string} */ (headers.get('content-security-policy')),
+					/** @type {string} */ (plainHeaders['content-security-policy']),
 				),
 			}
-		: securityHeadersOpts.contentSecurityPolicy?.cspDirectives ??
-			/** @type {CSPDirectives} */ ({})
-
-	const plainHeaders = Object.fromEntries(headers.entries())
+		: cspOpts.cspDirectives ?? /** @type {CSPDirectives} */ ({})
 
 	if (pageHashes.scripts.size > 0) {
 		setSrcDirective(directives, 'script-src', pageHashes.scripts)
@@ -105,6 +102,20 @@ export const patchHeaders = (headers, pageHashes, securityHeadersOpts) => {
 	}
 	if (Object.keys(directives).length > 0) {
 		plainHeaders['content-security-policy'] = serialiseCspDirectives(directives)
+	}
+}
+
+/**
+ * @param {Headers} headers
+ * @param {PerPageHashes} pageHashes
+ * @param {SecurityHeadersOptions} securityHeadersOpts
+ * @returns {Headers}
+ */
+export const patchHeaders = (headers, pageHashes, securityHeadersOpts) => {
+	const plainHeaders = Object.fromEntries(headers.entries())
+
+	if (securityHeadersOpts.contentSecurityPolicy !== undefined) {
+		patchCspHeader(plainHeaders, pageHashes, securityHeadersOpts.contentSecurityPolicy)
 	}
 
 	return new Headers(plainHeaders)
