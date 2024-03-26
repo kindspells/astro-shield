@@ -132,7 +132,9 @@ describe('patchHeaders', () => {
 			scripts: new Set<string>(['abc1', 'xyz2']),
 			styles: new Set<string>(['dbc1', 'xyz3', 'abc2']),
 		}
-		const settings: SecurityHeadersOptions = { /* contentSecurityPolicy: {} */ }
+		const settings: SecurityHeadersOptions = {
+			/* contentSecurityPolicy: {} */
+		}
 
 		const patchedHeaders = patchHeaders(headers, pageHashes, settings)
 		expect(patchedHeaders.has('content-security-policy')).toBe(false)

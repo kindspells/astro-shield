@@ -115,7 +115,11 @@ export const patchHeaders = (headers, pageHashes, securityHeadersOpts) => {
 	const plainHeaders = Object.fromEntries(headers.entries())
 
 	if (securityHeadersOpts.contentSecurityPolicy !== undefined) {
-		patchCspHeader(plainHeaders, pageHashes, securityHeadersOpts.contentSecurityPolicy)
+		patchCspHeader(
+			plainHeaders,
+			pageHashes,
+			securityHeadersOpts.contentSecurityPolicy,
+		)
 	}
 
 	return new Headers(plainHeaders)

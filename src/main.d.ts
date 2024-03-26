@@ -56,6 +56,35 @@ export type CSPOptions = {
 	cspDirectives?: CSPDirectives
 }
 
+export type SRIOptions = {
+	/**
+	 * When set to `true`, `@kindspells/astro-shield` will generate Subresource
+	 * Integrity (SRI) hashes for all assets referenced in static HTML pages.
+	 *
+	 * Defaults to `true`.
+	 */
+	enableStatic?: boolean
+
+	/**
+	 * When set to `true`, `@kindspells/astro-shield` will generate Subresource
+	 * Integrity (SRI) hashes for all assets referenced in dynamic pages by
+	 * enabling a middleware that will inject the SRI hashes into the generated
+	 * HTML.
+	 *
+	 * Defaults to `false`.
+	 */
+	enableMiddleware?: boolean
+
+	/**
+	 * Specifies the path for the auto-generated module that will contain the SRI
+	 * hashes. Note that:
+	 * - The generated module will be an ESM module
+	 * - The generated module should be treated as source code, and not as a build
+	 *   artifact.
+	 */
+	hashesModule?: string | undefined
+}
+
 export type SecurityHeadersOptions = {
 	/**
 	 * - If set, it controls how the CSP (Content Security Policy) header will be
@@ -69,31 +98,9 @@ export type SecurityHeadersOptions = {
 
 export type ShieldOptions = {
 	/**
-	 * When set to `true`, `@kindspells/astro-shield` will generate Subresource
-	 * Integrity (SRI) hashes for all assets referenced in static HTML pages.
-	 *
-	 * Defaults to `true`.
+	 * Options related to Subresource Integrity (SRI).
 	 */
-	enableStatic_SRI?: boolean | undefined
-
-	/**
-	 * When set to `true`, `@kindspells/astro-shield` will generate Subresource
-	 * Integrity (SRI) hashes for all assets referenced in dynamic pages by
-	 * enabling a middleware that will inject the SRI hashes into the generated
-	 * HTML.
-	 *
-	 * Defaults to `false`.
-	 */
-	enableMiddleware_SRI?: boolean | undefined
-
-	/**
-	 * Specifies the path for the auto-generated module that will contain the SRI
-	 * hashes. Note that:
-	 * - The generated module will be an ESM module
-	 * - The generated module should be treated as source code, and not as a build
-	 *   artifact.
-	 */
-	sriHashesModule?: string | undefined
+	sri?: SRIOptions | undefined
 
 	/**
 	 * - If set, it controls how the security headers will be generated in the
@@ -103,10 +110,19 @@ export type ShieldOptions = {
 	 * Defaults to `undefined`.
 	 */
 	securityHeaders?: SecurityHeadersOptions | undefined
+
+	/** @deprecated Use `sri.enableStatic` instead. */
+	enableStatic_SRI?: boolean | undefined
+
+	/** @deprecated Use `sri.enableMiddleware` instead. */
+	enableMiddleware_SRI?: boolean | undefined
+
+	/** @deprecated Use `sri.hashesModule` instead. */
+	sriHashesModule?: string | undefined
 }
 export type StrictShieldOptions = ShieldOptions & {
 	distDir: string
-	enableMiddleware_SRI: boolean
+	sri: SRIOptions & { enableStatic: boolean; enableMiddleware: boolean }
 }
 
 // Main Integration

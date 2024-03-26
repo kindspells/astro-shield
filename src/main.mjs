@@ -11,12 +11,31 @@ import { getAstroConfigSetup, processStaticFiles } from './core.mjs'
  * @typedef {import('astro').AstroIntegration} AstroIntegration
  * @typedef {AstroIntegration['hooks']} AstroHooks
  * @typedef {import('./core.d.ts').MiddlewareHashes} MiddlewareHashes
+ * @typedef {import('./main.d.ts').SRIOptions} SRIOptions
+ * @typedef {import('./main.d.ts').ShieldOptions} ShieldOptions
  */
+
+/**
+ * @param {Required<SRIOptions>} sri
+ * @returns {NonNullable<AstroHooks['astro:build:done']>}
+ */
+const getAstroBuildDone =
+	sri =>
+	/** @satisfies {NonNullable<AstroHooks['astro:build:done']>} */
+	async ({ dir, logger }) =>
+		await processStaticFiles(logger, {
+			distDir: fileURLToPath(dir),
+			sri,
+		})
+
+/** @param {string} msg */
+const logWarn = msg =>
+	console.warn(`\nWARNING (@kindspells/astro-shield):\n\t${msg}\n`)
 
 // Integration
 // -----------------------------------------------------------------------------
 /**
- * @param {import('./main.d.ts').ShieldOptions} sriCspOptions
+ * @param {ShieldOptions} sriCspOptions
  * @returns {AstroIntegration}
  */
 export const shield = ({
@@ -24,44 +43,43 @@ export const shield = ({
 	enableStatic_SRI,
 	sriHashesModule,
 	securityHeaders,
+	sri,
 }) => {
-	if (sriHashesModule && enableStatic_SRI === false) {
-		console.warn(
-			'\nWARNING (@kindspells/astro-shield):\n\t`sriHashesModule` is ignored when `enableStatic_SRI` is `false`\n',
+	// TODO: Remove deprecated options in a future release
+	if (enableMiddleware_SRI !== undefined) {
+		logWarn(
+			'`enableMiddleware_SRI` is deprecated, use `sri.enableMiddleware` instead',
 		)
 	}
+	if (enableStatic_SRI !== undefined) {
+		logWarn('`enableStatic_SRI` is deprecated, use `sri.enableStatic` instead')
+	}
+	if (sriHashesModule !== undefined) {
+		logWarn('`sriHashesModule` is deprecated, use `sri.hashesModule` instead')
+	}
 
-	/**
-	 * @param {boolean} enableMiddleware_SRI
-	 * @returns {NonNullable<AstroHooks['astro:build:done']>}
-	 */
-	const getAstroBuildDone =
-		enableMiddleware_SRI =>
-		/** @satisfies {NonNullable<AstroHooks['astro:build:done']>} */
-		async ({ dir, logger }) =>
-			await processStaticFiles(logger, {
-				distDir: fileURLToPath(dir),
-				sriHashesModule,
-				enableMiddleware_SRI,
-			})
+	// We need to merge the deprecated options into the new object
+	const _sri = /** @satisfies {Required<SRIOptions>} */ {
+		enableMiddleware: sri?.enableMiddleware ?? enableMiddleware_SRI ?? false,
+		enableStatic: sri?.enableStatic ?? enableStatic_SRI ?? true,
+		hashesModule: sri?.hashesModule ?? sriHashesModule,
+	}
+
+	if (_sri.hashesModule && _sri.enableStatic === false) {
+		logWarn('`sriHashesModule` is ignored when `enableStatic_SRI` is `false`')
+	}
 
 	return /** @satisfies {AstroIntegration} */ {
 		name: '@kindspells/astro-shield',
 		hooks: {
 			...((enableStatic_SRI ?? true) === true
 				? {
-						'astro:build:done': getAstroBuildDone(
-							enableMiddleware_SRI ?? false,
-						),
+						'astro:build:done': getAstroBuildDone(_sri),
 					}
 				: undefined),
 			...(enableMiddleware_SRI === true
 				? {
-						'astro:config:setup': getAstroConfigSetup(
-							enableStatic_SRI ?? true,
-							sriHashesModule,
-							securityHeaders,
-						),
+						'astro:config:setup': getAstroConfigSetup(_sri, securityHeaders),
 					}
 				: undefined),
 		},

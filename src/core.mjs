@@ -13,6 +13,7 @@ import { doesFileExist, scanDirectory } from './fs.mjs'
 import { patchHeaders } from './headers.mjs'
 
 /**
+ * @typedef {import('./main.d.ts').SRIOptions} SRIOptions
  * @typedef {import('./main.d.ts').SecurityHeadersOptions} SecurityHeadersOptions
  * @typedef {import('./core.d.ts').PerPageHashes} PerPageHashes
  * @typedef {import('./core.d.ts').PerPageHashesCollection} PerPageHashesCollection
@@ -607,10 +608,7 @@ export async function generateSRIHashesModule(
  * @param {Logger} logger
  * @param {import('./main.d.ts').StrictShieldOptions} shieldOptions
  */
-export const processStaticFiles = async (
-	logger,
-	{ distDir, sriHashesModule, enableMiddleware_SRI },
-) => {
+export const processStaticFiles = async (logger, { distDir, sri }) => {
 	const h = /** @satisfies {HashesCollection} */ {
 		inlineScriptHashes: new Set(),
 		inlineStyleHashes: new Set(),
@@ -633,15 +631,15 @@ export const processStaticFiles = async (
 
 	await scanForNestedResources(logger, distDir, h)
 
-	if (!sriHashesModule) {
+	if (!sri.hashesModule) {
 		return
 	}
 
 	await generateSRIHashesModule(
 		logger,
 		h,
-		sriHashesModule,
-		enableMiddleware_SRI,
+		sri.hashesModule,
+		sri.enableMiddleware,
 	)
 }
 
@@ -846,24 +844,18 @@ const getViteMiddlewarePlugin = (
 }
 
 /**
- *
- * @param {boolean} enableStatic_SRI
- * @param {string | undefined} sriHashesModule
+ * @param {SRIOptions} sri
  * @param {SecurityHeadersOptions | undefined} securityHeaders
  * @returns
  */
-export const getAstroConfigSetup = (
-	enableStatic_SRI,
-	sriHashesModule,
-	securityHeaders,
-) => {
+export const getAstroConfigSetup = (sri, securityHeaders) => {
 	/** @type {Required<Integration['hooks']>['astro:config:setup']} */
 	return async ({ logger, addMiddleware, config, updateConfig }) => {
 		const publicDir = fileURLToPath(config.publicDir)
 		const plugin = getViteMiddlewarePlugin(
 			logger,
-			enableStatic_SRI,
-			sriHashesModule,
+			sri.enableStatic ?? true,
+			sri.hashesModule,
 			securityHeaders,
 			publicDir,
 		)

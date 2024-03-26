@@ -100,8 +100,10 @@ the `cspDirectives` option.
 
 > [!IMPORTANT]
 > It is advisable to set the option `sriHashesModule` in case your dynamic pages
-> include static JS or CSS resources (also: do not explicitly disable the
-> `enableStatic_SRI` option if you want support for those static assets).
+> include static JS or CSS resources.
+> 
+> Also, do not explicitly disable the `enableStatic_SRI` option if you want
+> support for those static assets).
 
 ### Accessing metadata generated at build time
 
