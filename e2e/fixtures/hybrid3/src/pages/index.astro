@@ -1,0 +1,24 @@
+---
+/*
+ * SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+const myConst = 42
+export const prerender = false
+import '../styles/main.css'
+---
+<!DOCTYPE html><html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>My Static Test Site</title>
+		<style>h1 { color: red; }</style>
+	</head>
+	<body>
+		<script is:inline src="/code.js"></script>
+		<h1>My const is: { myConst }</h1>
+		<p>In this document we'll try to load all our CSS rules</p>
+	</body>
+</html>

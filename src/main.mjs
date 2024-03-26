@@ -23,9 +23,12 @@ export const shield = ({
 	enableMiddleware_SRI,
 	enableStatic_SRI,
 	sriHashesModule,
+	securityHeaders,
 }) => {
 	if (sriHashesModule && enableStatic_SRI === false) {
-		console.warn('`sriHashesModule` is ignored when `enableStatic_SRI` is `false`')
+		console.warn(
+			'\nWARNING (@kindspells/astro-shield):\n\t`sriHashesModule` is ignored when `enableStatic_SRI` is `false`\n',
+		)
 	}
 
 	/**
@@ -50,15 +53,16 @@ export const shield = ({
 						'astro:build:done': getAstroBuildDone(
 							enableMiddleware_SRI ?? false,
 						),
-				  }
+					}
 				: undefined),
 			...(enableMiddleware_SRI === true
 				? {
 						'astro:config:setup': getAstroConfigSetup(
 							enableStatic_SRI ?? true,
 							sriHashesModule,
+							securityHeaders,
 						),
-				  }
+					}
 				: undefined),
 		},
 	}

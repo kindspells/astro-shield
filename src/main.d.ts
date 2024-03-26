@@ -8,6 +8,60 @@ import type { AstroIntegration } from 'astro'
 
 // Options
 // -----------------------------------------------------------------------------
+// We don't include 'script-src' and 'style-src' because they are handled by the
+// integration itself.
+export type CSPDirectiveNames =
+	| 'base-uri'
+	| 'child-src'
+	| 'connect-src'
+	| 'default-src'
+	| 'font-src'
+	| 'form-action'
+	| 'frame-ancestors'
+	| 'frame-src'
+	| 'img-src'
+	| 'manifest-src'
+	| 'media-src'
+	| 'object-src'
+	| 'plugin-types'
+	| 'prefetch-src'
+	| 'require-trusted-types-for'
+	| 'sandbox'
+	| 'script-src'
+	| 'style-src'
+	| 'worker-src'
+
+export type CSPDirectives = { [k in CSPDirectiveNames]?: string }
+
+export type CSPOptions = {
+	/**
+	 * - If set to `all`, the `script-src` and `style-src` directives will include
+	 *   all known SRI hashes (independently of whether the associated asset is
+	 *   referenced in the page or not). This can be useful to avoid problems with
+	 *   the View Transitions feature.
+	 * - If set to `perPage`, the `script-src` and `style-src` directives will
+	 *   include only the SRI hashes of the assets referenced in the page. This is
+	 *   more secure and efficient, but it can cause problems with the View
+	 *   Transitions feature.
+	 *
+	 * Defaults to `all`.
+	 */
+	// sriHashesStrategy?: 'all' | 'perPage' // TODO: Enable in the future
+
+	cspDirectives?: CSPDirectives
+}
+
+export type SecurityHeadersOptions = {
+	/**
+	 * - If set, it controls how the CSP (Content Security Policy) header will be
+	 *   generated in the middleware.
+	 * - If not set, no CSP header will be generated.
+	 *
+	 * Defaults to `undefined`.
+	 */
+	contentSecurityPolicy?: CSPOptions | undefined
+}
+
 export type ShieldOptions = {
 	/**
 	 * When set to `true`, `@kindspells/astro-shield` will generate Subresource
@@ -35,6 +89,15 @@ export type ShieldOptions = {
 	 *   artifact.
 	 */
 	sriHashesModule?: string | undefined
+
+	/**
+	 * - If set, it controls how the security headers will be generated in the
+	 *   middleware.
+	 * - If not set, no security headers will be generated in the middleware.
+	 *
+	 * Defaults to `undefined`.
+	 */
+	securityHeaders?: SecurityHeadersOptions | undefined
 }
 export type StrictShieldOptions = ShieldOptions & {
 	distDir: string

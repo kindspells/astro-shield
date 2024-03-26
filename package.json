@@ -24,9 +24,7 @@
 	"imports": {
 		"#as/*": "./src/*"
 	},
-	"files": [
-		"src/*"
-	],
+	"files": ["src/*"],
 	"scripts": {
 		"format": "biome format --write .",
 		"install-githooks": "if [ -d .git ]; then git config core.hooksPath .hooks; fi",
@@ -36,7 +34,6 @@
 		"lint:tsc": "tsc -p .",
 		"prepublishOnly": "pnpm lint && pnpm test:unit",
 		"test:e2e": "vitest -c vitest.config.e2e.mts run",
-		"test:e2e:coverage": "vitest -c vitest.config.e2e.mts run --coverage",
 		"test:unit": "vitest -c vitest.config.unit.mts run",
 		"test:unit:coverage": "vitest -c vitest.config.unit.mts run --coverage"
 	},

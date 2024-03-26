@@ -319,6 +319,11 @@ describe('middleware', () => {
 	it('patches inline resources for dynamically generated pages', async () => {
 		await checkHtmlIsPatched('/')
 	})
+
+	it('does not send csp headers when the feature is disabled', async () => {
+		const response = await fetch(`${baseUrl}/`)
+		expect(response.headers.has('content-security-policy')).toBe(false)
+	})
 })
 
 describe('middleware (hybrid)', () => {
@@ -383,6 +388,11 @@ describe('middleware (hybrid)', () => {
 		await checkHtmlIsPatched('/static/', {
 			'/code.js': 'sha256-X7QGGDHgf6XMoabXvV9pW7gl3ALyZhZlgKq1s3pwmME=',
 		})
+	})
+
+	it('does not send csp headers when the feature is disabled', async () => {
+		const response = await fetch(`${baseUrl}/`)
+		expect(response.headers.has('content-security-policy')).toBe(false)
 	})
 })
 
@@ -452,5 +462,72 @@ describe('middleware (hybrid 2)', () => {
 		await checkHtmlIsPatched('/static/', {
 			'/code.js': 'sha256-X7QGGDHgf6XMoabXvV9pW7gl3ALyZhZlgKq1s3pwmME=',
 		})
+	})
+
+	it('does not send csp headers when the feature is disabled', async () => {
+		const response = await fetch(`${baseUrl}/`)
+		expect(response.headers.has('content-security-policy')).toBe(false)
+	})
+})
+
+describe('middleware (hybrid 3)', () => {
+	const hybridDir = resolve(fixturesDir, 'hybrid3')
+	const execOpts = { cwd: hybridDir }
+
+	let baseUrl: string
+	let server: PreviewServer | undefined
+	let port: number
+
+	beforeAll(async () => {
+		await execFile('pnpm', ['install'], execOpts)
+		await execFile('pnpm', ['run', 'clean'], execOpts)
+		const { stdout: buildStdout } = await execFile(
+			'pnpm',
+			['run', 'build'],
+			execOpts,
+		)
+		expect(buildStdout).toMatch(/run the build step again/)
+		const { stdout: buildStdout2 } = await execFile(
+			'pnpm',
+			['run', 'build'],
+			execOpts,
+		)
+		expect(buildStdout2).not.toMatch(/run the build step again/)
+	})
+
+	beforeEach(async () => {
+		port = 9999 + Math.floor(Math.random() * 55536)
+		baseUrl = `http://localhost:${port}`
+
+		await cleanServer()
+		server = await preview({
+			root: hybridDir,
+			server: { port },
+			logLevel: 'debug',
+		})
+	})
+
+	const cleanServer = async () => {
+		if (server) {
+			if (!server.closed()) {
+				await server.stop()
+			}
+			server = undefined
+		}
+	}
+
+	afterEach(cleanServer)
+	afterAll(cleanServer) // Just in case
+
+	it('sends csp headers when the feature is enabled', async () => {
+		const response = await fetch(`${baseUrl}/`)
+		const cspHeader = response.headers.get('content-security-policy')
+
+		assert(cspHeader !== null)
+		assert(cspHeader)
+
+		expect(cspHeader).toBe(
+			"default-src 'none'; frame-ancestors 'none'; script-src 'self' 'sha256-X7QGGDHgf6XMoabXvV9pW7gl3ALyZhZlgKq1s3pwmME='; style-src 'self' 'sha256-9U7mv8FibD/D9IbGpXc86pz37l6/w4PCLpFIZuPrzh8=' 'sha256-ZlgyI5Bx/aeAyk/wSIypqeIM5PBhz9IiAek9HIiAjaI='",
+		)
 	})
 })

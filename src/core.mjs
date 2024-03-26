@@ -5,13 +5,15 @@
  */
 
 import { createHash } from 'node:crypto'
-import { readFile, writeFile } from 'node:fs/promises'
-import { extname, resolve, relative } from 'node:path'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { dirname, extname, resolve, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { doesFileExist, scanDirectory } from './fs.mjs'
+import { patchHeaders } from './headers.mjs'
 
 /**
+ * @typedef {import('./main.d.ts').SecurityHeadersOptions} SecurityHeadersOptions
  * @typedef {import('./core.d.ts').PerPageHashes} PerPageHashes
  * @typedef {import('./core.d.ts').PerPageHashesCollection} PerPageHashesCollection
  * @typedef {import('./core.d.ts').HashesCollection} HashesCollection
@@ -596,6 +598,7 @@ export async function generateSRIHashesModule(
 			.map(([k, v]) => `\t\t'${k}': '${v}',\n`)
 			.join('')}\t}),\n}\n`
 
+		await mkdir(dirname(sriHashesModule), { recursive: true })
 		await writeFile(sriHashesModule, hashesFileContent)
 	}
 }
@@ -667,6 +670,34 @@ export const getMiddlewareHandler = globalHashes => {
 	}
 }
 
+/**
+ * Variant of `getMiddlewareHandler` that also applies security headers.
+ *
+ * @param {MiddlewareHashes} globalHashes
+ * @param {SecurityHeadersOptions} securityHeadersOpts
+ * @returns {import('astro').MiddlewareHandler}
+ */
+export const getCSPMiddlewareHandler = (globalHashes, securityHeadersOpts) => {
+	/** @satisfies {import('astro').MiddlewareHandler} */
+	return async (_ctx, next) => {
+		const response = await next()
+		const content = await response.text()
+
+		const { updatedContent, pageHashes } = await updateDynamicPageSriHashes(
+			console,
+			content,
+			globalHashes,
+		)
+
+		const patchedResponse = new Response(updatedContent, {
+			status: response.status,
+			statusText: response.statusText,
+			headers: patchHeaders(response.headers, pageHashes, securityHeadersOpts),
+		})
+		return patchedResponse
+	}
+}
+
 const middlewareVirtualModuleId = 'virtual:@kindspells/astro-shield/middleware'
 const resolvedMiddlewareVirtualModuleId = `\0${middlewareVirtualModuleId}`
 
@@ -674,6 +705,7 @@ const resolvedMiddlewareVirtualModuleId = `\0${middlewareVirtualModuleId}`
  * @param {Logger} logger
  * @param {boolean} enableStatic_SRI
  * @param {string | undefined} sriHashesModule
+ * @param {SecurityHeadersOptions | undefined} securityHeadersOptions
  * @param {string} publicDir
  * @returns {Promise<string>}
  */
@@ -681,6 +713,7 @@ const loadVirtualMiddlewareModule = async (
 	logger,
 	enableStatic_SRI,
 	sriHashesModule,
+	securityHeadersOptions,
 	publicDir,
 ) => {
 	let extraImports = ''
@@ -749,7 +782,11 @@ try {
 	return `
 import { defineMiddleware } from 'astro/middleware'
 import { getGlobalHashes } from '@kindspells/astro-shield/state'
-import { getMiddlewareHandler } from '@kindspells/astro-shield/core'
+import { ${
+		securityHeadersOptions !== undefined
+			? 'getCSPMiddlewareHandler'
+			: 'getMiddlewareHandler'
+	} } from '@kindspells/astro-shield/core'
 ${extraImports}
 
 export const onRequest = await (async () => {
@@ -757,7 +794,13 @@ export const onRequest = await (async () => {
 
 	${staticHashesModuleLoader}
 
-	return defineMiddleware(getMiddlewareHandler(globalHashes))
+	return defineMiddleware(${
+		securityHeadersOptions !== undefined
+			? `getCSPMiddlewareHandler(globalHashes, ${JSON.stringify(
+					securityHeadersOptions,
+				)})`
+			: 'getMiddlewareHandler(globalHashes)'
+	})
 })()
 `
 }
@@ -766,6 +809,7 @@ export const onRequest = await (async () => {
  * @param {Logger} logger
  * @param {boolean} enableStatic_SRI
  * @param {string | undefined} sriHashesModule
+ * @param {SecurityHeadersOptions | undefined} securityHeaders
  * @param {string} publicDir
  * @return {import('vite').Plugin}
  */
@@ -773,6 +817,7 @@ const getViteMiddlewarePlugin = (
 	logger,
 	enableStatic_SRI,
 	sriHashesModule,
+	securityHeaders,
 	publicDir,
 ) => {
 	return {
@@ -790,6 +835,7 @@ const getViteMiddlewarePlugin = (
 						logger,
 						enableStatic_SRI,
 						sriHashesModule,
+						securityHeaders,
 						publicDir,
 					)
 				default:
@@ -803,9 +849,14 @@ const getViteMiddlewarePlugin = (
  *
  * @param {boolean} enableStatic_SRI
  * @param {string | undefined} sriHashesModule
+ * @param {SecurityHeadersOptions | undefined} securityHeaders
  * @returns
  */
-export const getAstroConfigSetup = (enableStatic_SRI, sriHashesModule) => {
+export const getAstroConfigSetup = (
+	enableStatic_SRI,
+	sriHashesModule,
+	securityHeaders,
+) => {
 	/** @type {Required<Integration['hooks']>['astro:config:setup']} */
 	return async ({ logger, addMiddleware, config, updateConfig }) => {
 		const publicDir = fileURLToPath(config.publicDir)
@@ -813,6 +864,7 @@ export const getAstroConfigSetup = (enableStatic_SRI, sriHashesModule) => {
 			logger,
 			enableStatic_SRI,
 			sriHashesModule,
+			securityHeaders,
 			publicDir,
 		)
 		updateConfig({ vite: { plugins: [plugin] } })

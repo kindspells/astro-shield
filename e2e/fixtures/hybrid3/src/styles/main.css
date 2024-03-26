@@ -1,0 +1,106 @@
+/*
+ * SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+@import './normalize.css';
+
+/*
+ * Global
+ *********************************************************************/
+:where(html) {
+	--ease-3: cubic-bezier(.25, 0, .3, 1);
+	--ease-elastic-3: var(--ease-elastic-out-3);
+  --ease-elastic-4: var(--ease-elastic-out-4);
+	--ease-out-5: cubic-bezier(0, 0, 0, 1);
+}
+
+:root {
+	color-scheme: light;
+	--bg-color: rgb(250, 250, 250);
+	--bg-color-2: rgb(34, 39, 42);
+	--text-color: rgb(34, 39, 42);
+	--text-color-2: rgb(167, 167, 168);
+	--accent-color: rgb(203, 42, 66);
+	--accent-color-2: rgb(41, 188, 137);
+
+	--footer-bg-color: var(--bg-color-2);
+	--footer-links: var(--text-color);
+}
+
+:root.dark {
+	color-scheme: dark;
+	--bg-color: rgb(34, 39, 42);
+	--bg-color-2: rgb(230, 230, 230);
+	--text-color: rgb(230, 230, 230);
+	--text-color-2: rgb(34, 39, 42);
+	--accent-color: rgb(41, 188, 137);
+	--accent-color-2: rgb(249, 180, 19);
+
+	--footer-bg-color: var(--bg-color-2);
+	--footer-links: var(--text-color);
+}
+
+html {
+	height: 100%;
+}
+
+body {
+	color: var(--text-color);
+	background-color: var(--bg-color);
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+}
+
+/*
+ * Main Content
+ *********************************************************************/
+main {
+	max-width: 720px;
+	min-width: 260px;
+	width: calc(75% + 48px);
+	margin: 0 auto;
+	padding: 0;
+	display: flex;
+	flex: 1;
+}
+
+#splash {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	justify-content: center;
+}
+
+#hero p {
+	text-align: center;
+	margin: 16px auto 24px auto;
+}
+
+h1 {
+	font-size: 2.5rem;
+	font-weight: 800;
+}
+
+h2 {
+	font-size: 1.5rem;
+	font-weight: 700;
+}
+
+#hero h1 {
+	text-align: center
+}
+
+#document-block {
+	margin-bottom: 32px;
+}
+
+#document-block p, #document-block ul {
+	margin-bottom: 12px;
+}
+
+#document-block ul li {
+	list-style: inside square;
+}
