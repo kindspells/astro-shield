@@ -98,7 +98,7 @@ need to customise any specific behavior, but it must be defined).
 Besides enabling CSP, you can also configure its directives to some extent, via
 the `cspDirectives` option.
 
-> [!INFO]
+> [!IMPORTANT]
 > It is advisable to set the option `sriHashesModule` in case your dynamic pages
 > include static JS or CSS resources (also: do not explicitly disable the
 > `enableStatic_SRI` option if you want support for those static assets).
