@@ -701,16 +701,14 @@ const resolvedMiddlewareVirtualModuleId = `\0${middlewareVirtualModuleId}`
 
 /**
  * @param {Logger} logger
- * @param {boolean} enableStatic_SRI
- * @param {string | undefined} sriHashesModule
+ * @param {Required<SRIOptions>} sri
  * @param {SecurityHeadersOptions | undefined} securityHeadersOptions
  * @param {string} publicDir
  * @returns {Promise<string>}
  */
 const loadVirtualMiddlewareModule = async (
 	logger,
-	enableStatic_SRI,
-	sriHashesModule,
+	sri,
 	securityHeadersOptions,
 	publicDir,
 ) => {
@@ -718,9 +716,9 @@ const loadVirtualMiddlewareModule = async (
 	let staticHashesModuleLoader = ''
 
 	if (
-		enableStatic_SRI &&
-		sriHashesModule &&
-		!(await doesFileExist(sriHashesModule))
+		sri.enableStatic &&
+		sri.hashesModule &&
+		!(await doesFileExist(sri.hashesModule))
 	) {
 		const h = /** @satisfies {HashesCollection} */ {
 			inlineScriptHashes: new Set(),
@@ -740,17 +738,17 @@ const loadVirtualMiddlewareModule = async (
 		await generateSRIHashesModule(
 			logger,
 			h,
-			sriHashesModule,
+			sri.hashesModule,
 			false, // So we don't get redundant warnings
 		)
 	}
 
 	if (
-		enableStatic_SRI &&
-		sriHashesModule &&
-		(await doesFileExist(sriHashesModule))
+		sri.enableStatic &&
+		sri.hashesModule &&
+		(await doesFileExist(sri.hashesModule))
 	) {
-		extraImports = `import { perResourceSriHashes } from '${sriHashesModule}'`
+		extraImports = `import { perResourceSriHashes } from '${sri.hashesModule}'`
 		staticHashesModuleLoader = `
 try {
 	if (perResourceSriHashes) {
@@ -769,11 +767,11 @@ try {
 	console.error('Failed to load static hashes module:', err)
 }
 `
-	} else if (enableStatic_SRI && sriHashesModule) {
+	} else if (sri.enableStatic && sri.hashesModule) {
 		// Highly unlikely that this happens because of the provisional hashes
 		// module, but the world is a strange place.
 		logger.warn(
-			`The SRI hashes module "${sriHashesModule}" did not exist at build time. You may have to run the build step again`,
+			`The SRI hashes module "${sri.hashesModule}" did not exist at build time. You may have to run the build step again`,
 		)
 	}
 
@@ -805,19 +803,12 @@ export const onRequest = await (async () => {
 
 /**
  * @param {Logger} logger
- * @param {boolean} enableStatic_SRI
- * @param {string | undefined} sriHashesModule
+ * @param {Required<SRIOptions>} sri
  * @param {SecurityHeadersOptions | undefined} securityHeaders
  * @param {string} publicDir
  * @return {import('vite').Plugin}
  */
-const getViteMiddlewarePlugin = (
-	logger,
-	enableStatic_SRI,
-	sriHashesModule,
-	securityHeaders,
-	publicDir,
-) => {
+const getViteMiddlewarePlugin = (logger, sri, securityHeaders, publicDir) => {
 	return {
 		name: 'vite-plugin-astro-shield',
 		resolveId(id) {
@@ -831,8 +822,7 @@ const getViteMiddlewarePlugin = (
 				case resolvedMiddlewareVirtualModuleId:
 					return await loadVirtualMiddlewareModule(
 						logger,
-						enableStatic_SRI,
-						sriHashesModule,
+						sri,
 						securityHeaders,
 						publicDir,
 					)
@@ -844,7 +834,7 @@ const getViteMiddlewarePlugin = (
 }
 
 /**
- * @param {SRIOptions} sri
+ * @param {Required<SRIOptions>} sri
  * @param {SecurityHeadersOptions | undefined} securityHeaders
  * @returns
  */
@@ -854,8 +844,7 @@ export const getAstroConfigSetup = (sri, securityHeaders) => {
 		const publicDir = fileURLToPath(config.publicDir)
 		const plugin = getViteMiddlewarePlugin(
 			logger,
-			sri.enableStatic ?? true,
-			sri.hashesModule,
+			sri,
 			securityHeaders,
 			publicDir,
 		)

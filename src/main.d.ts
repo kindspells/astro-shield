@@ -83,6 +83,40 @@ export type SRIOptions = {
 	 *   artifact.
 	 */
 	hashesModule?: string | undefined
+
+	/**
+	 * Inline styles are usually considered unsafe because they could make it
+	 * easier for an attacker to inject CSS rules in dynamic pages. However, they
+	 * don't pose a serious security risk for _most_ static pages.
+	 *
+	 * You can disable this option in case you want to enforce a stricter policy.
+	 *
+	 * Defaults to 'all'.
+	 */
+	allowInlineStyles?: 'all' | 'static' | false
+
+	/**
+	 * Inline scripts are usually considered unsafe because they could make it
+	 * easier for an attacker to inject JS code in dynamic pages. However, they
+	 * don't pose a serious security risk for _most_ static pages.
+	 *
+	 * You can disable this option in case you want to enforce a stricter policy.
+	 *
+	 * Defaults to 'all'.
+	 */
+	allowInlineScripts?: 'all' | 'static' | false
+
+	/**
+	 * Cross-Origin scripts must be explicitly allow-listed by URL in order to be
+	 * allowed by the Content Security Policy.
+	 */
+	scriptsAllowListUrls?: string[]
+
+	/**
+	 * Cross-Origin styles must be explicitly allow-listed by URL in order to be
+	 * allowed by the Content Security Policy.
+	 */
+	stylesAllowListUrls?: string[]
 }
 
 export type SecurityHeadersOptions = {

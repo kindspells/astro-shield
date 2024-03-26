@@ -63,6 +63,12 @@ export const shield = ({
 		enableMiddleware: sri?.enableMiddleware ?? enableMiddleware_SRI ?? false,
 		enableStatic: sri?.enableStatic ?? enableStatic_SRI ?? true,
 		hashesModule: sri?.hashesModule ?? sriHashesModule,
+
+		allowInlineScripts: sri?.allowInlineScripts ?? 'all',
+		allowInlineStyles: sri?.allowInlineStyles ?? 'all',
+
+		scriptsAllowListUrls: sri?.scriptsAllowListUrls ?? [],
+		stylesAllowListUrls: sri?.stylesAllowListUrls ?? [],
 	}
 
 	if (_sri.hashesModule && _sri.enableStatic === false) {
