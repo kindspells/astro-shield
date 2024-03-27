@@ -8,8 +8,9 @@ import { readdir, stat } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
 /**
- * @typedef {import('./core.js').Logger} Logger
- * @typedef {import('./core.js').HashesCollection} HashesCollection
+ * @typedef {import('./core.d.ts').Logger} Logger
+ * @typedef {import('./core.d.ts').HashesCollection} HashesCollection
+ * @typedef {import('./main.d.ts').SRIOptions} SRIOptions
  */
 
 /**
@@ -33,8 +34,15 @@ export const doesFileExist = async path => {
  * @param {string} currentPath
  * @param {string} rootPath
  * @param {HashesCollection} h
- * @param {(logger: Logger, filePath: string, distDir: string, h: HashesCollection) => Promise<void>} processFile
+ * @param {(
+ * 	logger: Logger,
+ * 	filePath: string,
+ * 	distDir: string,
+ * 	h: HashesCollection,
+ * 	sri?: SRIOptions
+ * ) => Promise<void>} processFile
  * @param {(filename: string) => boolean} filenameCondition
+ * @param {SRIOptions=} sri
  */
 export const scanDirectory = async (
 	logger,
@@ -43,6 +51,7 @@ export const scanDirectory = async (
 	h,
 	processFile,
 	filenameCondition,
+	sri,
 ) => {
 	for (const file of await readdir(currentPath)) {
 		const filePath = resolve(currentPath, file)
@@ -56,9 +65,10 @@ export const scanDirectory = async (
 				h,
 				processFile,
 				filenameCondition,
+				sri,
 			)
 		} else if (stats.isFile() && filenameCondition(file)) {
-			await processFile(logger, filePath, rootPath, h)
+			await processFile(logger, filePath, rootPath, h, sri)
 		}
 	}
 }

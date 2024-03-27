@@ -115,6 +115,8 @@ const getRegexProcessors = () => {
  * @param {string} relativeFilepath
  * @param {string} content
  * @param {HashesCollection} h
+ * @param {'all' | 'static' | false} allowInlineScripts
+ * @param {'all' | 'static' | false} allowInlineStyles
  * @returns {Promise<string>}
  */
 export const updateStaticPageSriHashes = async (
@@ -123,6 +125,8 @@ export const updateStaticPageSriHashes = async (
 	relativeFilepath,
 	content,
 	h,
+	allowInlineScripts = 'all',
+	allowInlineStyles = 'all',
 ) => {
 	const processors = getRegexProcessors()
 
@@ -202,9 +206,19 @@ export const updateStaticPageSriHashes = async (
 			}
 
 			if (hasContent && !sriHash) {
-				sriHash = generateSRIHash(content)
-				h[`inline${t}Hashes`].add(sriHash)
-				pageHashes[t2].add(sriHash)
+				// TODO: Do not generate the hash if we disabled SRI for inline resources
+				if (
+					!(allowInlineScripts === false && t === 'Script') &&
+					!(allowInlineStyles === false && t === 'Style')
+				) {
+					sriHash = generateSRIHash(content)
+					h[`inline${t}Hashes`].add(sriHash)
+					pageHashes[t2].add(sriHash)
+				} else {
+					logger.warn(
+						`Skipping SRI hash generation for inline ${t.toLowerCase()} "${relativeFilepath}" (inline ${t2} are disabled)`,
+					)
+				}
 			}
 
 			if (sriHash) {
@@ -355,8 +369,9 @@ export const updateDynamicPageSriHashes = async (
  * @param {string} filePath
  * @param {string} distDir
  * @param {HashesCollection} h
+ * @param {SRIOptions=} sri
  */
-const processHTMLFile = async (logger, filePath, distDir, h) => {
+const processHTMLFile = async (logger, filePath, distDir, h, sri) => {
 	const content = await readFile(filePath, 'utf8')
 	const updatedContent = await updateStaticPageSriHashes(
 		logger,
@@ -364,6 +379,8 @@ const processHTMLFile = async (logger, filePath, distDir, h) => {
 		relative(distDir, filePath),
 		content,
 		h,
+		sri?.allowInlineScripts ?? 'all',
+		sri?.allowInlineStyles ?? 'all',
 	)
 
 	if (updatedContent !== content) {
@@ -627,6 +644,7 @@ export const processStaticFiles = async (logger, { distDir, sri }) => {
 		h,
 		processHTMLFile,
 		file => extname(file) === '.html',
+		sri,
 	)
 
 	await scanForNestedResources(logger, distDir, h)
