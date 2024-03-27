@@ -206,7 +206,6 @@ export const updateStaticPageSriHashes = async (
 			}
 
 			if (hasContent && !sriHash) {
-				// TODO: Do not generate the hash if we disabled SRI for inline resources
 				if (
 					!(allowInlineScripts === false && t === 'Script') &&
 					!(allowInlineStyles === false && t === 'Style')
@@ -237,11 +236,13 @@ export const updateStaticPageSriHashes = async (
  * @param {Logger} logger
  * @param {string} content
  * @param {MiddlewareHashes} globalHashes
+ * @param {Required<SRIOptions>=} sri
  */
 export const updateDynamicPageSriHashes = async (
 	logger,
 	content,
 	globalHashes,
+	sri
 ) => {
 	const processors = getRegexProcessors()
 
@@ -253,7 +254,7 @@ export const updateDynamicPageSriHashes = async (
 		styles: new Set(),
 	})
 
-	for (const { attrsRegex, hasContent, regex, replacer, t2 } of processors) {
+	for (const { attrsRegex, hasContent, regex, replacer, t, t2 } of processors) {
 		// biome-ignore lint/suspicious/noAssignInExpressions: safe
 		while ((match = regex.exec(content)) !== null) {
 			const attrs = match.groups?.attrs ?? ''
@@ -345,8 +346,18 @@ export const updateDynamicPageSriHashes = async (
 			}
 
 			if (hasContent && !sriHash) {
-				sriHash = generateSRIHash(content)
-				pageHashes[t2].add(sriHash)
+				// TODO: port logic from `updateStaticPageSriHashes` to handle inline resources
+				if (
+					((sri?.allowInlineScripts ?? 'all') === 'all' && t === 'Script') ||
+					((sri?.allowInlineStyles ?? 'all') === 'all' && t === 'Style')
+				) {
+					sriHash = generateSRIHash(content)
+					pageHashes[t2].add(sriHash)
+				} else {
+					logger.warn(
+						`Skipping SRI hash generation for inline ${t.toLowerCase()} (inline ${t2} are disabled)`,
+					)
+				}
 			}
 
 			if (sriHash) {
