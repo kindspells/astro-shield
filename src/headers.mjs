@@ -96,9 +96,13 @@ export const patchCspHeader = (plainHeaders, pageHashes, cspOpts) => {
 
 	if (pageHashes.scripts.size > 0) {
 		setSrcDirective(directives, 'script-src', pageHashes.scripts)
+	} else {
+		directives['script-src'] = "'none'"
 	}
 	if (pageHashes.styles.size > 0) {
 		setSrcDirective(directives, 'style-src', pageHashes.styles)
+	} else {
+		directives['style-src'] = "'none'"
 	}
 	if (Object.keys(directives).length > 0) {
 		plainHeaders['content-security-policy'] = serialiseCspDirectives(directives)

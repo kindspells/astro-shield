@@ -36,17 +36,17 @@ describe('sriCSP', () => {
 	})
 
 	it('returns a valid AstroIntegration object for almost-default config', () => {
-		const integration = shield({ enableStatic_SRI: true })
+		const integration = shield({ sri: { enableStatic: true } })
 		checkIntegration(integration)
 	})
 
 	it('returns an "empty" integration when we disable all features', () => {
-		const integration = shield({ enableStatic_SRI: false })
+		const integration = shield({ sri: { enableStatic: false } })
 		checkIntegration(integration, [])
 	})
 
 	it('returns hooks for static & dynamic content when we enable middleware', () => {
-		const integration = shield({ enableMiddleware_SRI: true })
+		const integration = shield({ sri: { enableMiddleware: true } })
 		checkIntegration(integration, ['astro:build:done', 'astro:config:setup'])
 	})
 

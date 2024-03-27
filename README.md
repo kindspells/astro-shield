@@ -53,18 +53,62 @@ const rootDir = new URL('.', import.meta.url).pathname
 export default defineConfig({
   integrations: [
     shield({
-      // Enables SRI hashes generation for statically generated pages
-      enableStatic_SRI: true, // true by default
+      sri: {
+        // Enables SRI hashes generation for statically generated pages
+        enableStatic: true, // true by default
 
-      // Enables a middleware that generates SRI hashes for dynamically
-      // generated pages
-      enableMiddleware_SRI: false, // false by default
+        // Enables a middleware that generates SRI hashes for dynamically
+        // generated pages
+        enableMiddleware: false, // false by default
 
-      // This is the path where we'll generate the module containing the SRI
-      // hashes for your scripts and styles. There's no need to pass this
-      // parameter if you don't need this data, but it can be useful to
-      // configure your CSP policies.
-      sriHashesModule: resolve(rootDir, 'src', 'utils', 'sriHashes.mjs'),
+        // This is the path where we'll generate the module containing the SRI
+        // hashes for your scripts and styles. There's no need to pass this
+        // parameter if you don't need this data, but it can be useful to
+        // configure your CSP policies.
+        hashesModule: resolve(rootDir, 'src', 'utils', 'sriHashes.mjs'),
+
+        // For SSR content, Cross-Origin scripts must be explicitly allow-listed
+        // by URL in order to be allowed by the Content Security Policy.
+        //
+        // Defaults to []
+        scriptsAllowListUrls: [
+          'https://code.jquery.com/jquery-3.7.1.slim.min.js',
+        ],
+
+        // For SSR content, Cross-Origin styles must be explicitly allow-listed
+        // by URL in order to be allowed by the Content Security Policy.
+        //
+        // Defaults to []
+        stylesAllowListUrls: [
+          'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
+        ],
+
+        /**
+         * Inline styles are usually considered unsafe because they could make it
+         * easier for an attacker to inject CSS rules in dynamic pages. However, they
+         * don't pose a serious security risk for _most_ static pages.
+         *
+         * You can disable this option in case you want to enforce a stricter policy.
+         *
+         * @type {'all' | 'static' | false}
+         *
+         * Defaults to 'all'.
+         */
+        allowInlineStyles: 'all',
+
+        /**
+         * Inline scripts are usually considered unsafe because they could make it
+         * easier for an attacker to inject JS code in dynamic pages. However, they
+         * don't pose a serious security risk for _most_ static pages.
+         *
+         * You can disable this option in case you want to enforce a stricter policy.
+         *
+         * @type {'all' | 'static' | false}
+         *
+         * Defaults to 'all'.
+         */
+        allowInlineScript: 'all',
+      },
 
       // - If set, it controls how the security headers will be generated in the
       //   middleware.

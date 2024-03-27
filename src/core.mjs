@@ -41,7 +41,7 @@ export const generateSRIHash = data => {
 
 /**
  * @typedef {(
- *   hash: string,
+ *   hash: string | null,
  *   attrs: string,
  *   setCrossorigin: boolean,
  *   content?: string | undefined,
@@ -50,19 +50,19 @@ export const generateSRIHash = data => {
 
 /** @type {ElemReplacer} */
 const scriptReplacer = (hash, attrs, setCrossorigin, content) =>
-	`<script${attrs} integrity="${hash}"${
+	`<script${attrs}${hash !== null ? ` integrity="${hash}"` : ''}${
 		setCrossorigin ? ' crossorigin="anonymous"' : ''
 	}>${content ?? ''}</script>`
 
 /** @type {ElemReplacer} */
 const styleReplacer = (hash, attrs, setCrossorigin, content) =>
-	`<style${attrs} integrity="${hash}"${
+	`<style${attrs}${hash !== null ? ` integrity="${hash}"` : ''}${
 		setCrossorigin ? ' crossorigin="anonymous"' : ''
 	}>${content ?? ''}</style>`
 
 /** @type {ElemReplacer} */
 const linkStyleReplacer = (hash, attrs, setCrossorigin) =>
-	`<link${attrs} integrity="${hash}"${
+	`<link${attrs}${hash !== null ? ` integrity="${hash}"` : ''}${
 		setCrossorigin ? ' crossorigin="anonymous"' : ''
 	}/>`
 
@@ -242,7 +242,7 @@ export const updateDynamicPageSriHashes = async (
 	logger,
 	content,
 	globalHashes,
-	sri
+	sri,
 ) => {
 	const processors = getRegexProcessors()
 
@@ -331,12 +331,23 @@ export const updateDynamicPageSriHashes = async (
 						if (sriHash) {
 							pageHashes[t2].add(sriHash)
 						} else {
-							const resourceResponse = await fetch(src, { method: 'GET' })
-							const resourceContent = await resourceResponse.arrayBuffer()
+							logger.warn(
+								`Detected reference to not-allow-listed external resource "${src}"`,
+							)
+							if (setCrossorigin) {
+								updatedContent = updatedContent.replace(
+									match[0],
+									replacer(null, attrs, true, ''),
+								)
+							}
+							continue
 
-							sriHash = generateSRIHash(resourceContent)
-							globalHashes[t2].set(src, sriHash)
-							pageHashes[t2].add(sriHash)
+							// TODO: add scape hatch to allow fetching arbitrary external resources
+							// const resourceResponse = await fetch(src, { method: 'GET' })
+							// const resourceContent = await resourceResponse.arrayBuffer()
+							// sriHash = generateSRIHash(resourceContent)
+							// globalHashes[t2].set(src, sriHash)
+							// pageHashes[t2].add(sriHash)
 						}
 					} else {
 						logger.warn(`Unable to process external resource: "${src}"`)
@@ -518,6 +529,30 @@ export const scanForNestedResources = async (logger, dirPath, h) => {
 }
 
 /**
+ * @param {Required<Pick<SRIOptions, 'scriptsAllowListUrls' | 'stylesAllowListUrls'>>} sri
+ * @param {HashesCollection} h
+ */
+export const scanAllowLists = async (sri, h) => {
+	for (const scriptUrl of sri.scriptsAllowListUrls) {
+		const resourceResponse = await fetch(scriptUrl, { method: 'GET' })
+		const resourceContent = await resourceResponse.arrayBuffer()
+		const sriHash = generateSRIHash(resourceContent)
+
+		h.extScriptHashes.add(sriHash)
+		h.perResourceSriHashes.scripts.set(scriptUrl, sriHash)
+	}
+
+	for (const styleUrl of sri.stylesAllowListUrls) {
+		const resourceResponse = await fetch(styleUrl, { method: 'GET' })
+		const resourceContent = await resourceResponse.arrayBuffer()
+		const sriHash = generateSRIHash(resourceContent)
+
+		h.extStyleHashes.add(sriHash)
+		h.perResourceSriHashes.styles.set(styleUrl, sriHash)
+	}
+}
+
+/**
  * @param {Logger} logger
  * @param {HashesCollection} h
  * @param {string} sriHashesModule
@@ -673,19 +708,22 @@ export const processStaticFiles = async (logger, { distDir, sri }) => {
 }
 
 /**
+ * @param {Logger} logger
  * @param {MiddlewareHashes} globalHashes
+ * @param {Required<SRIOptions>} sri
  * @returns {import('astro').MiddlewareHandler}
  */
-export const getMiddlewareHandler = globalHashes => {
+export const getMiddlewareHandler = (logger, globalHashes, sri) => {
 	/** @satisfies {import('astro').MiddlewareHandler} */
 	return async (_ctx, next) => {
 		const response = await next()
 		const content = await response.text()
 
 		const { updatedContent } = await updateDynamicPageSriHashes(
-			console,
+			logger,
 			content,
 			globalHashes,
+			sri,
 		)
 
 		const patchedResponse = new Response(updatedContent, {
@@ -700,20 +738,28 @@ export const getMiddlewareHandler = globalHashes => {
 /**
  * Variant of `getMiddlewareHandler` that also applies security headers.
  *
+ * @param {Logger} logger
  * @param {MiddlewareHashes} globalHashes
  * @param {SecurityHeadersOptions} securityHeadersOpts
+ * @param {Required<SRIOptions>} sri
  * @returns {import('astro').MiddlewareHandler}
  */
-export const getCSPMiddlewareHandler = (globalHashes, securityHeadersOpts) => {
+export const getCSPMiddlewareHandler = (
+	logger,
+	globalHashes,
+	securityHeadersOpts,
+	sri,
+) => {
 	/** @satisfies {import('astro').MiddlewareHandler} */
 	return async (_ctx, next) => {
 		const response = await next()
 		const content = await response.text()
 
 		const { updatedContent, pageHashes } = await updateDynamicPageSriHashes(
-			console,
+			logger,
 			content,
 			globalHashes,
+			sri,
 		)
 
 		const patchedResponse = new Response(updatedContent, {
@@ -764,6 +810,7 @@ const loadVirtualMiddlewareModule = async (
 		// We generate a provisional hashes module. It won't contain the hashes for
 		// resources created by Astro, but it can be useful nonetheless.
 		await scanForNestedResources(logger, publicDir, h)
+		await scanAllowLists(sri, h)
 		await generateSRIHashesModule(
 			logger,
 			h,
@@ -821,10 +868,10 @@ export const onRequest = await (async () => {
 
 	return defineMiddleware(${
 		securityHeadersOptions !== undefined
-			? `getCSPMiddlewareHandler(globalHashes, ${JSON.stringify(
+			? `getCSPMiddlewareHandler(console, globalHashes, ${JSON.stringify(
 					securityHeadersOptions,
-				)})`
-			: 'getMiddlewareHandler(globalHashes)'
+				)}, ${JSON.stringify(sri)})`
+			: `getMiddlewareHandler(console, globalHashes, ${JSON.stringify(sri)})`
 	})
 })()
 `

@@ -78,12 +78,12 @@ export const shield = ({
 	return /** @satisfies {AstroIntegration} */ {
 		name: '@kindspells/astro-shield',
 		hooks: {
-			...((enableStatic_SRI ?? true) === true
+			...(_sri.enableStatic === true
 				? {
 						'astro:build:done': getAstroBuildDone(_sri),
 					}
 				: undefined),
-			...(enableMiddleware_SRI === true
+			...(_sri.enableMiddleware === true
 				? {
 						'astro:config:setup': getAstroConfigSetup(_sri, securityHeaders),
 					}

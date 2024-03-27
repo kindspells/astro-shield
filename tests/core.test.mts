@@ -7,12 +7,15 @@
 import { resolve } from 'node:path'
 import { readdir, rm } from 'node:fs/promises'
 
-import { beforeEach, describe, expect, it } from 'vitest'
+import { assert, beforeEach, describe, expect, it } from 'vitest'
 import {
 	arraysEqual,
 	generateSRIHash,
 	generateSRIHashesModule,
+	getCSPMiddlewareHandler,
+	getMiddlewareHandler,
 	pageHashesEqual,
+	scanAllowLists,
 	scanForNestedResources,
 	sriHashesEqual,
 	updateDynamicPageSriHashes,
@@ -362,7 +365,7 @@ describe('updateStaticPageSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="/core.mjs" integrity="sha256-vSvqa4zN5DZN/gOtz1s6Xuw0MUYNKQXvUPL8pXWgHGo="></script>
+				<script type="module" src="/core.mjs" integrity="sha256-Xbdu1jxIAqCjb78wAdgir+Swc5faxBuLHPm0DC/lG80="></script>
 			</body>
 		</html>`
 
@@ -379,7 +382,7 @@ describe('updateStaticPageSriHashes', () => {
 		expect(h.extScriptHashes.size).toBe(1)
 		expect(
 			h.extScriptHashes.has(
-				'sha256-vSvqa4zN5DZN/gOtz1s6Xuw0MUYNKQXvUPL8pXWgHGo=',
+				'sha256-Xbdu1jxIAqCjb78wAdgir+Swc5faxBuLHPm0DC/lG80=',
 			),
 		).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)
@@ -656,7 +659,56 @@ describe('updateDynamicPageSriHashes', () => {
 		expect(pageHashes.styles.size).toBe(0)
 	})
 
-	it('adds sri hash to external script (cross origin)', async () => {
+	it('avoids adding sri hash to external script when not allow-listed (cross origin)', async () => {
+		const remoteScript =
+			'https://raw.githubusercontent.com/KindSpells/astro-shield/ae9521048f2129f633c075b7f7ef24e11bbd1884/main.mjs'
+		const content = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<script type="module" src="${remoteScript}"></script>
+			</body>
+		</html>`
+
+		const expected = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<script type="module" src="${remoteScript}" crossorigin="anonymous"></script>
+			</body>
+		</html>`
+
+		const h = getMiddlewareHashes()
+		let warnCounter = 0
+		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+			{
+				info: () => {},
+				warn: () => {
+					warnCounter += 1
+				},
+				error: () => {},
+			},
+			content,
+			h,
+		)
+
+		expect(warnCounter).toBe(1)
+		expect(updatedContent).toEqual(expected)
+		expect(h.scripts.size).toBe(0)
+		expect(h.styles.size).toBe(0)
+		expect(h.scripts.get(remoteScript)).toBeUndefined()
+		expect(pageHashes.scripts.size).toBe(0)
+		expect(
+			pageHashes.scripts.has(
+				'sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q=',
+			),
+		).toBe(false)
+		expect(pageHashes.styles.size).toBe(0)
+	})
+
+	it('adds sri hash to external script when allow-listed (cross origin)', async () => {
 		const remoteScript =
 			'https://raw.githubusercontent.com/KindSpells/astro-shield/ae9521048f2129f633c075b7f7ef24e11bbd1884/main.mjs'
 		const content = `<html>
@@ -678,6 +730,10 @@ describe('updateDynamicPageSriHashes', () => {
 		</html>`
 
 		const h = getMiddlewareHashes()
+		h.scripts.set(
+			remoteScript,
+			'sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q=',
+		)
 		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
 			console,
 			content,
@@ -778,16 +834,11 @@ describe('updateDynamicPageSriHashes', () => {
 
 		let warnCalls = 0
 		const testLogger = {
-			info(msg: string) {
-				return console.info(msg)
-			},
-			warn(msg: string) {
+			info(_msg: string) {},
+			warn(_msg: string) {
 				warnCalls += 1
-				return console.warn(msg)
 			},
-			error(msg: string) {
-				return console.error(msg)
-			},
+			error(_msg: string) {},
 		}
 
 		const h = getMiddlewareHashes()
@@ -846,6 +897,33 @@ describe('updateDynamicPageSriHashes', () => {
 	})
 })
 
+describe('scanAllowLists', () => {
+	it('populates hashes collection with hashes from allow-listed resources', async () => {
+		const scriptUrl =
+			'https://raw.githubusercontent.com/KindSpells/astro-shield/ae9521048f2129f633c075b7f7ef24e11bbd1884/main.mjs'
+		const styleUrl =
+			'https://raw.githubusercontent.com/KindSpells/astro-shield/26fdf5399d79baa3a8ea70ded526116b0bfc06ed/e2e/fixtures/hybrid2/src/styles/normalize.css'
+
+		const h = getEmptyHashes()
+		await scanAllowLists(
+			{
+				scriptsAllowListUrls: [scriptUrl],
+				stylesAllowListUrls: [styleUrl],
+			},
+			h,
+		)
+
+		expect(h.extScriptHashes.size).toBe(1)
+		expect(h.extStyleHashes.size).toBe(1)
+		expect(h.perResourceSriHashes.scripts.get(scriptUrl)).toBe(
+			'sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q=',
+		)
+		expect(h.perResourceSriHashes.styles.get(styleUrl)).toBe(
+			'sha256-7o69ZgSUx++S5DC0Ek7X2CbY4GnxxUkwGZDdybWxSG8=',
+		)
+	})
+})
+
 describe('scanForNestedResources', () => {
 	it('populates our hashes collection with hashes from nested resources', async () => {
 		const h = getEmptyHashes()
@@ -899,5 +977,265 @@ describe('generateSRIHashesModule', () => {
 		expect(hashesModule).toHaveProperty('extStyleHashes')
 		expect(hashesModule).toHaveProperty('perPageSriHashes')
 		expect(hashesModule).toHaveProperty('perResourceSriHashes')
+	})
+})
+
+describe('getMiddlewareHandler', () => {
+	it('returns a working middleware handler', async () => {
+		const hashes = {
+			scripts: new Map<string, string>(),
+			styles: new Map<string, string>(),
+		}
+		let warnCounter = 0
+		const middleware = getMiddlewareHandler(
+			{
+				info: () => {},
+				warn: () => {
+					warnCounter += 1
+				},
+				error: () => {},
+			},
+			hashes,
+			{
+				enableStatic: true,
+				enableMiddleware: true,
+				hashesModule: undefined,
+				allowInlineScripts: 'all',
+				allowInlineStyles: 'all',
+				scriptsAllowListUrls: [],
+				stylesAllowListUrls: [],
+			},
+		)
+		type MidParams = Parameters<typeof middleware>
+
+		const patchedResponse = await middleware(
+			undefined as unknown as MidParams[0],
+			(async () => {
+				return {
+					text: async () => `
+<html>
+	<head>
+		<title>My Test Page</title>
+	</head>
+	<body>
+		<script>console.log("Hello World!")</script>
+	</body>
+</html>`,
+					status: 200,
+					statusText: 'OK',
+					headers: new Headers(),
+				}
+			}) as MidParams[1],
+		)
+
+		expect(warnCounter).toBe(0)
+		assert(patchedResponse instanceof Response)
+		const responseText = await patchedResponse.text()
+		expect(responseText).toBe(`
+<html>
+	<head>
+		<title>My Test Page</title>
+	</head>
+	<body>
+		<script integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=">console.log("Hello World!")</script>
+	</body>
+</html>`)
+	})
+
+	it('protects from validating disallowed inline scripts', async () => {
+		const hashes = {
+			scripts: new Map<string, string>(),
+			styles: new Map<string, string>(),
+		}
+
+		let warnCounter = 0
+		const middleware = getMiddlewareHandler(
+			{
+				info: () => {},
+				warn: () => {
+					warnCounter += 1
+				},
+				error: () => {},
+			},
+			hashes,
+			{
+				enableStatic: true,
+				enableMiddleware: true,
+				hashesModule: undefined,
+				allowInlineScripts: 'static',
+				allowInlineStyles: 'static',
+				scriptsAllowListUrls: [],
+				stylesAllowListUrls: [],
+			},
+		)
+		type MidParams = Parameters<typeof middleware>
+
+		const patchedResponse = await middleware(
+			undefined as unknown as MidParams[0],
+			(async () => {
+				return {
+					text: async () => `
+<html>
+	<head>
+		<title>My Test Page</title>
+	</head>
+	<body>
+		<script>console.log("Hello World!")</script>
+	</body>
+</html>`,
+					status: 200,
+					statusText: 'OK',
+					headers: new Headers(),
+				}
+			}) as MidParams[1],
+		)
+
+		expect(warnCounter).toBe(1)
+		assert(patchedResponse instanceof Response)
+		const responseText = await patchedResponse.text()
+		expect(patchedResponse.headers.has('content-security-policy')).toBe(false)
+		expect(responseText).toBe(`
+<html>
+	<head>
+		<title>My Test Page</title>
+	</head>
+	<body>
+		<script>console.log("Hello World!")</script>
+	</body>
+</html>`)
+	})
+})
+
+describe('getCSPMiddlewareHandler', () => {
+	it('returns a working middleware handler', async () => {
+		const hashes = {
+			scripts: new Map<string, string>(),
+			styles: new Map<string, string>(),
+		}
+		let warnCounter = 0
+		const middleware = getCSPMiddlewareHandler(
+			{
+				info: () => {},
+				warn: () => {
+					warnCounter += 1
+				},
+				error: () => {},
+			},
+			hashes,
+			{
+				contentSecurityPolicy: {},
+			},
+			{
+				enableStatic: true,
+				enableMiddleware: true,
+				hashesModule: undefined,
+				allowInlineScripts: 'all',
+				allowInlineStyles: 'all',
+				scriptsAllowListUrls: [],
+				stylesAllowListUrls: [],
+			},
+		)
+		type MidParams = Parameters<typeof middleware>
+
+		const patchedResponse = await middleware(
+			undefined as unknown as MidParams[0],
+			(async () => {
+				return {
+					text: async () => `
+<html>
+	<head>
+		<title>My Test Page</title>
+	</head>
+	<body>
+		<script>console.log("Hello World!")</script>
+	</body>
+</html>`,
+					status: 200,
+					statusText: 'OK',
+					headers: new Headers(),
+				}
+			}) as MidParams[1],
+		)
+
+		expect(warnCounter).toBe(0)
+		assert(patchedResponse instanceof Response)
+		expect(patchedResponse.headers.has('content-security-policy')).toBe(true)
+		expect(patchedResponse.headers.get('content-security-policy')).toBe(
+			`script-src 'self' 'sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q='; style-src 'none'`,
+		)
+		const responseText = await patchedResponse.text()
+		expect(responseText).toBe(`
+<html>
+	<head>
+		<title>My Test Page</title>
+	</head>
+	<body>
+		<script integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=">console.log("Hello World!")</script>
+	</body>
+</html>`)
+	})
+
+	it('protects from validating disallowed inline scripts', async () => {
+		const hashes = {
+			scripts: new Map<string, string>(),
+			styles: new Map<string, string>(),
+		}
+
+		let warnCounter = 0
+		const middleware = getCSPMiddlewareHandler(
+			{
+				info: () => {},
+				warn: () => {
+					warnCounter += 1
+				},
+				error: () => {},
+			},
+			hashes,
+			{ contentSecurityPolicy: {} },
+			{
+				enableStatic: true,
+				enableMiddleware: true,
+				hashesModule: undefined,
+				allowInlineScripts: 'static',
+				allowInlineStyles: 'static',
+				scriptsAllowListUrls: [],
+				stylesAllowListUrls: [],
+			},
+		)
+		type MidParams = Parameters<typeof middleware>
+
+		const patchedResponse = await middleware(
+			undefined as unknown as MidParams[0],
+			(async () => {
+				return {
+					text: async () => `
+<html>
+	<head>
+		<title>My Test Page</title>
+	</head>
+	<body>
+		<script>console.log("Hello World!")</script>
+	</body>
+</html>`,
+					status: 200,
+					statusText: 'OK',
+					headers: new Headers(),
+				}
+			}) as MidParams[1],
+		)
+
+		expect(warnCounter).toBe(1)
+		assert(patchedResponse instanceof Response)
+		const responseText = await patchedResponse.text()
+		expect(patchedResponse.headers.has('content-security-policy')).toBe(true)
+		expect(responseText).toBe(`
+<html>
+	<head>
+		<title>My Test Page</title>
+	</head>
+	<body>
+		<script>console.log("Hello World!")</script>
+	</body>
+</html>`)
 	})
 })

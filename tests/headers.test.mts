@@ -154,7 +154,7 @@ describe('patchHeaders', () => {
 
 		const patchedHeaders = patchHeaders(headers, pageHashes, settings)
 		expect(patchedHeaders.get('content-security-policy')).toBe(
-			"form-action 'self'; frame-ancestors 'none'",
+			"form-action 'self'; frame-ancestors 'none'; script-src 'none'; style-src 'none'",
 		)
 	})
 
