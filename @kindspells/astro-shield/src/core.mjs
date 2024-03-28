@@ -13,13 +13,13 @@ import { doesFileExist, scanDirectory } from './fs.mjs'
 import { patchHeaders } from './headers.mjs'
 
 /**
- * @typedef {import('./main.d.ts').SRIOptions} SRIOptions
- * @typedef {import('./main.d.ts').SecurityHeadersOptions} SecurityHeadersOptions
- * @typedef {import('./core.d.ts').PerPageHashes} PerPageHashes
- * @typedef {import('./core.d.ts').PerPageHashesCollection} PerPageHashesCollection
- * @typedef {import('./core.d.ts').HashesCollection} HashesCollection
- * @typedef {import('./core.d.ts').MiddlewareHashes} MiddlewareHashes
- * @typedef {import('./core.d.ts').Logger} Logger
+ * @typedef {import('./main.js').SRIOptions} SRIOptions
+ * @typedef {import('./main.js').SecurityHeadersOptions} SecurityHeadersOptions
+ * @typedef {import('./core.js').PerPageHashes} PerPageHashes
+ * @typedef {import('./core.js').PerPageHashesCollection} PerPageHashesCollection
+ * @typedef {import('./core.js').HashesCollection} HashesCollection
+ * @typedef {import('./core.js').MiddlewareHashes} MiddlewareHashes
+ * @typedef {import('./core.js').Logger} Logger
  * @typedef {import('astro').AstroIntegration} Integration
  */
 
@@ -669,7 +669,7 @@ export async function generateSRIHashesModule(
 
 /**
  * @param {Logger} logger
- * @param {import('./main.d.ts').StrictShieldOptions} shieldOptions
+ * @param {import('./main.js').StrictShieldOptions} shieldOptions
  */
 export const processStaticFiles = async (logger, { distDir, sri }) => {
 	const h = /** @satisfies {HashesCollection} */ {

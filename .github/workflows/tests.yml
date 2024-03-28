@@ -31,7 +31,7 @@ jobs:
     - name: Install PNPM # v3.0.0
       uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d
       with:
-        version: '8.15.3'
+        version: '8.15.4'
     - name: Use Node.js ${{ matrix.node-version }} # v4.0.2
       uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
       with:
@@ -41,8 +41,10 @@ jobs:
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
     - name: Run Linters
+      working-directory: ./@kindspells/astro-shield
       run: pnpm lint
     - name: Run Unit Tests
+      working-directory: ./@kindspells/astro-shield
       run: pnpm test:unit:coverage
     # Disabled until we discover how to run "network-related" tests in CI
     # - name: Run End-to-End Tests

@@ -2,10 +2,10 @@
 #
 # SPDX-License-Identifier: MIT
 
-coverage/
-coverage-e2e/
-coverage-unit/
-dist/
-tests/playground/*.mjs
-generated/
-node_modules/
+**/coverage/
+**/coverage-e2e/
+**/coverage-unit/
+**/dist/
+**/tests/playground/*.mjs
+**/generated/
+**/node_modules/

@@ -1,97 +1,24 @@
 {
-	"name": "@kindspells/astro-shield",
-	"version": "1.3.0",
-	"description": "Astro integration to enhance your website's security with SubResource Integrity hashes, Content-Security-Policy headers, and other techniques.",
-	"private": false,
-	"type": "module",
-	"main": "src/main.mjs",
-	"types": "src/main.d.ts",
-	"exports": {
-		".": {
-			"types": "./src/main.d.ts",
-			"import": "./src/main.mjs",
-			"default": "./src/main.mjs"
-		},
-		"./core": {
-			"import": "./src/core.mjs",
-			"default": "./src/core.mjs"
-		},
-		"./state": {
-			"import": "./src/state.mjs",
-			"default": "./src/state.mjs"
-		}
-	},
-	"imports": {
-		"#as/*": "./src/*"
-	},
-	"files": [
-		"src/*"
-	],
-	"scripts": {
-		"format": "biome format --write .",
-		"install-githooks": "if [ -d .git ]; then git config core.hooksPath .hooks; fi",
-		"lint": "pnpm run lint:biome && pnpm run lint:tsc && pnpm run lint:publint",
-		"lint:biome": "biome lint .",
-		"lint:publint": "publint",
-		"lint:tsc": "tsc -p .",
-		"prepublishOnly": "pnpm lint && pnpm test:unit",
-		"test:e2e": "vitest -c vitest.config.e2e.mts run",
-		"test:unit": "vitest -c vitest.config.unit.mts run",
-		"test:unit:coverage": "vitest -c vitest.config.unit.mts run --coverage"
-	},
-	"keywords": [
-		"astro",
-		"astro-component",
-		"astro-integration",
-		"code-generation",
-		"csp",
-		"content-security-policy",
-		"security",
-		"sri",
-		"subresource-integrity",
-		"withastro"
-	],
-	"contributors": [
-		{
-			"name": "Andres Correa Casablanca",
-			"url": "https://blog.coderspirit.xyz/about/"
-		}
-	],
-	"license": "MIT",
-	"peerDependencies": {
-		"astro": "^4.0.0"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "^1.6.3",
-		"@types/node": "^20.11.30",
-		"@vitest/coverage-v8": "^1.4.0",
-		"astro": "^4.5.10",
-		"publint": "^0.2.7",
-		"typescript": "^5.4.3",
-		"vite": "^5.2.6",
-		"vitest": "^1.4.0"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/KindSpells/astro-shield.git"
-	},
-	"homepage": "https://github.com/kindspells/astro-shield?tab=readme-ov-file#readme",
-	"bugs": "https://github.com/KindSpells/astro-shield/issues",
-	"funding": [
-		{
-			"type": "opencollective",
-			"url": "https://opencollective.com/kindspells-labs"
-		},
-		{
-			"type": "individual",
-			"url": "https://ko-fi.com/coderspirit"
-		}
-	],
-	"packageManager": "pnpm@8.15.3",
+  "name": "@kindspells/root",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MIT",
+  "contributors": [
+    {
+      "name": "Andres Correa Casablanca",
+      "url": "https://blog.coderspirit.xyz/about/"
+    }
+  ],
+  "devDependencies": {
+    "@biomejs/biome": "^1.6.3",
+    "publint": "^0.2.7",
+    "vitest": "^1.4.0"
+  },
 	"engines": {
 		"node": ">= 18.0.0"
 	},
-	"publishConfig": {
-		"provenance": true
-	}
+  "packageManager": "pnpm@8.15.4",
+  "scripts": {
+    "install-githooks": "if [ -d .git ]; then git config core.hooksPath .hooks; fi"
+  }
 }

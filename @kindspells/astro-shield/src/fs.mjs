@@ -8,9 +8,9 @@ import { readdir, stat } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
 /**
- * @typedef {import('./core.d.ts').Logger} Logger
- * @typedef {import('./core.d.ts').HashesCollection} HashesCollection
- * @typedef {import('./main.d.ts').SRIOptions} SRIOptions
+ * @typedef {import('./core.js').Logger} Logger
+ * @typedef {import('./core.js').HashesCollection} HashesCollection
+ * @typedef {import('./main.js').SRIOptions} SRIOptions
  */
 
 /**

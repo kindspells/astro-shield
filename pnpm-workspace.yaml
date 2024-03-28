@@ -1,0 +1,3 @@
+packages:
+  - '@kindspells/*'
+  - '@kindspells/astro-shield/e2e/fixtures/*'

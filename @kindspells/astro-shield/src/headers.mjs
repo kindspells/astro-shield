@@ -1,9 +1,9 @@
 /**
- * @typedef {import('./core.d.ts').PerPageHashes} PerPageHashes
- * @typedef {import('./main.d.ts').CSPDirectiveNames} CSPDirectiveNames
- * @typedef {import('./main.d.ts').CSPDirectives} CSPDirectives
- * @typedef {import('./main.d.ts').CSPOptions} CSPOptions
- * @typedef {import('./main.d.ts').SecurityHeadersOptions} SecurityHeadersOptions
+ * @typedef {import('./core.js').PerPageHashes} PerPageHashes
+ * @typedef {import('./main.js').CSPDirectiveNames} CSPDirectiveNames
+ * @typedef {import('./main.js').CSPDirectives} CSPDirectives
+ * @typedef {import('./main.js').CSPOptions} CSPOptions
+ * @typedef {import('./main.js').SecurityHeadersOptions} SecurityHeadersOptions
  */
 
 /**

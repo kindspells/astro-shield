@@ -10,9 +10,9 @@ import { getAstroConfigSetup, processStaticFiles } from './core.mjs'
 /**
  * @typedef {import('astro').AstroIntegration} AstroIntegration
  * @typedef {AstroIntegration['hooks']} AstroHooks
- * @typedef {import('./core.d.ts').MiddlewareHashes} MiddlewareHashes
- * @typedef {import('./main.d.ts').SRIOptions} SRIOptions
- * @typedef {import('./main.d.ts').ShieldOptions} ShieldOptions
+ * @typedef {import('./core.js').MiddlewareHashes} MiddlewareHashes
+ * @typedef {import('./main.js').SRIOptions} SRIOptions
+ * @typedef {import('./main.js').ShieldOptions} ShieldOptions
  */
 
 /**
