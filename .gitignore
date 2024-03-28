@@ -9,3 +9,7 @@
 **/tests/playground/*.mjs
 **/generated/
 **/node_modules/
+
+# moon
+.moon/cache
+.moon/docker

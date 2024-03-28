@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+#
+# SPDX-License-Identifier: MIT
+
+# https://moonrepo.dev/docs/config/workspace
+$schema: 'https://moonrepo.dev/schemas/workspace.json'
+
+# versionConstraint: '>=1.0.0'
+# extends: './shared/workspace.yml'
+
+projects:
+  globs:
+    - '@kindspells/astro-shield/e2e/fixtures/*'
+  sources:
+    astro-shield: '@kindspells/astro-shield'

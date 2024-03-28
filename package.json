@@ -1,24 +1,26 @@
 {
-  "name": "@kindspells/root",
-  "private": true,
-  "version": "1.0.0",
-  "license": "MIT",
-  "contributors": [
-    {
-      "name": "Andres Correa Casablanca",
-      "url": "https://blog.coderspirit.xyz/about/"
-    }
-  ],
-  "devDependencies": {
-    "@biomejs/biome": "^1.6.3",
-    "publint": "^0.2.7",
-    "vitest": "^1.4.0"
-  },
+	"name": "@kindspells/root",
+	"private": true,
+	"version": "1.0.0",
+	"license": "MIT",
+	"contributors": [
+		{
+			"name": "Andres Correa Casablanca",
+			"url": "https://blog.coderspirit.xyz/about/"
+		}
+	],
+	"devDependencies": {
+		"@biomejs/biome": "^1.6.3",
+		"@moonrepo/cli": "^1.23.1",
+		"publint": "^0.2.7",
+		"vitest": "^1.4.0"
+	},
 	"engines": {
 		"node": ">= 18.0.0"
 	},
-  "packageManager": "pnpm@8.15.4",
-  "scripts": {
-    "install-githooks": "if [ -d .git ]; then git config core.hooksPath .hooks; fi"
-  }
+	"packageManager": "pnpm@8.15.4",
+	"scripts": {
+		"format": "biome format --write .",
+		"install-githooks": "if [ -d .git ]; then git config core.hooksPath .hooks; fi"
+	}
 }

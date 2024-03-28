@@ -11,6 +11,9 @@ importers:
       '@biomejs/biome':
         specifier: ^1.6.3
         version: 1.6.3
+      '@moonrepo/cli':
+        specifier: ^1.23.1
+        version: 1.23.1
       publint:
         specifier: ^0.2.7
         version: 0.2.7
@@ -46,7 +49,7 @@ importers:
         version: 4.5.10(@types/node@20.11.30)(typescript@5.4.3)
     devDependencies:
       '@kindspells/astro-shield':
-        specifier: link:../../..
+        specifier: workspace:*
         version: link:../../..
 
   '@kindspells/astro-shield/e2e/fixtures/hybrid':
@@ -59,7 +62,7 @@ importers:
         version: 4.5.10(@types/node@20.11.30)(typescript@5.4.3)
     devDependencies:
       '@kindspells/astro-shield':
-        specifier: link:../../..
+        specifier: workspace:*
         version: link:../../..
 
   '@kindspells/astro-shield/e2e/fixtures/hybrid2':
@@ -72,7 +75,7 @@ importers:
         version: 4.5.10(@types/node@20.11.30)(typescript@5.4.3)
     devDependencies:
       '@kindspells/astro-shield':
-        specifier: link:../../..
+        specifier: workspace:*
         version: link:../../..
 
   '@kindspells/astro-shield/e2e/fixtures/hybrid3':
@@ -85,7 +88,7 @@ importers:
         version: 4.5.10(@types/node@20.11.30)(typescript@5.4.3)
     devDependencies:
       '@kindspells/astro-shield':
-        specifier: link:../../..
+        specifier: workspace:*
         version: link:../../..
 
   '@kindspells/astro-shield/e2e/fixtures/static':
@@ -95,7 +98,7 @@ importers:
         version: 4.5.10(@types/node@20.11.30)(typescript@5.4.3)
     devDependencies:
       '@kindspells/astro-shield':
-        specifier: link:../../..
+        specifier: workspace:*
         version: link:../../..
 
 packages:
@@ -869,6 +872,78 @@ packages:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.4.15
 
+  /@moonrepo/cli@1.23.1:
+    resolution: {integrity: sha512-xSnhCCIXvm3A+WNAXljQgmkVgSjQ8toaOxTMB5LfwYl8ECA2nc1Yyl10IjlnnAlTeHnjAk8oZc2s/KdqGrQW2g==}
+    hasBin: true
+    requiresBuild: true
+    dependencies:
+      detect-libc: 2.0.3
+    optionalDependencies:
+      '@moonrepo/core-linux-arm64-gnu': 1.23.1
+      '@moonrepo/core-linux-arm64-musl': 1.23.1
+      '@moonrepo/core-linux-x64-gnu': 1.23.1
+      '@moonrepo/core-linux-x64-musl': 1.23.1
+      '@moonrepo/core-macos-arm64': 1.23.1
+      '@moonrepo/core-macos-x64': 1.23.1
+      '@moonrepo/core-windows-x64-msvc': 1.23.1
+    dev: true
+
+  /@moonrepo/core-linux-arm64-gnu@1.23.1:
+    resolution: {integrity: sha512-XoUqNfDYZAHD/NAGPJHszAhy2TMe9TLg+vKyvs1zHC9OZwXzJiUT4SCl08j8zfUNE1XIbGb8XaqLeK8oujYOwA==}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@moonrepo/core-linux-arm64-musl@1.23.1:
+    resolution: {integrity: sha512-ehtOVMve+9dr57mu0ckij3K0HOc2AGdcEDZRv8o66PI8Z/0aDoqEN4a2UmUgXIT4IsiISLsS2kaRDriJhW3+nA==}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@moonrepo/core-linux-x64-gnu@1.23.1:
+    resolution: {integrity: sha512-jHkmGPE5bP9jzFttmoTxw2p5kFtuLtT2jwieuF736Are5siyJj9zysmu00HSfGeIxGz2pM3apMloiCuJo6Hvlg==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@moonrepo/core-linux-x64-musl@1.23.1:
+    resolution: {integrity: sha512-hajUl7aJ7KvHkGioYYjNipq7t3xbjSwS/d0yt4VOodwDX1qtTB0KIbKu5BZTLCSPadIXbEPSbciunpg6KtHBDw==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@moonrepo/core-macos-arm64@1.23.1:
+    resolution: {integrity: sha512-/xq8EFdaW6OrhpS+ImBAx2kdWPzAA/YFbZyCmLnJ5OFdwT3dLAP5sW32VDKEY3dVoiwSMMCahWdHxoO509ETkA==}
+    cpu: [arm64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@moonrepo/core-macos-x64@1.23.1:
+    resolution: {integrity: sha512-SLcHaONmrOyiFEklpXyqyxHY+azN3k2+z9944IiqK9SIsjDIWK3DRErh34iK6CyhvHiRa0YhTzTEh+xO2KxKqA==}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@moonrepo/core-windows-x64-msvc@1.23.1:
+    resolution: {integrity: sha512-W1TH2LDOInR0e47QXRFGiNSl3AEQLogV7ANNVBo34SqZZeXvpIpCKXobgzGW4KT8QbqgnEAnEJ3sWb4Nk0xDvw==}
+    cpu: [x64]
+    os: [win32]
+    requiresBuild: true
+    dev: true
+    optional: true
+
   /@nodelib/fs.scandir@2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -1629,7 +1704,6 @@ packages:
     resolution: {integrity: sha512-bwy0MGW55bG41VqxxypOsdSdGqLwXPI/focwgTYCFMbdUiBAxLg9CFzG08sz2aqzknwiX7Hkl0bQENjg8iLByw==}
     engines: {node: '>=8'}
     requiresBuild: true
-    optional: true
 
   /deterministic-object-hash@2.0.2:
     resolution: {integrity: sha512-KxektNH63SrbfUyDiwXqRb1rLwKt33AmMv+5Nhsw1kqZ13SJBRTgZHtGbE+hH3a1mVW1cz+4pqSWVPAtLVXTzQ==}

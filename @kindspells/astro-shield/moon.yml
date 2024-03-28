@@ -1,0 +1,56 @@
+# SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+#
+# SPDX-License-Identifier: MIT
+
+type: 'library'
+platform: 'node'
+
+tasks:
+  lint:
+    deps:
+      - '~:lint.biome'
+      - '~:lint.publint'
+      - '~:lint.tsc'
+  lint.biome:
+    command: 'biome lint .'
+    inputs:
+      - '*.json'
+      - '*.mts'
+      - 'src/**/*'
+      - 'tests/**/*'
+      - 'e2e/**/*'
+  lint.publint:
+    command: 'publint'
+    inputs:
+      - 'package.json'
+      - 'src/**/*'
+  lint.tsc:
+    command: 'tsc -p . --noEmit'
+    inputs:
+      - 'package.json'
+      - 'tsconfig.json'
+      - 'src/**/*'
+      - 'tests/**/*.mts'
+      - 'e2e/**/*.mts'
+  test.e2e:
+    command: 'vitest -c vitest.config.e2e.mts run'
+    local: true
+    inputs:
+      - 'vitest.config.e2e.mts'
+      - 'src/**/*'
+      - 'e2e/**/*'
+  test.unit:
+    command: 'vitest -c vitest.config.unit.mts run'
+    local: true
+    inputs:
+      - 'vitest.config.unit.mts'
+      - 'src/**/*'
+      - 'tests/**/*'
+  test.unit.cov:
+    command: 'vitest -c vitest.config.unit.mts run --coverage'
+    inputs:
+      - 'vitest.config.unit.mts'
+      - 'src/**/*'
+      - 'tests/**/*'
+    outputs:
+      - 'coverage-unit/**/*'

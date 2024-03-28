@@ -27,14 +27,14 @@
 	"files": ["src/*"],
 	"scripts": {
 		"format": "biome format --write .",
-		"lint": "pnpm run lint:biome && pnpm run lint:tsc && pnpm run lint:publint",
-		"lint:biome": "biome lint .",
-		"lint:publint": "publint",
-		"lint:tsc": "tsc -p .",
+		"lint": "moon run lint",
+		"lint:biome": "moon run lint.biome",
+		"lint:publint": "moon run lint.publint",
+		"lint:tsc": "moon run lint.tsc",
 		"prepublishOnly": "pnpm lint && pnpm test:unit",
-		"test:e2e": "vitest -c vitest.config.e2e.mts run",
-		"test:unit": "vitest -c vitest.config.unit.mts run",
-		"test:unit:coverage": "vitest -c vitest.config.unit.mts run --coverage"
+		"test:e2e": "moon run test.e2e",
+		"test:unit": "moon run test.unit",
+		"test:unit:cov": "moon run test.unit.cov"
 	},
 	"keywords": [
 		"astro",

@@ -950,6 +950,9 @@ describe('generateSRIHashesModule', () => {
 	const playgroundDir = resolve(testsDir, 'playground')
 
 	beforeEach(async () => {
+		if (!(await doesFileExist(playgroundDir))) {
+			return
+		}
 		for (const filename of await readdir(playgroundDir, { recursive: true })) {
 			if (filename.endsWith('.mjs')) {
 				await rm(resolve(playgroundDir, filename), {

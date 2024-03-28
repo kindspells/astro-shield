@@ -11,6 +11,6 @@
 		"astro": "^4.5.10"
 	},
 	"devDependencies": {
-		"@kindspells/astro-shield": "link:../../.."
+		"@kindspells/astro-shield": "workspace:*"
 	}
 }
