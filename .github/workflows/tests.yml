@@ -44,3 +44,5 @@ jobs:
       run: pnpm install --frozen-lockfile
     - name: Run Moon CI checks
       run: pnpm moon ci
+      env:
+        MOONBASE_SECRET_KEY: ${{ secrets.MOONBASE_SECRET_KEY }}
