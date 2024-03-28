@@ -40,12 +40,5 @@ jobs:
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
-    - name: Run Linters
-      working-directory: ./@kindspells/astro-shield
-      run: pnpm lint
-    - name: Run Unit Tests
-      working-directory: ./@kindspells/astro-shield
-      run: pnpm test:unit:cov
-    # Disabled until we discover how to run "network-related" tests in CI
-    # - name: Run End-to-End Tests
-    #   run: pnpm test:e2e:coverage
+    - name: Run Moon CI checks
+      run: pnpm moon ci

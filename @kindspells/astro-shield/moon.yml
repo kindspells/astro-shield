@@ -34,18 +34,22 @@ tasks:
       - 'e2e/**/*.mts'
   test.e2e:
     command: 'vitest -c vitest.config.e2e.mts run'
-    local: true
     inputs:
       - 'vitest.config.e2e.mts'
       - 'src/**/*'
       - 'e2e/**/*'
+    local: true
+    options:
+      runInCI: false
   test.unit:
     command: 'vitest -c vitest.config.unit.mts run'
-    local: true
     inputs:
       - 'vitest.config.unit.mts'
       - 'src/**/*'
       - 'tests/**/*'
+    local: true
+    options:
+      runInCI: false
   test.unit.cov:
     command: 'vitest -c vitest.config.unit.mts run --coverage'
     inputs:

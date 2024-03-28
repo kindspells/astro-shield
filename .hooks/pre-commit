@@ -7,5 +7,4 @@
 set -eu
 set -o pipefail
 
-pnpm moon :lint
-pnpm moon :test.unit.cov
+pnpm moon ci

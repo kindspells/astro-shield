@@ -31,7 +31,7 @@
 		"lint:biome": "moon run lint.biome",
 		"lint:publint": "moon run lint.publint",
 		"lint:tsc": "moon run lint.tsc",
-		"prepublishOnly": "pnpm lint && pnpm test:unit",
+		"prepublishOnly": "pnpm lint && pnpm test:unit:cov",
 		"test:e2e": "moon run test.e2e",
 		"test:unit": "moon run test.unit",
 		"test:unit:cov": "moon run test.unit.cov"
