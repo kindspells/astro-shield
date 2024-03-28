@@ -163,11 +163,11 @@ Here you can see an example of how the generated module looks:
 export const inlineScriptHashes = /** @type {string[]} */ ([])
 
 export const inlineStyleHashes = /** @type {string[]} */ ([
-	'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=',
+  'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=',
 ])
 
 export const extScriptHashes = /** @type {string[]} */ ([
-	'sha256-+aSouJX5t2z1jleTbCvA9DS7+ag/F4e4ZpB/adun4Sg=',
+  'sha256-+aSouJX5t2z1jleTbCvA9DS7+ag/F4e4ZpB/adun4Sg=',
 ])
 
 export const extStyleHashes = /** @type {string[]} */ ([
@@ -177,12 +177,12 @@ export const extStyleHashes = /** @type {string[]} */ ([
 export const perPageSriHashes =
   /** @type {Record<string, { scripts: string[]; styles: string [] }>} */ ({
     'index.html': {
-    scripts: [
-      'sha256-+aSouJX5t2z1jleTbCvA9DS7+ag/F4e4ZpB/adun4Sg=',
-    ],
-    styles: [
-      'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk='
-    ],
+      scripts: [
+        'sha256-+aSouJX5t2z1jleTbCvA9DS7+ag/F4e4ZpB/adun4Sg=',
+      ],
+      styles: [
+        'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk='
+      ],
     },
     'about.html': {
       scripts: [
