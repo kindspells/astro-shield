@@ -1,0 +1,38 @@
+---
+title: Welcome to Astro-Shield
+description: Protect your Astro sites with Astro-Shield.
+template: splash
+hero:
+  tagline: Start protecting your site with Astro-Shield!
+  image:
+    file: ../../assets/astro-shield.webp
+  actions:
+    - text: Getting Started
+      link: /getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: Learn about Astro integrations
+      link: https://docs.astro.build/en/guides/integrations-guide/
+      icon: external
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## What it does
+
+<CardGrid stagger>
+	<Card title="Implement Subresource Integrity" icon="pencil">
+		Astro-Shield takes care of calculating the SRI hashes and setting the
+		`integrity` attribute on the script and style tags for you.
+	</Card>
+	<Card title="Set Content-Security-Policy headers" icon="seti:lock">
+		Astro-Shield can automatically set the `Content-Security-Policy` headers
+		for you.
+	</Card>
+	{/* <Card title="Block injected scripts" icon="close">
+		Blablablah...
+	</Card>
+	<Card title="Prevent Prototype Pollution" icon="seti:gulp">
+		Blablablah...
+	</Card> */}
+</CardGrid>

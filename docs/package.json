@@ -1,0 +1,21 @@
+{
+	"name": "@kindspells/astro-shield-docs",
+	"type": "module",
+	"version": "1.4.0",
+	"scripts": {
+		"dev": "astro dev",
+		"start": "astro dev",
+		"build": "astro check && astro build",
+		"preview": "astro preview",
+		"astro": "astro"
+	},
+	"dependencies": {
+		"sharp": "0.32.6"
+	},
+	"devDependencies": {
+		"@astrojs/check": "^0.5.10",
+		"@astrojs/starlight": "^0.21.2",
+		"astro": "^4.5.12",
+		"typescript": "^5.4.3"
+	}
+}

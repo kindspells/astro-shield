@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+#
+# SPDX-License-Identifier: MIT
+
+type: 'application'
+platform: 'node'
+
+tasks:
+  build:
+    command: 'astro check && astro build'
+    inputs:
+      - 'public/**/*'
+      - 'src/**/*'
+      - 'astro.config.mjs'
+      - 'package.json'
+    outputs:
+      - '.astro/**/*'
+      - 'dist/**/*'

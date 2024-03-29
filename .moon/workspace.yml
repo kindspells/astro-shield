@@ -13,6 +13,7 @@ projects:
     - '@kindspells/astro-shield/e2e/fixtures/*'
   sources:
     astro-shield: '@kindspells/astro-shield'
+    docs: 'docs'
 
 vcs:
   defaultBranch: 'main'

@@ -193,6 +193,16 @@ export const perPageSriHashes =
       ],
     },
   })
+
+export const perResourceSriHashes = {
+	scripts: /** @type {Record<string,string>} */ ({
+		'/code.js': 'sha256-+aSouJX5t2z1jleTbCvA9DS7+ag/F4e4ZpB/adun4Sg=',
+	}),
+	styles: /** @type {Record<string,string>} */ ({
+		'/_astro/index.BA1ZV6fH.css':
+			'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE=',
+	}),
+}
 ```
 
 > [!IMPORTANT]
@@ -224,15 +234,6 @@ export const perPageSriHashes =
   
   This means that, for now, it is advisable to add `'self'` to the `script-src`
   directive (adding `'strict-dynamic'` does not help either).
-
-## Some guarantees for peace of mind
-
-Astro generates files in a very deterministic way, which means that for both JS
-and CSS files:
-  - Their pseudo-random names are stable across different builds
-  - The files' contents do not change from build to build (unless, of course, we
-    change them on purpose), so their hashes are stable as well (this is nice
-    for hot reloading, which does not trigger the logic of this integration).
 
 ## Other Relevant Guidelines
 

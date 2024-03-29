@@ -1,0 +1,60 @@
+---
+title: Content-Security-Policy (CSP)
+description: How to configure the Content-Security-Policy headers of your website with Astro-Shield
+---
+
+import { Aside, Code } from '@astrojs/starlight/components';
+
+To enable the generation of Content-Security-Policy headers for your SSR
+content, you have to set the option `securityHeaders.contentSecurityPolicy` to
+a non-null object.
+
+If you want more control, then you can set other nested options, such as
+`cspDirectives`.
+
+<Code
+    lang="javascript"
+    code={`
+import { resolve } from 'node:path'
+
+import { defineConfig } from 'astro/config'
+import { shield } from '@kindspells/astro-shield'
+
+const rootDir = new URL('.', import.meta.url).pathname
+const modulePath = resolve(rootDir, 'src', 'generated', 'sriHashes.mjs')
+
+export default defineConfig({
+  integrations: [
+    shield({
+      sri: {
+        enableMiddleware: true,   // MUST be enabled!
+        hashesModule: modulePath, // SHOULD be set!
+      },
+
+      // - If set, it controls how the security headers will be generated in the
+      //   middleware.
+      // - If not set, no security headers will be generated in the middleware.
+      securityHeaders: {
+        // - If set, it controls how the CSP (Content Security Policy) header will
+        //   be generated in the middleware.
+        // - If not set, no CSP header will be generated in the middleware.
+        contentSecurityPolicy: {
+          // - If set, it controls the "default" CSP directives (they can be
+          //   overriden at runtime).
+          // - If not set, the middleware will use a minimal set of default
+          //   directives.
+          cspDirectives: {
+            'default-src': "'none'",
+          }
+        }
+      }
+    })
+  ]
+})
+`}
+/>
+
+<Aside type="caution">
+  When enabling CSP headers, you must also set the `sri.enableMiddleware` option
+  to `true`. It is also recommended to set the `sri.hashesModule` option.
+</Aside>
