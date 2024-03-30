@@ -12,6 +12,7 @@
 
 # build & cache artifacts
 **/.astro/
+**/.sst/
 **/dist/
 **/generated/
 

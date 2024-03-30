@@ -6,7 +6,12 @@
 		"rules": {
 			"recommended": true
 		},
-		"ignore": ["coverage-*/**/*", "dist/**/*", "node_modules/**/*"],
+		"ignore": [
+			"coverage-*/**/*",
+			"dist/**/*",
+			"node_modules/**/*",
+			".sst/**/*"
+		],
 		"include": ["*.json", "*.js", "*.mjs", "*.mts", "*.d.ts"]
 	},
 	"formatter": {
@@ -16,7 +21,12 @@
 		"indentWidth": 2,
 		"lineWidth": 80,
 		"lineEnding": "lf",
-		"ignore": ["coverage-*/**/*", "dist/**/*", "node_modules/**/*"],
+		"ignore": [
+			"coverage-*/**/*",
+			"dist/**/*",
+			"node_modules/**/*",
+			".sst/**/*"
+		],
 		"include": ["*.json", "*.js", "*.mjs", "*.mts", "*.d.ts"]
 	},
 	"javascript": {

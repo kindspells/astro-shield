@@ -6,8 +6,21 @@ type: 'application'
 platform: 'node'
 
 tasks:
+  sst.install:
+    command: 'sst install'
+    inputs:
+      - 'astro.config.mjs'
+      - 'package.json'
+      - 'sst.config.ts'
+    outputs:
+      - '.sst/**/*'
+    local: true
+    options:
+      runInCI: false
   build:
     command: 'astro check && astro build'
+    deps:
+      - '~:sst.install'
     inputs:
       - 'public/**/*'
       - 'src/**/*'
@@ -16,3 +29,6 @@ tasks:
     outputs:
       - '.astro/**/*'
       - 'dist/**/*'
+    local: true
+    options:
+      runInCI: false

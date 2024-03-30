@@ -1,8 +1,10 @@
 import { defineConfig, passthroughImageService } from 'astro/config'
 import starlight from '@astrojs/starlight'
+import aws from 'astro-sst'
 
-// https://astro.build/config
 export default defineConfig({
+	output: 'static',
+	adapter: aws(),
 	site: 'https://astro-shield.kindspells.dev',
 	image: {
 		service: passthroughImageService(),
@@ -39,7 +41,7 @@ export default defineConfig({
 							autogenerate: {
 								directory: 'guides/security-headers',
 							},
-						}
+						},
 					],
 				},
 				{
@@ -51,9 +53,9 @@ export default defineConfig({
 						},
 						{
 							label: 'Contributing',
-							link: 'https://github.com/kindspells/astro-shield/blob/main/CONTRIBUTING.md',		
+							link: 'https://github.com/kindspells/astro-shield/blob/main/CONTRIBUTING.md',
 						},
-					]
+					],
 				},
 				// {
 				// 	label: 'Reference',

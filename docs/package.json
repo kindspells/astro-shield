@@ -3,14 +3,16 @@
 	"type": "module",
 	"version": "1.4.0",
 	"scripts": {
-		"dev": "astro dev",
+		"dev": "sst dev astro dev",
 		"start": "astro dev",
 		"build": "astro check && astro build",
 		"preview": "astro preview",
 		"astro": "astro"
 	},
 	"dependencies": {
-		"sharp": "0.32.6"
+		"astro-sst": "^2.41.4",
+		"sharp": "0.32.6",
+		"sst": "^3.0.2"
 	},
 	"devDependencies": {
 		"@astrojs/check": "^0.5.10",
