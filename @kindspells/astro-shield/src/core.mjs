@@ -21,6 +21,13 @@ import { patchHeaders } from './headers.mjs'
  * @typedef {import('./core.js').MiddlewareHashes} MiddlewareHashes
  * @typedef {import('./core.js').Logger} Logger
  * @typedef {import('astro').AstroIntegration} Integration
+ * @typedef {{
+ * 	[k in keyof HashesCollection]: HashesCollection[k] extends Set<string>
+ * 	  ? string[] | undefined
+ * 	  : (k extends 'perPageSriHashes'
+ * 	    ? Record<string, { scripts: string[]; styles: string [] }>
+ * 	    : Record<'scripts' | 'styles', Record<string, string>>)
+ * }} HashesModule
  */
 
 /**
@@ -529,11 +536,11 @@ export const scanForNestedResources = async (logger, dirPath, h) => {
 }
 
 /**
- * @param {Required<Pick<SRIOptions, 'scriptsAllowListUrls' | 'stylesAllowListUrls'>>} sri
+ * @param {Pick<SRIOptions, 'scriptsAllowListUrls' | 'stylesAllowListUrls'>} sri
  * @param {HashesCollection} h
  */
 export const scanAllowLists = async (sri, h) => {
-	for (const scriptUrl of sri.scriptsAllowListUrls) {
+	for (const scriptUrl of sri.scriptsAllowListUrls ?? []) {
 		const resourceResponse = await fetch(scriptUrl, { method: 'GET' })
 		const resourceContent = await resourceResponse.arrayBuffer()
 		const sriHash = generateSRIHash(resourceContent)
@@ -542,7 +549,7 @@ export const scanAllowLists = async (sri, h) => {
 		h.perResourceSriHashes.scripts.set(scriptUrl, sriHash)
 	}
 
-	for (const styleUrl of sri.stylesAllowListUrls) {
+	for (const styleUrl of sri.stylesAllowListUrls ?? []) {
 		const resourceResponse = await fetch(styleUrl, { method: 'GET' })
 		const resourceContent = await resourceResponse.arrayBuffer()
 		const sriHash = generateSRIHash(resourceContent)
@@ -591,14 +598,9 @@ export async function generateSRIHashesModule(
 	}
 
 	if (await doesFileExist(sriHashesModule)) {
-		const hModule = /**
-			@type {{
-					[k in keyof HashesCollection]: HashesCollection[k] extends Set<string>
-							? string[] | undefined
-							: (k extends 'perPageSriHashes'
-								? Record<string, { scripts: string[]; styles: string [] }>
-								: Record<'scripts' | 'styles', Record<string, string>>)
-		}} */ (await import(/* @vite-ignore */ sriHashesModule))
+		const hModule = /** @type {HashesModule} */ (
+			await import(/* @vite-ignore */ sriHashesModule)
+		)
 
 		extResourceHashesChanged = !sriHashesEqual(
 			perResourceHashes,
@@ -683,6 +685,8 @@ export const processStaticFiles = async (logger, { distDir, sri }) => {
 			styles: new Map(),
 		},
 	}
+	await scanAllowLists(sri, h)
+	await scanForNestedResources(logger, distDir, h)
 	await scanDirectory(
 		logger,
 		distDir,
@@ -693,7 +697,6 @@ export const processStaticFiles = async (logger, { distDir, sri }) => {
 		sri,
 	)
 
-	await scanForNestedResources(logger, distDir, h)
 
 	if (!sri.hashesModule) {
 		return
@@ -790,33 +793,58 @@ const loadVirtualMiddlewareModule = async (
 	let extraImports = ''
 	let staticHashesModuleLoader = ''
 
-	if (
-		sri.enableStatic &&
-		sri.hashesModule &&
-		!(await doesFileExist(sri.hashesModule))
-	) {
-		const h = /** @satisfies {HashesCollection} */ {
-			inlineScriptHashes: new Set(),
-			inlineStyleHashes: new Set(),
-			extScriptHashes: new Set(),
-			extStyleHashes: new Set(),
-			perPageSriHashes: new Map(),
-			perResourceSriHashes: {
-				scripts: new Map(),
-				styles: new Map(),
-			},
+	if (sri.enableStatic && sri.hashesModule) {
+		let shouldRegenerateHashesModule = !(await doesFileExist(sri.hashesModule))
+
+		if (!shouldRegenerateHashesModule) {
+			try {
+				const hashesModule = /** @type {HashesModule} */ (
+					await import(sri.hashesModule)
+				)
+
+				for (const allowedScript of sri.scriptsAllowListUrls) {
+					if (
+						!Object.hasOwn(
+							hashesModule.perResourceSriHashes.scripts,
+							allowedScript,
+						)
+					) {
+						shouldRegenerateHashesModule = true
+						break
+					}
+				}
+			} catch (err) {
+				logger.warn(
+					`Failed to load SRI hashes module "${sri.hashesModule}", it will be re-generated:\n\t${err}`,
+				)
+				shouldRegenerateHashesModule = true
+			}
 		}
 
-		// We generate a provisional hashes module. It won't contain the hashes for
-		// resources created by Astro, but it can be useful nonetheless.
-		await scanForNestedResources(logger, publicDir, h)
-		await scanAllowLists(sri, h)
-		await generateSRIHashesModule(
-			logger,
-			h,
-			sri.hashesModule,
-			false, // So we don't get redundant warnings
-		)
+		if (shouldRegenerateHashesModule) {
+			const h = /** @satisfies {HashesCollection} */ {
+				inlineScriptHashes: new Set(),
+				inlineStyleHashes: new Set(),
+				extScriptHashes: new Set(),
+				extStyleHashes: new Set(),
+				perPageSriHashes: new Map(),
+				perResourceSriHashes: {
+					scripts: new Map(),
+					styles: new Map(),
+				},
+			}
+
+			// We generate a provisional hashes module. It won't contain the hashes for
+			// resources created by Astro, but it can be useful nonetheless.
+			await scanForNestedResources(logger, publicDir, h)
+			await scanAllowLists(sri, h)
+			await generateSRIHashesModule(
+				logger,
+				h,
+				sri.hashesModule,
+				false, // So we don't get redundant warnings
+			)
+		}
 	}
 
 	if (

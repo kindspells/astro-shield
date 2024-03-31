@@ -24,9 +24,15 @@ export default defineConfig({
 	adapter: node({ mode: 'standalone' }),
 	integrations: [
 		shield({
-			enableStatic_SRI: true,
-			enableMiddleware_SRI: true,
-			sriHashesModule,
+			sri: {
+				enableStatic: true,
+				enableMiddleware: true,
+				hashesModule: sriHashesModule,
+				scriptsAllowListUrls: [
+					'https://code.jquery.com/jquery-3.7.1.slim.min.js',
+					'https://code.jquery.com/ui/1.13.2/jquery-ui.min.js',
+				],
+			},
 			securityHeaders: {
 				contentSecurityPolicy: {
 					cspDirectives: {

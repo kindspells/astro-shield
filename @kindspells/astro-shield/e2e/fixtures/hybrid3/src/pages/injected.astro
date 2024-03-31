@@ -1,0 +1,32 @@
+---
+/*
+ * SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+export const prerender = false
+import '../styles/main.css'
+---
+<!DOCTYPE html><html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>My Static Test Site</title>
+		<style>h1 { color: red; }</style>
+	</head>
+	<body>
+		<!-- The next script is whitelisted -->
+		<script
+			src="https://code.jquery.com/jquery-3.7.1.slim.min.js"
+			integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8="
+			crossorigin="anonymous"
+		></script>
+        <!-- The next script is whitelisted, but we let Astro-Shield obtain its integrity hash -->
+		<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js" type="module"></script>
+
+		<!-- The next script, although not malicious, is used to simulate an injection -->
+		<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="></script>
+		<p>This document simulates a page showing an injected script</p>
+	</body>
+</html>

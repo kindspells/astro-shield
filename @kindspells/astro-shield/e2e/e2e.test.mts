@@ -23,6 +23,7 @@ import {
 	it,
 } from 'vitest'
 
+import type { HashesModule } from '#as/core.mjs'
 import { generateSRIHash } from '#as/core.mjs'
 import { doesFileExist } from '#as/fs.mjs'
 
@@ -528,6 +529,26 @@ describe('middleware (hybrid 3)', () => {
 
 		expect(cspHeader).toBe(
 			"default-src 'none'; frame-ancestors 'none'; script-src 'self' 'sha256-X7QGGDHgf6XMoabXvV9pW7gl3ALyZhZlgKq1s3pwmME='; style-src 'self' 'sha256-9U7mv8FibD/D9IbGpXc86pz37l6/w4PCLpFIZuPrzh8=' 'sha256-ZlgyI5Bx/aeAyk/wSIypqeIM5PBhz9IiAek9HIiAjaI='",
+		)
+	})
+
+	it('incorporates the allowed scripts into the generated hashes module', async () => {
+		const hashesModulePath = resolve(hybridDir, 'src', 'generated', 'sri.mjs')
+		assert(await doesFileExist(hashesModulePath))
+
+		const hashesModule = (await import(hashesModulePath)) as HashesModule
+
+		assert(
+			Object.hasOwn(
+				hashesModule.perResourceSriHashes.scripts,
+				'https://code.jquery.com/jquery-3.7.1.slim.min.js',
+			),
+		)
+		assert(
+			Object.hasOwn(
+				hashesModule.perResourceSriHashes.scripts,
+				'https://code.jquery.com/ui/1.13.2/jquery-ui.min.js',
+			),
 		)
 	})
 })
