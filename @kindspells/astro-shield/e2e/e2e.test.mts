@@ -551,4 +551,42 @@ describe('middleware (hybrid 3)', () => {
 			),
 		)
 	})
+
+	it('does not "validate" sri signatures for cross-origin scripts that are not in the allow list', async () => {
+		const response = await fetch(`${baseUrl}/injected/`)
+		const cspHeader = response.headers.get('content-security-policy')
+
+		assert(cspHeader !== null)
+		assert(cspHeader)
+
+		const scriptDirective = cspHeader
+			.split(/;\s*/)
+			.filter(directive => directive.startsWith('script-src'))[0]
+		assert(scriptDirective)
+
+		// This hash belongs to an allowed script that included its integrity
+		// attribute as well (https://code.jquery.com/jquery-3.7.1.slim.min.js).
+		assert(
+			scriptDirective.includes(
+				'sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8=',
+			),
+		)
+
+		// This hash belongs to an allowed script that did not include its
+		// integrity attribute (https://code.jquery.com/ui/1.13.2/jquery-ui.min.js).
+		assert(
+			scriptDirective.includes(
+				'sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0=',
+			),
+		)
+
+		// The MOST IMPORTANT assertionf of this test:
+		// This hash belongs to the script that is "injected" in the page
+		// (more precisely, that is not in the allow list)
+		assert(
+			!scriptDirective.includes(
+				'sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=',
+			),
+		)
+	})
 })

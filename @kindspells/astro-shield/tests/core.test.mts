@@ -365,7 +365,7 @@ describe('updateStaticPageSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="/core.mjs" integrity="sha256-zOEqmAz4SCAi+TcSQgdhUuurJfrfnwWqtmdTOP+bBkc="></script>
+				<script type="module" src="/core.mjs" integrity="sha256-XJRisMK9wQvjjOmHgwTyaPbBdQ7sIaEh6BiqErhW4f8="></script>
 			</body>
 		</html>`
 
@@ -382,7 +382,7 @@ describe('updateStaticPageSriHashes', () => {
 		expect(h.extScriptHashes.size).toBe(1)
 		expect(
 			h.extScriptHashes.has(
-				'sha256-zOEqmAz4SCAi+TcSQgdhUuurJfrfnwWqtmdTOP+bBkc=',
+				'sha256-XJRisMK9wQvjjOmHgwTyaPbBdQ7sIaEh6BiqErhW4f8=',
 			),
 		).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)
@@ -477,8 +477,6 @@ describe('updateStaticPageSriHashes', () => {
 		expect(h.extScriptHashes.size).toBe(0)
 		expect(h.inlineStyleHashes.size).toBe(0)
 	})
-
-	// TODO: Add tests for external styles
 })
 
 describe('updateDynamicPageSriHashes', () => {
@@ -659,7 +657,7 @@ describe('updateDynamicPageSriHashes', () => {
 		expect(pageHashes.styles.size).toBe(0)
 	})
 
-	it('avoids adding sri hash to external script when not allow-listed (cross origin)', async () => {
+	it('removes external script when not explicitly allowed (cross origin)', async () => {
 		const remoteScript =
 			'https://raw.githubusercontent.com/KindSpells/astro-shield/ae9521048f2129f633c075b7f7ef24e11bbd1884/main.mjs'
 		const content = `<html>
@@ -667,7 +665,7 @@ describe('updateDynamicPageSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="${remoteScript}"></script>
+				<script type="module" src="${remoteScript}"></script><!-- This script will be removed -->
 			</body>
 		</html>`
 
@@ -676,7 +674,7 @@ describe('updateDynamicPageSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="${remoteScript}" crossorigin="anonymous"></script>
+				<!-- This script will be removed -->
 			</body>
 		</html>`
 
@@ -895,6 +893,136 @@ describe('updateDynamicPageSriHashes', () => {
 			'Unable to obtain SRI hash for local resource: "/problematic/local/script.js"',
 		)
 	})
+
+	it('removes scripts with both src and content', async () => {
+		const content = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<script type="module" src="/core.mjs">
+					console.log("This should not be here")
+				</script><!-- This script will be removed-->
+			</body>
+		</html>`
+
+		const expected = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<!-- This script will be removed-->
+			</body>
+		</html>`
+
+		// "pre-loaded" (its value does not matter in this case)
+		const h = getMiddlewareHashes()
+		h.scripts.set(
+			'/core.mjs',
+			'sha256-6vcZ3jYR5LROXY5VlgX+tgNuIUVynHfMRQFXUnXSf64=',
+		)
+
+		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+			console,
+			content,
+			h,
+		)
+
+		expect(updatedContent).toEqual(expected)
+
+		// "no changes"
+		expect(h.scripts.size).toBe(1)
+		expect(h.scripts.get('/core.mjs')).toEqual(
+			'sha256-6vcZ3jYR5LROXY5VlgX+tgNuIUVynHfMRQFXUnXSf64=',
+		)
+
+		expect(h.styles.size).toBe(0)
+		expect(pageHashes.scripts.size).toBe(0)
+		expect(pageHashes.styles.size).toBe(0)
+	})
+
+	it('removes external scripts with integrity mismatch', async () => {
+		// "pre-loaded" (its value will differ from the one in the content)
+		const h = getMiddlewareHashes()
+		h.scripts.set(
+			'/core.mjs',
+			'sha256-1111111111111111111111111111111111111111111=',
+		)
+
+		const content = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<script type="module" src="/core.mjs" integrity="sha256-2222222222222222222222222222222222222222222="></script><!-- This script will be removed-->
+			</body>
+		</html>`
+
+		const expected = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<!-- This script will be removed-->
+			</body>
+		</html>`
+
+		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+			console,
+			content,
+			h,
+		)
+
+		expect(updatedContent).toEqual(expected)
+
+		// "no changes"
+		expect(h.scripts.size).toBe(1)
+		expect(h.scripts.get('/core.mjs')).toEqual(
+			'sha256-1111111111111111111111111111111111111111111=',
+		)
+
+		expect(h.styles.size).toBe(0)
+		expect(pageHashes.scripts.size).toBe(0)
+		expect(pageHashes.styles.size).toBe(0)
+	})
+
+	it('removes external (cross-origin) scripts with integrity attribute but not explicitly allowed', async () => {
+		// No "pre-loaded" hashes
+		const h = getMiddlewareHashes()
+
+		const content = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<script type="module" src="https://external.com/script.js" integrity="sha256-1111111111111111111111111111111111111111111="></script><!-- This script will be removed-->
+			</body>
+		</html>`
+
+		const expected = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<!-- This script will be removed-->
+			</body>
+		</html>`
+
+		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+			console,
+			content,
+			h,
+			// We do not pass an allow-list
+		)
+
+		expect(updatedContent).toEqual(expected)
+
+		// "no changes"
+		expect(h.scripts.size).toBe(0)
+		expect(h.styles.size).toBe(0)
+		expect(pageHashes.scripts.size).toBe(0)
+		expect(pageHashes.styles.size).toBe(0)
+	})
 })
 
 describe('scanAllowLists', () => {
@@ -1045,7 +1173,7 @@ describe('getMiddlewareHandler', () => {
 </html>`)
 	})
 
-	it('protects from validating disallowed inline scripts', async () => {
+	it('removes inline scripts when they are not allowed', async () => {
 		const hashes = {
 			scripts: new Map<string, string>(),
 			styles: new Map<string, string>(),
@@ -1083,7 +1211,7 @@ describe('getMiddlewareHandler', () => {
 		<title>My Test Page</title>
 	</head>
 	<body>
-		<script>console.log("Hello World!")</script>
+		<script>console.log("Hello World!")</script><!-- The script will be removed -->
 	</body>
 </html>`,
 					status: 200,
@@ -1103,7 +1231,7 @@ describe('getMiddlewareHandler', () => {
 		<title>My Test Page</title>
 	</head>
 	<body>
-		<script>console.log("Hello World!")</script>
+		<!-- The script will be removed -->
 	</body>
 </html>`)
 	})
@@ -1178,7 +1306,7 @@ describe('getCSPMiddlewareHandler', () => {
 </html>`)
 	})
 
-	it('protects from validating disallowed inline scripts', async () => {
+	it('removes inline scripts when they are not allowed', async () => {
 		const hashes = {
 			scripts: new Map<string, string>(),
 			styles: new Map<string, string>(),
@@ -1217,7 +1345,7 @@ describe('getCSPMiddlewareHandler', () => {
 		<title>My Test Page</title>
 	</head>
 	<body>
-		<script>console.log("Hello World!")</script>
+		<script>console.log("Hello World!")</script><!-- The script will be removed -->
 	</body>
 </html>`,
 					status: 200,
@@ -1237,7 +1365,7 @@ describe('getCSPMiddlewareHandler', () => {
 		<title>My Test Page</title>
 	</head>
 	<body>
-		<script>console.log("Hello World!")</script>
+		<!-- The script will be removed -->
 	</body>
 </html>`)
 	})

@@ -48,7 +48,7 @@ export const generateSRIHash = data => {
 
 /**
  * @typedef {(
- *   hash: string | null,
+ *   hash: string,
  *   attrs: string,
  *   setCrossorigin: boolean,
  *   content?: string | undefined,
@@ -57,23 +57,22 @@ export const generateSRIHash = data => {
 
 /** @type {ElemReplacer} */
 const scriptReplacer = (hash, attrs, setCrossorigin, content) =>
-	`<script${attrs}${hash !== null ? ` integrity="${hash}"` : ''}${
+	`<script${attrs} integrity="${hash}"${
 		setCrossorigin ? ' crossorigin="anonymous"' : ''
 	}>${content ?? ''}</script>`
 
 /** @type {ElemReplacer} */
 const styleReplacer = (hash, attrs, setCrossorigin, content) =>
-	`<style${attrs}${hash !== null ? ` integrity="${hash}"` : ''}${
+	`<style${attrs} integrity="${hash}"${
 		setCrossorigin ? ' crossorigin="anonymous"' : ''
 	}>${content ?? ''}</style>`
 
 /** @type {ElemReplacer} */
 const linkStyleReplacer = (hash, attrs, setCrossorigin) =>
-	`<link${attrs}${hash !== null ? ` integrity="${hash}"` : ''}${
+	`<link${attrs} integrity="${hash}"${
 		setCrossorigin ? ' crossorigin="anonymous"' : ''
 	}/>`
 
-const srcRegex = /\s+(src|href)\s*=\s*("(?<src1>.*?)"|'(?<src2>.*?)')/i
 const integrityRegex =
 	/\s+integrity\s*=\s*("(?<integrity1>.*?)"|'(?<integrity2>.*?)')/i
 const relStylesheetRegex = /\s+rel\s*=\s*('stylesheet'|"stylesheet")/i
@@ -85,6 +84,7 @@ const getRegexProcessors = () => {
 			t2: 'scripts',
 			regex:
 				/<script(?<attrs>(\s+[a-z][a-z0-9\-_]*(=('[^']*?'|"[^"]*?"))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*script\s*>/gi,
+			srcRegex: /\s+src\s*=\s*("(?<src1>.*?)"|'(?<src2>.*?)')/i,
 			replacer: scriptReplacer,
 			hasContent: true,
 			attrsRegex: undefined,
@@ -94,6 +94,7 @@ const getRegexProcessors = () => {
 			t2: 'styles',
 			regex:
 				/<style(?<attrs>(\s+[a-z][a-z0-9\-_]*(=('[^']*?'|"[^"]*?"))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*style\s*>/gi,
+			srcRegex: /\s+(href|src)\s*=\s*("(?<src1>.*?)"|'(?<src2>.*?)')/i, // not really used
 			replacer: styleReplacer,
 			hasContent: true,
 			attrsRegex: undefined,
@@ -103,6 +104,7 @@ const getRegexProcessors = () => {
 			t2: 'styles',
 			regex:
 				/<link(?<attrs>(\s+[a-z][a-z0-9\-_]*(=('[^']*?'|"[^"]*?"))?)*?)\s*\/?>/gi,
+			srcRegex: /\s+href\s*=\s*("(?<src1>.*?)"|'(?<src2>.*?)')/i,
 			replacer: linkStyleReplacer,
 			hasContent: false,
 			attrsRegex: relStylesheetRegex,
@@ -148,11 +150,19 @@ export const updateStaticPageSriHashes = async (
 	let updatedContent = content
 	let match
 
-	for (const { attrsRegex, hasContent, regex, replacer, t, t2 } of processors) {
+	for (const {
+		attrsRegex,
+		hasContent,
+		regex,
+		srcRegex,
+		replacer,
+		t,
+		t2,
+	} of processors) {
 		// biome-ignore lint/suspicious/noAssignInExpressions: safe
 		while ((match = regex.exec(content)) !== null) {
 			const attrs = match.groups?.attrs ?? ''
-			const content = match.groups?.content ?? ''
+			const elemContent = match.groups?.content ?? ''
 
 			/** @type {string | undefined} */
 			let sriHash = undefined
@@ -166,6 +176,14 @@ export const updateStaticPageSriHashes = async (
 				const srcMatch = srcRegex.exec(attrs)
 				const integrityMatch = integrityRegex.exec(attrs)
 				const src = srcMatch?.groups?.src1 ?? srcMatch?.groups?.src2 ?? ''
+
+				if (elemContent && src) {
+					logger.warn(
+						`${t} "${src}" must have either a src/href attribute or content, but not both. Removing it.`,
+					)
+					updatedContent = updatedContent.replace(match[0], '')
+					continue
+				}
 
 				if (integrityMatch) {
 					sriHash =
@@ -217,20 +235,22 @@ export const updateStaticPageSriHashes = async (
 					!(allowInlineScripts === false && t === 'Script') &&
 					!(allowInlineStyles === false && t === 'Style')
 				) {
-					sriHash = generateSRIHash(content)
+					sriHash = generateSRIHash(elemContent)
 					h[`inline${t}Hashes`].add(sriHash)
 					pageHashes[t2].add(sriHash)
 				} else {
 					logger.warn(
-						`Skipping SRI hash generation for inline ${t.toLowerCase()} "${relativeFilepath}" (inline ${t2} are disabled)`,
+						`Removing inline ${t.toLowerCase()} block (inline ${t2} are disabled).`,
 					)
+					updatedContent = updatedContent.replace(match[0], '')
+					continue
 				}
 			}
 
 			if (sriHash) {
 				updatedContent = updatedContent.replace(
 					match[0],
-					replacer(sriHash, attrs, setCrossorigin, content),
+					replacer(sriHash, attrs, setCrossorigin, elemContent),
 				)
 			}
 		}
@@ -261,17 +281,26 @@ export const updateDynamicPageSriHashes = async (
 		styles: new Set(),
 	})
 
-	for (const { attrsRegex, hasContent, regex, replacer, t, t2 } of processors) {
+	for (const {
+		attrsRegex,
+		hasContent,
+		regex,
+		srcRegex,
+		replacer,
+		t,
+		t2,
+	} of processors) {
 		// biome-ignore lint/suspicious/noAssignInExpressions: safe
 		while ((match = regex.exec(content)) !== null) {
 			const attrs = match.groups?.attrs ?? ''
-			const content = match.groups?.content ?? ''
+			const elemContent = match.groups?.content ?? ''
 
 			/** @type {string | undefined} */
 			let sriHash = undefined
 			let setCrossorigin = false
 
 			if (attrs) {
+				// This is to skip <link> elements that are not stylesheets
 				if (attrsRegex && !attrsRegex.test(attrs)) {
 					continue
 				}
@@ -280,33 +309,57 @@ export const updateDynamicPageSriHashes = async (
 				const integrityMatch = integrityRegex.exec(attrs)
 				const src = srcMatch?.groups?.src1 ?? srcMatch?.groups?.src2
 
-				if (content && src) {
+				if (elemContent && src) {
 					logger.warn(
-						`scripts must have either a src attribute or content, but not both "${src}"`,
+						`${t} "${src}" must have either a src/href attribute or content, but not both. Removing it.`,
 					)
+					updatedContent = updatedContent.replace(match[0], '')
 					continue
 				}
 
 				if (integrityMatch) {
-					sriHash =
+					const givenSriHash =
 						integrityMatch.groups?.integrity1 ??
 						integrityMatch.groups?.integrity2
-					if (sriHash) {
+					if (givenSriHash) {
 						if (src) {
 							const globalHash = globalHashes[t2].get(src)
 							if (globalHash) {
-								if (globalHash !== sriHash) {
-									throw new Error(
-										`SRI hash mismatch for "${src}", expected "${globalHash}" but got "${sriHash}"`,
+								if (globalHash !== givenSriHash) {
+									logger.warn(
+										`Detected integrity hash mismatch for resource "${src}". Removing it.`,
 									)
+									updatedContent = updatedContent.replace(match[0], '')
+								} else {
+									sriHash = givenSriHash
+									pageHashes[t2].add(sriHash)
 								}
 							} else {
-								globalHashes[t2].set(src, sriHash)
+								logger.warn(
+									`Detected reference to not explicitly allowed external resource "${src}". Removing it.`,
+								)
+								updatedContent = updatedContent.replace(match[0], '')
+							}
+						} else if (elemContent) {
+							if (
+								(t2 === 'scripts' &&
+									(sri?.allowInlineScripts ?? 'all') === 'all') ||
+								(t2 === 'styles' && (sri?.allowInlineStyles ?? 'all') === 'all')
+							) {
+								sriHash = givenSriHash
+								pageHashes[t2].add(sriHash)
+							} else {
+								logger.warn(
+									`Removing inline ${t.toLowerCase()} block (inline ${t2} are disabled).`,
+								)
+								updatedContent = updatedContent.replace(match[0], '')
 							}
 						}
-						pageHashes[t2].add(sriHash)
 					} else {
-						logger.warn('Found empty integrity attribute, skipping...')
+						logger.warn(
+							`Found empty integrity attribute, removing inline ${t.toLowerCase()} block.`,
+						)
+						updatedContent = updatedContent.replace(match[0], '')
 					}
 					continue
 				}
@@ -325,6 +378,7 @@ export const updateDynamicPageSriHashes = async (
 									src.indexOf('?astro&type=') >= 0
 								)
 							) {
+								// TODO: Perform fetch operation when running in dev mode
 								logger.warn(
 									`Unable to obtain SRI hash for local resource: "${src}"`,
 								)
@@ -339,49 +393,39 @@ export const updateDynamicPageSriHashes = async (
 							pageHashes[t2].add(sriHash)
 						} else {
 							logger.warn(
-								`Detected reference to not-allow-listed external resource "${src}"`,
+								`Detected reference to not explicitly allowed external resource "${src}". Removing it.`,
 							)
-							if (setCrossorigin) {
-								updatedContent = updatedContent.replace(
-									match[0],
-									replacer(null, attrs, true, ''),
-								)
-							}
+							updatedContent = updatedContent.replace(match[0], '')
 							continue
-
-							// TODO: add scape hatch to allow fetching arbitrary external resources
-							// const resourceResponse = await fetch(src, { method: 'GET' })
-							// const resourceContent = await resourceResponse.arrayBuffer()
-							// sriHash = generateSRIHash(resourceContent)
-							// globalHashes[t2].set(src, sriHash)
-							// pageHashes[t2].add(sriHash)
 						}
 					} else {
-						logger.warn(`Unable to process external resource: "${src}"`)
+						// TODO: Introduce flag to decide if external resources using unknown protocols should be removed
+						logger.warn(`Unable to process external resource: "${src}".`)
 						continue
 					}
 				}
 			}
 
 			if (hasContent && !sriHash) {
-				// TODO: port logic from `updateStaticPageSriHashes` to handle inline resources
 				if (
 					((sri?.allowInlineScripts ?? 'all') === 'all' && t === 'Script') ||
 					((sri?.allowInlineStyles ?? 'all') === 'all' && t === 'Style')
 				) {
-					sriHash = generateSRIHash(content)
+					sriHash = generateSRIHash(elemContent)
 					pageHashes[t2].add(sriHash)
 				} else {
 					logger.warn(
-						`Skipping SRI hash generation for inline ${t.toLowerCase()} (inline ${t2} are disabled)`,
+						`Removing inline ${t.toLowerCase()} block (inline ${t2} are disabled)`,
 					)
+					updatedContent = updatedContent.replace(match[0], '')
+					continue
 				}
 			}
 
 			if (sriHash) {
 				updatedContent = updatedContent.replace(
 					match[0],
-					replacer(sriHash, attrs, setCrossorigin, content),
+					replacer(sriHash, attrs, setCrossorigin, elemContent),
 				)
 			}
 		}
@@ -696,7 +740,6 @@ export const processStaticFiles = async (logger, { distDir, sri }) => {
 		file => extname(file) === '.html',
 		sri,
 	)
-
 
 	if (!sri.hashesModule) {
 		return
