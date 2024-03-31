@@ -1,6 +1,7 @@
 import { defineConfig, passthroughImageService } from 'astro/config'
 import starlight from '@astrojs/starlight'
 import aws from 'astro-sst'
+import { shield } from '@kindspells/astro-shield'
 
 export default defineConfig({
 	output: 'static',
@@ -10,6 +11,7 @@ export default defineConfig({
 		service: passthroughImageService(),
 	},
 	integrations: [
+		shield({}),
 		starlight({
 			title: 'Astro-Shield Docs',
 			defaultLocale: 'en',

@@ -29,10 +29,11 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 		Astro-Shield can automatically set the `Content-Security-Policy` headers
 		for you.
 	</Card>
-	{/* <Card title="Block injected scripts" icon="close">
-		Blablablah...
+	<Card title="Block injected scripts" icon="close">
+		When Astro-Shield detects a suspicious script (that is, likely injected by
+		an attacker), it will remove it from the rendered HTML.
 	</Card>
-	<Card title="Prevent Prototype Pollution" icon="seti:gulp">
+	{/* <Card title="Prevent Prototype Pollution" icon="seti:gulp">
 		Blablablah...
 	</Card> */}
 </CardGrid>

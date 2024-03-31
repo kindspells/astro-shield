@@ -17,6 +17,7 @@
 	"devDependencies": {
 		"@astrojs/check": "^0.5.10",
 		"@astrojs/starlight": "^0.21.2",
+		"@kindspells/astro-shield": "workspace:^",
 		"astro": "^4.5.12",
 		"typescript": "^5.4.3"
 	}

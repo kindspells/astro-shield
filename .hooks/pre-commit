@@ -8,3 +8,4 @@ set -eu
 set -o pipefail
 
 pnpm moon ci
+pnpm moon :test.e2e
