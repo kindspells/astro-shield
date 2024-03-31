@@ -842,7 +842,7 @@ const loadVirtualMiddlewareModule = async (
 		if (!shouldRegenerateHashesModule) {
 			try {
 				const hashesModule = /** @type {HashesModule} */ (
-					await import(sri.hashesModule)
+					await import(/* @vite-ignore */ sri.hashesModule)
 				)
 
 				for (const allowedScript of sri.scriptsAllowListUrls) {
