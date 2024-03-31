@@ -38,7 +38,6 @@ tasks:
       - 'vitest.config.e2e.mts'
       - 'src/**/*'
       - 'e2e/**/*'
-    local: true
     options:
       runInCI: false
   test.unit:
@@ -47,7 +46,6 @@ tasks:
       - 'vitest.config.unit.mts'
       - 'src/**/*'
       - 'tests/**/*'
-    local: true
     options:
       runInCI: false
   test.unit.cov:

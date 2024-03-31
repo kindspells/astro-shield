@@ -13,22 +13,36 @@ tasks:
       - 'package.json'
       - 'sst.config.ts'
     outputs:
-      - '.sst/**/*'
-    local: true
+      - '.sst/.pulumi/meta.yaml'
+      - '.sst/platform/version'
+      - '.sst/stage'
+      - '.sst/types.generated.ts'
+    options:
+      runInCI: false
+  astro.check:
+    command: 'astro check'
+    deps:
+      - '~:sst.install'
+    inputs:
+      - '.sst/types.generated.ts'
+      - 'public/**/*'
+      - 'src/**/*'
+      - 'astro.config.mjs'
+      - 'package.json'
+    outputs:
+      - '.astro/types.d.ts'
     options:
       runInCI: false
   build:
-    command: 'astro check && astro build'
+    command: 'astro build'
     deps:
-      - '~:sst.install'
+      - '~:astro.check'
     inputs:
       - 'public/**/*'
       - 'src/**/*'
       - 'astro.config.mjs'
       - 'package.json'
     outputs:
-      - '.astro/**/*'
       - 'dist/**/*'
-    local: true
     options:
       runInCI: false
