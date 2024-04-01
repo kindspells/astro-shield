@@ -73,18 +73,40 @@ const linkStyleReplacer = (hash, attrs, setCrossorigin) =>
 		setCrossorigin ? ' crossorigin="anonymous"' : ''
 	}/>`
 
+// TODO: Support more algorithms (different ones, and many for the same element)
 const integrityRegex =
-	/\s+integrity\s*=\s*("(?<integrity1>.*?)"|'(?<integrity2>.*?)')/i
-const relStylesheetRegex = /\s+rel\s*=\s*('stylesheet'|"stylesheet")/i
+	/^integrity\s*=\s*("(?<integrity1>sha256-[a-z0-9+\/]{43}=)"|'(?<integrity2>sha256-[a-z0-9+\/]{43}=)')$/i
+const relStylesheetRegex =
+	/(^|\s+)rel\s*=\s*('stylesheet'|"stylesheet"|stylesheet(\s+?|$))/i
+const naiveAttrSplitter = /(?<!=)\s+(?!=)/
 
-const getRegexProcessors = () => {
+/**
+ * @param {string} attrs
+ * @returns {string | undefined}
+ */
+const extractIntegrityHash = attrs => {
+	for (const attr of attrs.split(naiveAttrSplitter)) {
+		// If longer than 128, it's either not an integrity attribute, or an attempt
+		// to perform a DoS attack.
+		if (attr.length <= 128) {
+			const m = integrityRegex.exec(attr)
+			if (m) {
+				return m.groups?.integrity1 ?? m.groups?.integrity2
+			}
+		}
+	}
+	return undefined
+}
+
+export const getRegexProcessors = () => {
 	return /** @type {const} */ ([
 		{
 			t: 'Script',
 			t2: 'scripts',
 			regex:
-				/<script(?<attrs>(\s+[a-z][a-z0-9\-_]*(=('[^']*?'|"[^"]*?"))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*script\s*>/gi,
-			srcRegex: /\s+src\s*=\s*("(?<src1>.*?)"|'(?<src2>.*?)')/i,
+				/<script(?<attrs>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_\/\.]+))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*script((?<closingTrick>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_]+))?)+?)|\s*>)/gi,
+			srcRegex:
+				/(^|\s+)src\s*=\s*("(?<src1>[^"]*)"|'(?<src2>[^']*)'|(?<src3>[a-z0-9\-_\/\.]+))/i,
 			replacer: scriptReplacer,
 			hasContent: true,
 			attrsRegex: undefined,
@@ -93,8 +115,9 @@ const getRegexProcessors = () => {
 			t: 'Style',
 			t2: 'styles',
 			regex:
-				/<style(?<attrs>(\s+[a-z][a-z0-9\-_]*(=('[^']*?'|"[^"]*?"))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*style\s*>/gi,
-			srcRegex: /\s+(href|src)\s*=\s*("(?<src1>.*?)"|'(?<src2>.*?)')/i, // not really used
+				/<style(?<attrs>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_\/\.]+))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*style((?<closingTrick>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_]+))?)+?)|\s*>)/gi,
+			srcRegex:
+				/(^|\s+)(href|src)\s*=\s*("(?<src1>[^"]*)"|'(?<src2>[^']*)'|(?<src3>[a-z0-9\-_\/\.]+))/i, // not really used
 			replacer: styleReplacer,
 			hasContent: true,
 			attrsRegex: undefined,
@@ -103,8 +126,9 @@ const getRegexProcessors = () => {
 			t: 'Style',
 			t2: 'styles',
 			regex:
-				/<link(?<attrs>(\s+[a-z][a-z0-9\-_]*(=('[^']*?'|"[^"]*?"))?)*?)\s*\/?>/gi,
-			srcRegex: /\s+href\s*=\s*("(?<src1>.*?)"|'(?<src2>.*?)')/i,
+				/<link(?<attrs>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_\/\.]+))?)*?)\s*\/?>/gi,
+			srcRegex:
+				/(^|\s+)href\s*=\s*("(?<src1>[^"]*)"|'(?<src2>[^']*)'|(?<src3>[a-z0-9\-_\/\.]+))/i,
 			replacer: linkStyleReplacer,
 			hasContent: false,
 			attrsRegex: relStylesheetRegex,
@@ -161,7 +185,7 @@ export const updateStaticPageSriHashes = async (
 	} of processors) {
 		// biome-ignore lint/suspicious/noAssignInExpressions: safe
 		while ((match = regex.exec(content)) !== null) {
-			const attrs = match.groups?.attrs ?? ''
+			const attrs = match.groups?.attrs?.trim() ?? ''
 			const elemContent = match.groups?.content ?? ''
 
 			/** @type {string | undefined} */
@@ -174,8 +198,11 @@ export const updateStaticPageSriHashes = async (
 				}
 
 				const srcMatch = srcRegex.exec(attrs)
-				const integrityMatch = integrityRegex.exec(attrs)
-				const src = srcMatch?.groups?.src1 ?? srcMatch?.groups?.src2 ?? ''
+				const src =
+					srcMatch?.groups?.src1 ??
+					srcMatch?.groups?.src2 ??
+					srcMatch?.groups?.src3 ??
+					''
 
 				if (elemContent && src) {
 					logger.warn(
@@ -185,20 +212,23 @@ export const updateStaticPageSriHashes = async (
 					continue
 				}
 
-				if (integrityMatch) {
-					sriHash =
-						integrityMatch.groups?.integrity1 ??
-						integrityMatch.groups?.integrity2
-					if (sriHash) {
+				const givenSriHash = extractIntegrityHash(attrs)
+
+				if (givenSriHash !== undefined) {
+					if (givenSriHash) {
 						;(srcMatch ? h[`ext${t}Hashes`] : h[`inline${t}Hashes`]).add(
-							sriHash,
+							givenSriHash,
 						)
-						pageHashes[t2].add(sriHash)
+						pageHashes[t2].add(givenSriHash)
 						if (src) {
-							h.perResourceSriHashes[t2].set(src, sriHash)
+							h.perResourceSriHashes[t2].set(src, givenSriHash)
 						}
-						continue
+					} else {
+						logger.warn(
+							`Found empty integrity attribute in "${relativeFilepath}".`,
+						)
 					}
+					continue
 				}
 
 				if (src) {
@@ -250,7 +280,12 @@ export const updateStaticPageSriHashes = async (
 			if (sriHash) {
 				updatedContent = updatedContent.replace(
 					match[0],
-					replacer(sriHash, attrs, setCrossorigin, elemContent),
+					replacer(
+						sriHash,
+						attrs ? ` ${attrs}` : '',
+						setCrossorigin,
+						elemContent,
+					),
 				)
 			}
 		}
@@ -292,7 +327,7 @@ export const updateDynamicPageSriHashes = async (
 	} of processors) {
 		// biome-ignore lint/suspicious/noAssignInExpressions: safe
 		while ((match = regex.exec(content)) !== null) {
-			const attrs = match.groups?.attrs ?? ''
+			const attrs = match.groups?.attrs?.trim() ?? ''
 			const elemContent = match.groups?.content ?? ''
 
 			/** @type {string | undefined} */
@@ -306,8 +341,10 @@ export const updateDynamicPageSriHashes = async (
 				}
 
 				const srcMatch = srcRegex.exec(attrs)
-				const integrityMatch = integrityRegex.exec(attrs)
-				const src = srcMatch?.groups?.src1 ?? srcMatch?.groups?.src2
+				const src =
+					srcMatch?.groups?.src1 ??
+					srcMatch?.groups?.src2 ??
+					srcMatch?.groups?.src3
 
 				if (elemContent && src) {
 					logger.warn(
@@ -317,10 +354,9 @@ export const updateDynamicPageSriHashes = async (
 					continue
 				}
 
-				if (integrityMatch) {
-					const givenSriHash =
-						integrityMatch.groups?.integrity1 ??
-						integrityMatch.groups?.integrity2
+				const givenSriHash = extractIntegrityHash(attrs)
+
+				if (givenSriHash !== undefined) {
 					if (givenSriHash) {
 						if (src) {
 							const globalHash = globalHashes[t2].get(src)
@@ -425,7 +461,12 @@ export const updateDynamicPageSriHashes = async (
 			if (sriHash) {
 				updatedContent = updatedContent.replace(
 					match[0],
-					replacer(sriHash, attrs, setCrossorigin, elemContent),
+					replacer(
+						sriHash,
+						attrs ? ` ${attrs}` : '',
+						setCrossorigin,
+						elemContent,
+					),
 				)
 			}
 		}

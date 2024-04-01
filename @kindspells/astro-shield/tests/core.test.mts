@@ -14,6 +14,7 @@ import {
 	generateSRIHashesModule,
 	getCSPMiddlewareHandler,
 	getMiddlewareHandler,
+	getRegexProcessors,
 	pageHashesEqual,
 	scanAllowLists,
 	scanForNestedResources,
@@ -194,6 +195,264 @@ describe('sriHashesEqual', () => {
 	})
 })
 
+describe('getRegexProcessors', () => {
+	const embedContentInSimpleHtml = (content: string) => `<html>
+		<head>
+			<title>My Test Page</title>
+		</head>
+		<body>
+			${content}
+		</body>
+	</html>`
+
+	describe('Script', () => {
+		const config = getRegexProcessors().filter(p => p.t === 'Script')[0]
+		assert(config)
+		const regex = config.regex
+		const srcRegex = config.srcRegex
+
+		beforeEach(() => {
+			regex.lastIndex = 0
+		})
+
+		it.each([
+			[
+				'<script>console.log("Hello World!")</script>',
+				'console.log("Hello World!")',
+			],
+			[
+				'<script >console.log("Hello World!")</ script >',
+				'console.log("Hello World!")',
+			],
+		])('matches correct simple inline scripts', (scriptBlock, elemContent) => {
+			const content = embedContentInSimpleHtml(scriptBlock)
+
+			const match = regex.exec(content)
+			assert(match)
+			expect(match[0]).toEqual(scriptBlock)
+			expect(match.groups?.content).toEqual(elemContent)
+			expect(match.groups?.attrs).toBeFalsy()
+			expect(match.groups?.closingTrick).toBeFalsy()
+
+			expect(regex.exec(content)).toBeNull() // no more matches
+		})
+
+		it.each([
+			['<script src="/fun.js"></script>', ' src="/fun.js"', '/fun.js'],
+			['<script  src= "/fun.js" ></ script >', '  src= "/fun.js"', '/fun.js'],
+			["<script src='/fun.js'></script>", " src='/fun.js'", '/fun.js'],
+			['<script src=/fun.js></script>', ' src=/fun.js', '/fun.js'],
+		])('matches simple external scripts', (scriptBlock, attrs, src) => {
+			const content = embedContentInSimpleHtml(scriptBlock)
+
+			const match = regex.exec(content)
+			assert(match)
+			expect(match[0]).toEqual(scriptBlock)
+			expect(match.groups?.content).toBeFalsy()
+			const mAttrs = match.groups?.attrs
+			assert(mAttrs)
+			expect(mAttrs).toEqual(attrs)
+			expect(match.groups?.closingTrick).toBeFalsy()
+
+			const srcMatch = srcRegex.exec(mAttrs)
+			assert(srcMatch)
+
+			const mSrc =
+				srcMatch.groups?.src1 ?? srcMatch.groups?.src2 ?? srcMatch.groups?.src3
+			assert(mSrc)
+			expect(mSrc).toEqual(src)
+
+			expect(regex.exec(content)).toBeNull() // no more matches
+		})
+
+		it.each([
+			[
+				'<script integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=" >console.log("Hello World!")</script>',
+				'console.log("Hello World!")',
+				' integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q="',
+			],
+			[
+				'<script type="module" integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=" >console.log("Hello World!")</script>',
+				'console.log("Hello World!")',
+				' type="module" integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q="',
+			],
+			[
+				'<script type=module integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=" >console.log("Hello World!")</script>',
+				'console.log("Hello World!")',
+				' type=module integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q="',
+			],
+			[
+				'<script type ="module" integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=" >console.log("Hello World!")</script>',
+				'console.log("Hello World!")',
+				' type ="module" integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q="',
+			],
+			[
+				'<script type= "module" integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=" >console.log("Hello World!")</script>',
+				'console.log("Hello World!")',
+				' type= "module" integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q="',
+			],
+			[
+				'<script type = "module"   integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q="   >console.log("Hello World!")</  script  >',
+				'console.log("Hello World!")',
+				' type = "module"   integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q="',
+			],
+			[
+				'<script data-arbitrary-marker data-another   type=module >console.log("Hello World!")</  script  >',
+				'console.log("Hello World!")',
+				' data-arbitrary-marker data-another   type=module',
+			],
+		])(
+			'matches correct inline scripts with attributes',
+			(scriptBlock, elemContent, attrs) => {
+				const content = embedContentInSimpleHtml(scriptBlock)
+
+				const match = regex.exec(content)
+				assert(match)
+				expect(match[0]).toEqual(scriptBlock)
+				expect(match.groups?.content).toEqual(elemContent)
+				expect(match.groups?.attrs).toEqual(attrs)
+				expect(match.groups?.closingTrick).toBeFalsy()
+
+				expect(regex.exec(content)).toBeNull() // no more matches
+			},
+		)
+
+		it.each([
+			[
+				'<script integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=" >console.log("Hello World!")</script data-fake-attr >',
+				'<script integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=" >console.log("Hello World!")</script data-fake-attr',
+				'console.log("Hello World!")',
+				' integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q="',
+			],
+			[
+				'<script integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=" >console.log("Hello World!")</script data-one data-two >',
+				'<script integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=" >console.log("Hello World!")</script data-one',
+				'console.log("Hello World!")',
+				' integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q="',
+			],
+			[
+				'<script integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=" >console.log("Hello World!")</script data-clever=">" >',
+				'<script integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q=" >console.log("Hello World!")</script data-clever=">"',
+				'console.log("Hello World!")',
+				' integrity="sha256-TWupyvVdPa1DyFqLnQMqRpuUWdS3nKPnz70IcS/1o3Q="',
+			],
+		])(
+			'matches malicious inline scripts trying to evade regex detection by using attrs on closing tag"',
+			(scriptBlock, capture, elemContent, attrs) => {
+				const content = embedContentInSimpleHtml(scriptBlock)
+
+				const match = regex.exec(content)
+				assert(match)
+				expect(match[0]).toEqual(capture)
+				expect(match.groups?.content).toEqual(elemContent)
+				expect(match.groups?.attrs).toEqual(attrs)
+				assert(match.groups?.closingTrick) // We don't really need to know what's in there
+
+				expect(regex.exec(content)).toBeNull() // no more matches
+			},
+		)
+	})
+
+	describe('Style', () => {
+		const config = getRegexProcessors().filter(p => p.t === 'Style')[0]
+		assert(config)
+		const regex = config.regex
+
+		beforeEach(() => {
+			regex.lastIndex = 0
+		})
+
+		it.each([
+			['<style>h1 { color: red; }</style>', 'h1 { color: red; }'],
+			['<style >h1 { color: red; }</ style >', 'h1 { color: red; }'],
+		])('matches correct simple inline styles', (styleBlock, elemContent) => {
+			const content = embedContentInSimpleHtml(styleBlock)
+
+			const match = regex.exec(content)
+			assert(match)
+			expect(match[0]).toEqual(styleBlock)
+			expect(match.groups?.content).toEqual(elemContent)
+			expect(match.groups?.attrs).toBeFalsy()
+			expect(match.groups?.closingTrick).toBeFalsy()
+
+			expect(regex.exec(content)).toBeNull() // no more matches
+		})
+
+		it.each([
+			[
+				'<style integrity="sha256-some-fake-hash">h1 { color: red; }</style>',
+				'h1 { color: red; }',
+				' integrity="sha256-some-fake-hash"',
+			],
+			[
+				'<style  integrity="sha256-some-fake-hash"   data-something="whatever" data-blah >h1 { color: red; }</ style >',
+				'h1 { color: red; }',
+				'  integrity="sha256-some-fake-hash"   data-something="whatever" data-blah',
+			],
+			[
+				'<style  integrity=\'sha256-some-fake-hash\'   data-something="whatever" data-blah >h1 { color: red; }</ style >',
+				'h1 { color: red; }',
+				'  integrity=\'sha256-some-fake-hash\'   data-something="whatever" data-blah',
+			],
+		])(
+			'matches correct inline styles with attributes',
+			(styleBlock, elemContent, attrs) => {
+				const content = embedContentInSimpleHtml(styleBlock)
+
+				const match = regex.exec(content)
+				assert(match)
+				expect(match[0]).toEqual(styleBlock)
+				expect(match.groups?.content).toEqual(elemContent)
+				try {
+					expect(match.groups?.attrs).toEqual(attrs)
+				} catch (e) {
+					console.log(`"${match.groups?.attrs}"`)
+					console.log(`"${attrs}"`)
+					throw e
+				}
+				expect(match.groups?.closingTrick).toBeFalsy()
+
+				expect(regex.exec(content)).toBeNull() // no more matches
+			},
+		)
+
+		it.each([
+			[
+				'<style integrity="sha256-some-fake-hash" >h1 { color: red; }</style data-fake-attr >',
+				'<style integrity="sha256-some-fake-hash" >h1 { color: red; }</style data-fake-attr',
+				'h1 { color: red; }',
+				' integrity="sha256-some-fake-hash"',
+			],
+			[
+				'<style integrity="sha256-some-fake-hash" >h1 { color: red; }</style data-one data-two >',
+				'<style integrity="sha256-some-fake-hash" >h1 { color: red; }</style data-one',
+				'h1 { color: red; }',
+				' integrity="sha256-some-fake-hash"',
+			],
+			[
+				'<style integrity="sha256-some-fake-hash" >h1 { color: red; }</style data-fake="value" >',
+				'<style integrity="sha256-some-fake-hash" >h1 { color: red; }</style data-fake="value"',
+				'h1 { color: red; }',
+				' integrity="sha256-some-fake-hash"',
+			],
+		])(
+			'matches malicious inline styles trying to evade regex detection by using attrs on closing tag"',
+			(styleBlock, capture, elemContent, attrs) => {
+				const content = embedContentInSimpleHtml(styleBlock)
+
+				const match = regex.exec(content)
+				assert(match)
+				expect(match[0]).toEqual(capture)
+				expect(match.groups?.content).toEqual(elemContent)
+				expect(match.groups?.attrs).toEqual(attrs)
+				assert(match.groups?.closingTrick) // We don't really need to know what's in there
+
+				expect(regex.exec(content)).toBeNull() // no more matches
+			},
+		)
+	})
+})
+
 describe('generateSRIHash', () => {
 	const cases = [
 		[
@@ -365,7 +624,7 @@ describe('updateStaticPageSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="/core.mjs" integrity="sha256-26MA71l0ZDlgA73URL13JbJ0hGMnRJgoHHJmSPLSspk="></script>
+				<script type="module" src="/core.mjs" integrity="sha256-ODt0oYHrqRKob3NWw5w8nWKJX91A+cCIeNQEq1k453k="></script>
 			</body>
 		</html>`
 
@@ -382,7 +641,7 @@ describe('updateStaticPageSriHashes', () => {
 		expect(h.extScriptHashes.size).toBe(1)
 		expect(
 			h.extScriptHashes.has(
-				'sha256-26MA71l0ZDlgA73URL13JbJ0hGMnRJgoHHJmSPLSspk=',
+				'sha256-ODt0oYHrqRKob3NWw5w8nWKJX91A+cCIeNQEq1k453k=',
 			),
 		).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)
