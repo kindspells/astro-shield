@@ -12,13 +12,13 @@
 	"dependencies": {
 		"astro-sst": "^2.41.4",
 		"sharp": "0.32.6",
-		"sst": "^3.0.2"
+		"sst": "^3.0.13"
 	},
 	"devDependencies": {
 		"@astrojs/check": "^0.5.10",
-		"@astrojs/starlight": "^0.21.2",
+		"@astrojs/starlight": "^0.21.5",
 		"@kindspells/astro-shield": "workspace:^",
-		"astro": "^4.5.12",
-		"typescript": "^5.4.3"
+		"astro": "^4.6.1",
+		"typescript": "^5.4.5"
 	}
 }
