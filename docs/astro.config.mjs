@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 import { defineConfig, passthroughImageService } from 'astro/config'
 import starlight from '@astrojs/starlight'
 import aws from 'astro-sst'
