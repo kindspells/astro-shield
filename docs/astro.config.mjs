@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { defineConfig, passthroughImageService } from 'astro/config'
 import starlight from '@astrojs/starlight'
-import aws from 'astro-sst'
 import { shield } from '@kindspells/astro-shield'
+import aws from 'astro-sst'
+import { defineConfig, passthroughImageService } from 'astro/config'
 
 export default defineConfig({
 	output: 'static',

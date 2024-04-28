@@ -4,18 +4,18 @@
  * SPDX-License-Identifier: MIT
  */
 
+import { execFile as _execFile } from 'node:child_process'
 import { readFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
-import { execFile as _execFile } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 
 import type { PreviewServer } from 'astro'
 import { preview } from 'astro'
 import {
+	assert,
 	afterAll,
 	afterEach,
-	assert,
 	beforeAll,
 	beforeEach,
 	describe,

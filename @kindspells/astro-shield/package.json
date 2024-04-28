@@ -60,9 +60,9 @@
 	},
 	"devDependencies": {
 		"@types/node": "^20.12.7",
-		"astro": "^4.6.1",
+		"astro": "^4.7.0",
 		"typescript": "^5.4.5",
-		"vite": "^5.2.8"
+		"vite": "^5.2.10"
 	},
 	"repository": {
 		"type": "git",

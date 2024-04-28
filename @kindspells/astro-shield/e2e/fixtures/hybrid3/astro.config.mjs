@@ -5,8 +5,8 @@
  */
 
 import { resolve } from 'node:path'
-import { shield } from '@kindspells/astro-shield'
 import node from '@astrojs/node'
+import { shield } from '@kindspells/astro-shield'
 import { defineConfig } from 'astro/config'
 
 /**

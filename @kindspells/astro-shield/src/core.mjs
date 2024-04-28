@@ -6,7 +6,7 @@
 
 import { createHash } from 'node:crypto'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import { dirname, extname, resolve, relative } from 'node:path'
+import { dirname, extname, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { doesFileExist, scanDirectory } from './fs.mjs'

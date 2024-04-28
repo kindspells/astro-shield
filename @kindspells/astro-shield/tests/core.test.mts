@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { resolve } from 'node:path'
 import { readdir, rm } from 'node:fs/promises'
+import { resolve } from 'node:path'
 
 import { assert, beforeEach, describe, expect, it } from 'vitest'
 import {
@@ -624,7 +624,7 @@ describe('updateStaticPageSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="/core.mjs" integrity="sha256-ODt0oYHrqRKob3NWw5w8nWKJX91A+cCIeNQEq1k453k="></script>
+				<script type="module" src="/core.mjs" integrity="sha256-Jk0Am/Oej2rKqaudL2szuzUJxzEkOAvI/MtHC67vq/c="></script>
 			</body>
 		</html>`
 
@@ -641,7 +641,7 @@ describe('updateStaticPageSriHashes', () => {
 		expect(h.extScriptHashes.size).toBe(1)
 		expect(
 			h.extScriptHashes.has(
-				'sha256-ODt0oYHrqRKob3NWw5w8nWKJX91A+cCIeNQEq1k453k=',
+				'sha256-Jk0Am/Oej2rKqaudL2szuzUJxzEkOAvI/MtHC67vq/c=',
 			),
 		).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)

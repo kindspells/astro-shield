@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { env } from 'node:process'
 import { resolve } from 'node:path'
+import { env } from 'node:process'
 import { shield } from '@kindspells/astro-shield'
 import { defineConfig } from 'astro/config'
 
