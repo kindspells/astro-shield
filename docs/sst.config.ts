@@ -17,8 +17,8 @@ export default $config({
   async run() {
     new sst.aws.Astro("AstroShield", {
       domain: {
-        hostedZone: 'kindspells.dev',
-        domainName: 'astro-shield.kindspells.dev'
+        dns: sst.aws.dns(),
+        name: 'astro-shield.kindspells.dev'
       }
     });
   },

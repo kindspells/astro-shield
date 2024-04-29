@@ -58,6 +58,12 @@ export default defineConfig({
 `}
 />
 
+<Aside type='tip'>
+  By default, Astro-Shield will add `'self`' to the `script-src` directive. You
+  can override this behavior by setting your own `script-src` directive (which
+  can be an empty string).
+</Aside>
+
 <Aside type="caution">
   When enabling CSP headers, you must also set the `sri.enableMiddleware` option
   to `true`. It is also recommended to set the `sri.hashesModule` option.

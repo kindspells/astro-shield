@@ -21,9 +21,7 @@ export const serialiseHashes = hashes =>
  * @returns {string}
  */
 export const serializeCspDirectiveSources = hashes =>
-	Array.from(hashes)
-		.sort()
-		.join(' ')
+	Array.from(hashes).sort().join(' ')
 
 /**
  * @param {CSPDirectives} directives
@@ -44,9 +42,7 @@ export const serialiseCspDirectives = directives =>
 export const setSrcDirective = (directives, srcType, hashes) => {
 	const baseSrcDirective = directives[srcType]
 	if (baseSrcDirective) {
-		const srcDirective = new Set(
-			baseSrcDirective.split(/\s+/),
-		)
+		const srcDirective = new Set(baseSrcDirective.split(/\s+/))
 		for (const hash of hashes) {
 			srcDirective.add(`'${hash}'`)
 		}

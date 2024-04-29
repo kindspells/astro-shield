@@ -3,11 +3,12 @@
 	"type": "module",
 	"version": "1.4.0",
 	"scripts": {
-		"dev": "sst dev astro dev",
-		"start": "astro dev",
+		"astro": "astro",
 		"build": "moon run build",
+		"deploy":"sst deploy --stage prod",
+		"dev": "sst dev astro dev",
 		"preview": "astro preview",
-		"astro": "astro"
+		"start": "astro dev"
 	},
 	"dependencies": {
 		"astro-sst": "^2.41.5",
