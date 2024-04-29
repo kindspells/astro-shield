@@ -20,10 +20,9 @@ export const serialiseHashes = hashes =>
  * @param {Set<string>} hashes
  * @returns {string}
  */
-export const safeSerialiseHashes = hashes =>
+export const serializeCspDirectiveSources = hashes =>
 	Array.from(hashes)
 		.sort()
-		.map(h => (h.match(/^'[^']+'$/i) ? h : `'${h}'`))
 		.join(' ')
 
 /**
@@ -46,12 +45,12 @@ export const setSrcDirective = (directives, srcType, hashes) => {
 	const baseSrcDirective = directives[srcType]
 	if (baseSrcDirective) {
 		const srcDirective = new Set(
-			baseSrcDirective.split(/\s+/).filter(v => v !== "'self'"),
+			baseSrcDirective.split(/\s+/),
 		)
 		for (const hash of hashes) {
 			srcDirective.add(`'${hash}'`)
 		}
-		directives[srcType] = `'self' ${safeSerialiseHashes(srcDirective)}`
+		directives[srcType] = serializeCspDirectiveSources(srcDirective)
 	} else {
 		directives[srcType] = `'self' ${serialiseHashes(hashes)}`
 	}

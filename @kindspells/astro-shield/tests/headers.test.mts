@@ -9,7 +9,6 @@ import { describe, expect, it } from 'vitest'
 import {
 	parseCspDirectives,
 	patchHeaders,
-	safeSerialiseHashes,
 	serialiseCspDirectives,
 	serialiseHashes,
 	setSrcDirective,
@@ -32,22 +31,6 @@ describe('serialiseHashes', () => {
 
 		expect(serialiseHashes(hashes_1)).toBe("''a'' ''b'' ''c'' ''d''")
 		expect(serialiseHashes(hashes_2)).toBe(`'"a"' '"b"' '"c"' '"d"'`)
-	})
-})
-
-describe('safeSerialiseHashes', () => {
-	it('returns an empty string for an empty set', () => {
-		expect(safeSerialiseHashes(new Set())).toBe('')
-	})
-
-	it('returns a string with sorted hashes', () => {
-		const hashes = new Set(['d', 'c', 'a', 'b'])
-		expect(safeSerialiseHashes(hashes)).toBe("'a' 'b' 'c' 'd'")
-	})
-
-	it('avoids duplicated single quotes', () => {
-		const hashes = new Set(["'a'", "'b'", "'c'", "'d'"])
-		expect(safeSerialiseHashes(hashes)).toBe("'a' 'b' 'c' 'd'")
 	})
 })
 
@@ -92,7 +75,7 @@ describe('setSrcDirective', () => {
 		)
 
 		expect(directives['script-src']).toBe(
-			"'self' 'abc1' 'abc2' 'dbc1' 'xyz2' 'xyz3'",
+			"'abc1' 'abc2' 'dbc1' 'self' 'xyz2' 'xyz3'",
 		)
 	})
 })
