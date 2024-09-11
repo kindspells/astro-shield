@@ -87,6 +87,7 @@ const linkStyleReplacer: ElemReplacer = (hash, attrs, setCrossorigin) =>
 		setCrossorigin ? ' crossorigin="anonymous"' : ''
 	}/>`
 
+const urlLikeRegex = /^(https?:)?\/\/[^/]/i
 const anonymousCrossOriginRegex =
 	/crossorigin\s*=\s*("anonymous"|'anonymous'|anonymous)/i
 const integrityRegex =
@@ -240,13 +241,13 @@ export const updateStaticPageSriHashes = async (
 						pageHashes[t2].add(sriHash)
 					} else {
 						let resourceContent: string | ArrayBuffer | Buffer
-						if (src.startsWith('/')) {
+						if (urlLikeRegex.test(src)) {
+							setCrossorigin = true
+							const resourceResponse = await fetch(src.startsWith('//') ? `https:${src}` : src, { method: 'GET' })
+							resourceContent = await resourceResponse.arrayBuffer()
+						} else if (src.startsWith('/')) {
 							const resourcePath = resolve(distDir, `.${src}`)
 							resourceContent = await readFile(resourcePath)
-						} else if (src.startsWith('http')) {
-							setCrossorigin = true
-							const resourceResponse = await fetch(src, { method: 'GET' })
-							resourceContent = await resourceResponse.arrayBuffer()
 						} else {
 							logger.warn(`Unable to process external resource: "${src}"`)
 							continue
@@ -396,8 +397,20 @@ export const updateDynamicPageSriHashes = async (
 				}
 
 				if (src) {
-					/** @type {string | ArrayBuffer | Buffer} */
-					if (src.startsWith('/')) {
+					if (urlLikeRegex.test(src)) {
+						setCrossorigin = true
+						sriHash = globalHashes[t2].get(src)
+
+						if (sriHash) {
+							pageHashes[t2].add(sriHash)
+						} else {
+							logger.warn(
+								`Detected reference to not explicitly allowed external resource "${src}". Removing it.`,
+							)
+							updatedContent = updatedContent.replace(match[0], '')
+							continue
+						}
+					} else if (src.startsWith('/')) {
 						sriHash = globalHashes[t2].get(src)
 						if (sriHash) {
 							pageHashes[t2].add(sriHash)
@@ -414,19 +427,6 @@ export const updateDynamicPageSriHashes = async (
 									`Unable to obtain SRI hash for local resource: "${src}"`,
 								)
 							}
-							continue
-						}
-					} else if (src.startsWith('http')) {
-						setCrossorigin = true
-						sriHash = globalHashes[t2].get(src)
-
-						if (sriHash) {
-							pageHashes[t2].add(sriHash)
-						} else {
-							logger.warn(
-								`Detected reference to not explicitly allowed external resource "${src}". Removing it.`,
-							)
-							updatedContent = updatedContent.replace(match[0], '')
 							continue
 						}
 					} else {
