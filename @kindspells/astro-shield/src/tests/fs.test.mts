@@ -16,7 +16,7 @@ import { doesFileExist, scanDirectory } from '#as/fs.mts'
 const testsDir = new URL('.', import.meta.url).pathname
 
 describe('doesFileExist', () => {
-	it.each([['./core.test.mts'], ['../src/core.mts'], ['../src/main.mts']])(
+	it.each([['./core.test.mts'], ['../core.mts'], ['../main.mts']])(
 		'returns true for existing files',
 		async (filename: string) => {
 			expect(await doesFileExist(resolve(testsDir, filename))).toBe(true)

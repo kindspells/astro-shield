@@ -26,6 +26,6 @@ export default defineConfig({
 			},
 			reportsDirectory: 'coverage-unit',
 		},
-		include: ['tests/**/*.test.mts'],
+		include: ['src/**/tests/**/*.test.mts'],
 	},
 })

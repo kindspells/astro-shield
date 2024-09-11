@@ -87,7 +87,8 @@ const linkStyleReplacer: ElemReplacer = (hash, attrs, setCrossorigin) =>
 		setCrossorigin ? ' crossorigin="anonymous"' : ''
 	}/>`
 
-// TODO: Support more algorithms (different ones, and many for the same element)
+const anonymousCrossOriginRegex =
+	/crossorigin\s*=\s*("anonymous"|'anonymous'|anonymous)/i
 const integrityRegex =
 	/^integrity\s*=\s*("(?<integrity1>sha256-[a-z0-9+\/]{43}=)"|'(?<integrity2>sha256-[a-z0-9+\/]{43}=)')$/i
 const relStylesheetRegex =
@@ -166,10 +167,10 @@ export const updateStaticPageSriHashes = async (
 
 	const pageHashes =
 		h.perPageSriHashes.get(relativeFilepath) ??
-		/** @type {PerPageHashes} */ ({
+		({
 			scripts: new Set(),
 			styles: new Set(),
-		})
+		} satisfies PerPageHashes)
 	h.perPageSriHashes.set(relativeFilepath, pageHashes)
 
 	let updatedContent = content
@@ -277,12 +278,14 @@ export const updateStaticPageSriHashes = async (
 			}
 
 			if (sriHash) {
+				const hasAnonymousCrossOrigin = anonymousCrossOriginRegex.test(attrs)
+
 				updatedContent = updatedContent.replace(
 					match[0],
 					replacer(
 						sriHash,
 						attrs ? ` ${attrs}` : '',
-						setCrossorigin,
+						setCrossorigin && !hasAnonymousCrossOrigin,
 						elemContent,
 					),
 				)
@@ -323,8 +326,7 @@ export const updateDynamicPageSriHashes = async (
 			const attrs = match.groups?.attrs?.trim() ?? ''
 			const elemContent = match.groups?.content ?? ''
 
-			/** @type {string | undefined} */
-			let sriHash = undefined
+			let sriHash: string | undefined = undefined
 			let setCrossorigin = false
 
 			if (attrs) {
@@ -452,12 +454,14 @@ export const updateDynamicPageSriHashes = async (
 			}
 
 			if (sriHash) {
+				const hasAnonymousCrossOrigin = anonymousCrossOriginRegex.test(attrs)
+
 				updatedContent = updatedContent.replace(
 					match[0],
 					replacer(
 						sriHash,
 						attrs ? ` ${attrs}` : '',
-						setCrossorigin,
+						setCrossorigin && !hasAnonymousCrossOrigin,
 						elemContent,
 					),
 				)
@@ -663,8 +667,8 @@ export async function generateSRIHashesModule(
 	}
 
 	if (await doesFileExist(sriHashesModule)) {
-		const hModule: HashesModule = (
-			await import(/* @vite-ignore */ sriHashesModule)
+		const hModule: HashesModule = await import(
+			/* @vite-ignore */ sriHashesModule
 		)
 
 		extResourceHashesChanged = !sriHashesEqual(
@@ -779,8 +783,7 @@ export const getMiddlewareHandler = (
 	globalHashes: MiddlewareHashes,
 	sri: Required<SRIOptions>,
 ): MiddlewareHandler => {
-	/** @satisfies {import('astro').MiddlewareHandler} */
-	return async (_ctx, next) => {
+	return (async (_ctx, next) => {
 		const response = await next()
 		const content = await response.text()
 
@@ -797,7 +800,7 @@ export const getMiddlewareHandler = (
 			headers: response.headers,
 		})
 		return patchedResponse
-	}
+	}) satisfies MiddlewareHandler
 }
 
 /**
@@ -809,8 +812,7 @@ export const getCSPMiddlewareHandler = (
 	securityHeadersOpts: SecurityHeadersOptions,
 	sri: Required<SRIOptions>,
 ): MiddlewareHandler => {
-	/** @satisfies {import('astro').MiddlewareHandler} */
-	return async (_ctx, next) => {
+	return (async (_ctx, next) => {
 		const response = await next()
 		const content = await response.text()
 
@@ -827,7 +829,7 @@ export const getCSPMiddlewareHandler = (
 			headers: patchHeaders(response.headers, pageHashes, securityHeadersOpts),
 		})
 		return patchedResponse
-	}
+	}) satisfies MiddlewareHandler
 }
 
 const middlewareVirtualModuleId = 'virtual:@kindspells/astro-shield/middleware'
@@ -847,8 +849,8 @@ const loadVirtualMiddlewareModule = async (
 
 		if (!shouldRegenerateHashesModule) {
 			try {
-				const hashesModule: HashesModule = (
-					await import(/* @vite-ignore */ sri.hashesModule)
+				const hashesModule: HashesModule = await import(
+					/* @vite-ignore */ sri.hashesModule
 				)
 
 				for (const allowedScript of sri.scriptsAllowListUrls) {

@@ -39,7 +39,7 @@ type PageHashesCollection = Record<
 
 const testsDir = new URL('.', import.meta.url).pathname
 const fixturesDir = resolve(testsDir, 'fixtures')
-const rootDir = resolve(testsDir, '..')
+const rootDir = resolve(testsDir, '..', '..')
 const distDir = resolve(rootDir, 'dist')
 
 const getEmptyHashes = () => ({
@@ -624,7 +624,7 @@ describe('updateStaticPageSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="/core.mjs" integrity="sha256-e91QMz4oDk+n/vnPGAOmoNDYdO61N9wDM5iFlll+6r8="></script>
+				<script type="module" src="/core.mjs" integrity="sha256-57NR9VGwX5U1svn4FZBRRffMg+4n3Fquhfcn6lEtk9Q="></script>
 			</body>
 		</html>`
 
@@ -642,7 +642,7 @@ describe('updateStaticPageSriHashes', () => {
 
 		expect(
 			h.extScriptHashes.has(
-				'sha256-e91QMz4oDk+n/vnPGAOmoNDYdO61N9wDM5iFlll+6r8=',
+				'sha256-57NR9VGwX5U1svn4FZBRRffMg+4n3Fquhfcn6lEtk9Q=',
 			),
 		).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)
@@ -668,6 +668,48 @@ describe('updateStaticPageSriHashes', () => {
 			</head>
 			<body>
 				<script type="module" src="${remoteScript}" integrity="sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q=" crossorigin="anonymous"></script>
+			</body>
+		</html>`
+
+		const h = getEmptyHashes()
+		const updated = await updateStaticPageSriHashes(
+			console,
+			rootDir,
+			'index.html',
+			content,
+			h,
+		)
+
+		expect(updated).toEqual(expected)
+		expect(h.extScriptHashes.size).toBe(1)
+		expect(
+			h.extScriptHashes.has(
+				'sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q=',
+			),
+		).toBe(true)
+		expect(h.inlineScriptHashes.size).toBe(0)
+		expect(h.inlineStyleHashes.size).toBe(0)
+		expect(h.extStyleHashes.size).toBe(0)
+	})
+
+	it('adds sri hash to external script without duplicating the crossorigin attribute (cross origin)', async () => {
+		const remoteScript =
+			'https://raw.githubusercontent.com/KindSpells/astro-shield/ae9521048f2129f633c075b7f7ef24e11bbd1884/main.mjs'
+		const content = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<script type="module" src="${remoteScript}" crossorigin="anonymous"></script>
+			</body>
+		</html>`
+
+		const expected = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<script type="module" src="${remoteScript}" crossorigin="anonymous" integrity="sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q="></script>
 			</body>
 		</html>`
 
@@ -984,6 +1026,53 @@ describe('updateDynamicPageSriHashes', () => {
 			</head>
 			<body>
 				<script type="module" src="${remoteScript}" integrity="sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q=" crossorigin="anonymous"></script>
+			</body>
+		</html>`
+
+		const h = getMiddlewareHashes()
+		h.scripts.set(
+			remoteScript,
+			'sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q=',
+		)
+		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+			console,
+			content,
+			h,
+		)
+
+		expect(updatedContent).toEqual(expected)
+		expect(h.scripts.size).toBe(1)
+		expect(h.styles.size).toBe(0)
+		expect(h.scripts.get(remoteScript)).toEqual(
+			'sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q=',
+		)
+		expect(pageHashes.scripts.size).toBe(1)
+		expect(
+			pageHashes.scripts.has(
+				'sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q=',
+			),
+		).toBe(true)
+		expect(pageHashes.styles.size).toBe(0)
+	})
+
+	it('adds sri hash to external script without duplicating the crossorigin attribute when allow-listed (cross origin)', async () => {
+		const remoteScript =
+			'https://raw.githubusercontent.com/KindSpells/astro-shield/ae9521048f2129f633c075b7f7ef24e11bbd1884/main.mjs'
+		const content = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<script type="module" src="${remoteScript}" crossorigin='anonymous'></script>
+			</body>
+		</html>`
+
+		const expected = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<script type="module" src="${remoteScript}" crossorigin='anonymous' integrity="sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q="></script>
 			</body>
 		</html>`
 
