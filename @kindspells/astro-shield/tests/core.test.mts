@@ -21,8 +21,8 @@ import {
 	sriHashesEqual,
 	updateDynamicPageSriHashes,
 	updateStaticPageSriHashes,
-} from '#as/core.mjs'
-import { doesFileExist } from '#as/fs.mjs'
+} from '#as/core.mts'
+import { doesFileExist } from '#as/fs.mts'
 
 type SriHashes = {
 	scripts: Record<string, string>
@@ -40,7 +40,7 @@ type PageHashesCollection = Record<
 const testsDir = new URL('.', import.meta.url).pathname
 const fixturesDir = resolve(testsDir, 'fixtures')
 const rootDir = resolve(testsDir, '..')
-const srcDir = resolve(rootDir, 'src')
+const distDir = resolve(rootDir, 'dist')
 
 const getEmptyHashes = () => ({
 	inlineScriptHashes: new Set<string>(),
@@ -624,14 +624,14 @@ describe('updateStaticPageSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="/core.mjs" integrity="sha256-Jk0Am/Oej2rKqaudL2szuzUJxzEkOAvI/MtHC67vq/c="></script>
+				<script type="module" src="/core.mjs" integrity="sha256-e91QMz4oDk+n/vnPGAOmoNDYdO61N9wDM5iFlll+6r8="></script>
 			</body>
 		</html>`
 
 		const h = getEmptyHashes()
 		const updated = await updateStaticPageSriHashes(
 			console,
-			srcDir,
+			distDir,
 			'index.html',
 			content,
 			h,
@@ -639,9 +639,10 @@ describe('updateStaticPageSriHashes', () => {
 
 		expect(updated).toEqual(expected)
 		expect(h.extScriptHashes.size).toBe(1)
+
 		expect(
 			h.extScriptHashes.has(
-				'sha256-Jk0Am/Oej2rKqaudL2szuzUJxzEkOAvI/MtHC67vq/c=',
+				'sha256-e91QMz4oDk+n/vnPGAOmoNDYdO61N9wDM5iFlll+6r8=',
 			),
 		).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)

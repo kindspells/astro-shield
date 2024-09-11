@@ -13,7 +13,7 @@ import {
 	serialiseHashes,
 	setSrcDirective,
 } from '#as/headers.mjs'
-import type { CSPDirectives, SecurityHeadersOptions } from '#as/main.d.ts'
+import type { CSPDirectives, SecurityHeadersOptions } from '#as/types.mts'
 
 describe('serialiseHashes', () => {
 	it('returns an empty string for an empty set', () => {

@@ -4,28 +4,29 @@
 	"description": "Astro integration to enhance your website's security with SubResource Integrity hashes, Content-Security-Policy headers, and other techniques.",
 	"private": false,
 	"type": "module",
-	"main": "src/main.mjs",
-	"types": "src/main.d.ts",
+	"main": "dist/main.mjs",
+	"types": "dist/main.d.mts",
 	"exports": {
 		".": {
-			"types": "./src/main.d.ts",
-			"import": "./src/main.mjs",
-			"default": "./src/main.mjs"
+			"types": "./dist/main.d.mts",
+			"import": "./dist/main.mjs",
+			"default": "./dist/main.mjs"
 		},
 		"./core": {
-			"import": "./src/core.mjs",
-			"default": "./src/core.mjs"
+			"import": "./dist/core.mjs",
+			"default": "./dist/core.mjs"
 		},
 		"./state": {
-			"import": "./src/state.mjs",
-			"default": "./src/state.mjs"
+			"import": "./dist/state.mjs",
+			"default": "./dist/state.mjs"
 		}
 	},
 	"imports": {
 		"#as/*": "./src/*"
 	},
-	"files": ["src/*"],
+	"files": ["dist/*"],
 	"scripts": {
+		"build": "moon run build",
 		"format": "biome format --write .",
 		"lint": "moon run lint",
 		"lint:biome": "moon run lint.biome",
@@ -59,10 +60,15 @@
 		"astro": "^4.0.0"
 	},
 	"devDependencies": {
-		"@types/node": "^20.16.5",
+		"@types/node": "^22.5.4",
 		"astro": "^4.15.4",
+		"get-tsconfig": "^4.8.0",
+		"rollup": "^4.21.2",
+		"rollup-plugin-dts": "^6.1.1",
+		"rollup-plugin-esbuild": "^6.1.1",
 		"typescript": "^5.6.2",
-		"vite": "^5.4.4"
+		"vite": "^5.4.4",
+		"vitest": "^2.0.5"
 	},
 	"repository": {
 		"type": "git",
@@ -80,7 +86,7 @@
 			"url": "https://ko-fi.com/coderspirit"
 		}
 	],
-	"packageManager": "pnpm@9.0.6",
+	"packageManager": "pnpm@9.10.0",
 	"engines": {
 		"node": ">= 18.0.0"
 	},

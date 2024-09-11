@@ -9,32 +9,51 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, extname, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { doesFileExist, scanDirectory } from './fs.mjs'
-import { patchHeaders } from './headers.mjs'
+import type { AstroIntegration, MiddlewareHandler } from 'astro'
+import type { Plugin } from 'vite'
 
-/**
- * @typedef {import('./main.js').SRIOptions} SRIOptions
- * @typedef {import('./main.js').SecurityHeadersOptions} SecurityHeadersOptions
- * @typedef {import('./core.js').PerPageHashes} PerPageHashes
- * @typedef {import('./core.js').PerPageHashesCollection} PerPageHashesCollection
- * @typedef {import('./core.js').HashesCollection} HashesCollection
- * @typedef {import('./core.js').MiddlewareHashes} MiddlewareHashes
- * @typedef {import('./core.js').Logger} Logger
- * @typedef {import('astro').AstroIntegration} Integration
- * @typedef {{
- * 	[k in keyof HashesCollection]: HashesCollection[k] extends Set<string>
- * 	  ? string[] | undefined
- * 	  : (k extends 'perPageSriHashes'
- * 	    ? Record<string, { scripts: string[]; styles: string [] }>
- * 	    : Record<'scripts' | 'styles', Record<string, string>>)
- * }} HashesModule
- */
+import { doesFileExist, scanDirectory } from './fs.mts'
+import { patchHeaders } from './headers.mts'
+import type {
+	SecurityHeadersOptions,
+	SRIOptions,
+	StrictShieldOptions,
+} from './types.mts'
 
-/**
- * @param {string | ArrayBuffer | Buffer} data
- * @returns {string}
- */
-export const generateSRIHash = data => {
+export type MiddlewareHashes = {
+	scripts: Map<string, string>
+	styles: Map<string, string>
+}
+
+export type PerPageHashes = { scripts: Set<string>; styles: Set<string> }
+export type PerPageHashesCollection = Map<string, PerPageHashes>
+
+export type HashesCollection = {
+	inlineScriptHashes: Set<string>
+	inlineStyleHashes: Set<string>
+	extScriptHashes: Set<string>
+	extStyleHashes: Set<string>
+	perPageSriHashes: PerPageHashesCollection
+	perResourceSriHashes: MiddlewareHashes
+}
+
+export type Logger = {
+	info(msg: string): void
+	warn(msg: string): void
+	error(msg: string): void
+}
+
+export type HashesModule = {
+	[k in keyof HashesCollection]: HashesCollection[k] extends Set<string>
+		? string[] | undefined
+		: k extends 'perPageSriHashes'
+			? Record<string, { scripts: string[]; styles: string[] }>
+			: Record<'scripts' | 'styles', Record<string, string>>
+}
+
+export const generateSRIHash = (
+	data: string | ArrayBuffer | Buffer,
+): string => {
 	const hash = createHash('sha256')
 	if (data instanceof ArrayBuffer) {
 		hash.update(Buffer.from(data))
@@ -46,29 +65,24 @@ export const generateSRIHash = data => {
 	return `sha256-${hash.digest('base64')}`
 }
 
-/**
- * @typedef {(
- *   hash: string,
- *   attrs: string,
- *   setCrossorigin: boolean,
- *   content?: string | undefined,
- * ) => string} ElemReplacer
- */
+type ElemReplacer = (
+	hash: string,
+	attrs: string,
+	setCrossorigin: boolean,
+	content?: string | undefined,
+) => string
 
-/** @type {ElemReplacer} */
-const scriptReplacer = (hash, attrs, setCrossorigin, content) =>
+const scriptReplacer: ElemReplacer = (hash, attrs, setCrossorigin, content) =>
 	`<script${attrs} integrity="${hash}"${
 		setCrossorigin ? ' crossorigin="anonymous"' : ''
 	}>${content ?? ''}</script>`
 
-/** @type {ElemReplacer} */
-const styleReplacer = (hash, attrs, setCrossorigin, content) =>
+const styleReplacer: ElemReplacer = (hash, attrs, setCrossorigin, content) =>
 	`<style${attrs} integrity="${hash}"${
 		setCrossorigin ? ' crossorigin="anonymous"' : ''
 	}>${content ?? ''}</style>`
 
-/** @type {ElemReplacer} */
-const linkStyleReplacer = (hash, attrs, setCrossorigin) =>
+const linkStyleReplacer: ElemReplacer = (hash, attrs, setCrossorigin) =>
 	`<link${attrs} integrity="${hash}"${
 		setCrossorigin ? ' crossorigin="anonymous"' : ''
 	}/>`
@@ -80,11 +94,7 @@ const relStylesheetRegex =
 	/(^|\s+)rel\s*=\s*('stylesheet'|"stylesheet"|stylesheet(\s+?|$))/i
 const naiveAttrSplitter = /(?<!=)\s+(?!=)/
 
-/**
- * @param {string} attrs
- * @returns {string | undefined}
- */
-const extractIntegrityHash = attrs => {
+const extractIntegrityHash = (attrs: string): string | undefined => {
 	for (const attr of attrs.split(naiveAttrSplitter)) {
 		// If longer than 128, it's either not an integrity attribute, or an attempt
 		// to perform a DoS attack.
@@ -99,10 +109,10 @@ const extractIntegrityHash = attrs => {
 }
 
 export const getRegexProcessors = () => {
-	return /** @type {const} */ ([
+	return [
 		{
-			t: 'Script',
-			t2: 'scripts',
+			t: 'Script' as const,
+			t2: 'scripts' as const,
 			regex:
 				/<script(?<attrs>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_\/\.]+))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*script((?<closingTrick>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_]+))?)+?)|\s*>)/gi,
 			srcRegex:
@@ -112,8 +122,8 @@ export const getRegexProcessors = () => {
 			attrsRegex: undefined,
 		},
 		{
-			t: 'Style',
-			t2: 'styles',
+			t: 'Style' as const,
+			t2: 'styles' as const,
 			regex:
 				/<style(?<attrs>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_\/\.]+))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*style((?<closingTrick>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_]+))?)+?)|\s*>)/gi,
 			srcRegex:
@@ -123,8 +133,8 @@ export const getRegexProcessors = () => {
 			attrsRegex: undefined,
 		},
 		{
-			t: 'Style',
-			t2: 'styles',
+			t: 'Style' as const,
+			t2: 'styles' as const,
 			regex:
 				/<link(?<attrs>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_\/\.]+))?)*?)\s*\/?>/gi,
 			srcRegex:
@@ -133,7 +143,7 @@ export const getRegexProcessors = () => {
 			hasContent: false,
 			attrsRegex: relStylesheetRegex,
 		},
-	])
+	] as const
 }
 
 /**
@@ -142,25 +152,16 @@ export const getRegexProcessors = () => {
  *
  * Notice that it assumes that the HTML content is relatively well-formed, and
  * that in case it already contains integrity attributes then they are correct.
- *
- * @param {Logger} logger
- * @param {string} distDir
- * @param {string} relativeFilepath
- * @param {string} content
- * @param {HashesCollection} h
- * @param {'all' | 'static' | false} allowInlineScripts
- * @param {'all' | 'static' | false} allowInlineStyles
- * @returns {Promise<string>}
  */
 export const updateStaticPageSriHashes = async (
-	logger,
-	distDir,
-	relativeFilepath,
-	content,
-	h,
-	allowInlineScripts = 'all',
-	allowInlineStyles = 'all',
-) => {
+	logger: Logger,
+	distDir: string,
+	relativeFilepath: string,
+	content: string,
+	h: HashesCollection,
+	allowInlineScripts: 'all' | 'static' | false = 'all',
+	allowInlineStyles: 'all' | 'static' | false = 'all',
+): Promise<string> => {
 	const processors = getRegexProcessors()
 
 	const pageHashes =
@@ -172,7 +173,7 @@ export const updateStaticPageSriHashes = async (
 	h.perPageSriHashes.set(relativeFilepath, pageHashes)
 
 	let updatedContent = content
-	let match
+	let match: RegExpExecArray | null
 
 	for (const {
 		attrsRegex,
@@ -188,8 +189,7 @@ export const updateStaticPageSriHashes = async (
 			const attrs = match.groups?.attrs?.trim() ?? ''
 			const elemContent = match.groups?.content ?? ''
 
-			/** @type {string | undefined} */
-			let sriHash = undefined
+			let sriHash: string | undefined = undefined
 			let setCrossorigin = false
 
 			if (attrs) {
@@ -238,8 +238,7 @@ export const updateStaticPageSriHashes = async (
 						h[`ext${t}Hashes`].add(sriHash)
 						pageHashes[t2].add(sriHash)
 					} else {
-						/** @type {string | ArrayBuffer | Buffer} */
-						let resourceContent
+						let resourceContent: string | ArrayBuffer | Buffer
 						if (src.startsWith('/')) {
 							const resourcePath = resolve(distDir, `.${src}`)
 							resourceContent = await readFile(resourcePath)
@@ -294,27 +293,21 @@ export const updateStaticPageSriHashes = async (
 	return updatedContent
 }
 
-/**
- * @param {Logger} logger
- * @param {string} content
- * @param {MiddlewareHashes} globalHashes
- * @param {Required<SRIOptions>=} sri
- */
 export const updateDynamicPageSriHashes = async (
-	logger,
-	content,
-	globalHashes,
-	sri,
-) => {
+	logger: Logger,
+	content: string,
+	globalHashes: MiddlewareHashes,
+	sri?: SRIOptions,
+): Promise<{ pageHashes: PerPageHashes; updatedContent: string }> => {
 	const processors = getRegexProcessors()
 
 	let updatedContent = content
-	let match
+	let match: RegExpExecArray | null
 
-	const pageHashes = /** @type {PerPageHashes} */ ({
+	const pageHashes: PerPageHashes = {
 		scripts: new Set(),
 		styles: new Set(),
-	})
+	}
 
 	for (const {
 		attrsRegex,
@@ -478,14 +471,13 @@ export const updateDynamicPageSriHashes = async (
 	}
 }
 
-/**
- * @param {Logger} logger
- * @param {string} filePath
- * @param {string} distDir
- * @param {HashesCollection} h
- * @param {SRIOptions=} sri
- */
-const processHTMLFile = async (logger, filePath, distDir, h, sri) => {
+const processHTMLFile = async (
+	logger: Logger,
+	filePath: string,
+	distDir: string,
+	h: HashesCollection,
+	sri?: SRIOptions,
+) => {
 	const content = await readFile(filePath, 'utf8')
 	const updatedContent = await updateStaticPageSriHashes(
 		logger,
@@ -502,12 +494,7 @@ const processHTMLFile = async (logger, filePath, distDir, h, sri) => {
 	}
 }
 
-/**
- * @param {unknown[]} a
- * @param {unknown[]} b
- * @returns {boolean}
- */
-export const arraysEqual = (a, b) => {
+export const arraysEqual = (a: unknown[], b: unknown[]): boolean => {
 	if (a.length !== b.length) {
 		return false
 	}
@@ -521,12 +508,10 @@ export const arraysEqual = (a, b) => {
 	return true
 }
 
-/**
- * @param {Record<string, { scripts: string[], styles: string[] }>} a
- * @param {Record<string, { scripts: string[], styles: string[] }>} b
- * @returns {boolean}
- */
-export const pageHashesEqual = (a, b) => {
+export const pageHashesEqual = (
+	a: Record<string, { scripts: string[]; styles: string[] }>,
+	b: Record<string, { scripts: string[]; styles: string[] }>,
+): boolean => {
 	const aKeys = Object.keys(a).sort()
 	const bKeys = Object.keys(b).sort()
 
@@ -551,12 +536,10 @@ export const pageHashesEqual = (a, b) => {
 	return true
 }
 
-/**
- * @param {{ scripts: Record<string, string>; styles: Record<string, string> }} a
- * @param {{ scripts: Record<string, string>; styles: Record<string, string> }} b
- * @returns {boolean}
- */
-export const sriHashesEqual = (a, b) => {
+export const sriHashesEqual = (
+	a: { scripts: Record<string, string>; styles: Record<string, string> },
+	b: { scripts: Record<string, string>; styles: Record<string, string> },
+): boolean => {
 	const aScriptsKeys = Object.keys(a.scripts).sort()
 	const bScriptsKeys = Object.keys(b.scripts).sort()
 	const aStylesKeys = Object.keys(a.styles).sort()
@@ -587,12 +570,12 @@ export const sriHashesEqual = (a, b) => {
  * This is a hack to scan for nested scripts in the `_astro` directory, but they
  * should be detected in a recursive way, when we process the JS files that are
  * being directly imported in the HTML files.
- *
- * @param {Logger} logger
- * @param {string} dirPath
- * @param {HashesCollection} h
  */
-export const scanForNestedResources = async (logger, dirPath, h) => {
+export const scanForNestedResources = async (
+	logger: Logger,
+	dirPath: string,
+	h: HashesCollection,
+): Promise<void> => {
 	await scanDirectory(
 		logger,
 		dirPath,
@@ -620,11 +603,10 @@ export const scanForNestedResources = async (logger, dirPath, h) => {
 	)
 }
 
-/**
- * @param {Pick<SRIOptions, 'scriptsAllowListUrls' | 'stylesAllowListUrls'>} sri
- * @param {HashesCollection} h
- */
-export const scanAllowLists = async (sri, h) => {
+export const scanAllowLists = async (
+	sri: Pick<SRIOptions, 'scriptsAllowListUrls' | 'stylesAllowListUrls'>,
+	h: HashesCollection,
+): Promise<void> => {
 	for (const scriptUrl of sri.scriptsAllowListUrls ?? []) {
 		const resourceResponse = await fetch(scriptUrl, { method: 'GET' })
 		const resourceContent = await resourceResponse.arrayBuffer()
@@ -644,18 +626,12 @@ export const scanAllowLists = async (sri, h) => {
 	}
 }
 
-/**
- * @param {Logger} logger
- * @param {HashesCollection} h
- * @param {string} sriHashesModule
- * @param {boolean} enableMiddleware_SRI
- */
 export async function generateSRIHashesModule(
-	logger,
-	h,
-	sriHashesModule,
-	enableMiddleware_SRI,
-) {
+	logger: Logger,
+	h: HashesCollection,
+	sriHashesModule: string,
+	enableMiddleware_SRI: boolean,
+): Promise<void> {
 	let extResourceHashesChanged = false
 	let persistHashes = false
 
@@ -663,27 +639,31 @@ export async function generateSRIHashesModule(
 	const inlineStyleHashes = Array.from(h.inlineStyleHashes).sort()
 	const extScriptHashes = Array.from(h.extScriptHashes).sort()
 	const extStyleHashes = Array.from(h.extStyleHashes).sort()
-	const perPageHashes =
-		/** @type {Record<string, { scripts: string[]; styles: string [] }>} */ ({})
+	const perPageHashes: Record<string, { scripts: string[]; styles: string[] }> =
+		{}
+
 	for (const [k, v] of h.perPageSriHashes.entries()) {
 		perPageHashes[k] = {
 			scripts: Array.from(v.scripts).sort(),
 			styles: Array.from(v.styles).sort(),
 		}
 	}
-	const perResourceHashes = {
-		scripts: /** @type {Record<string, string>} */ ({}),
-		styles: /** @type {Record<string, string>} */ ({}),
-	}
+
+	const perResourceHashes: {
+		scripts: Record<string, string>
+		styles: Record<string, string>
+	} = { scripts: {}, styles: {} }
+
 	for (const [k, v] of h.perResourceSriHashes.scripts.entries()) {
 		perResourceHashes.scripts[k] = v
 	}
+
 	for (const [k, v] of h.perResourceSriHashes.styles.entries()) {
 		perResourceHashes.styles[k] = v
 	}
 
 	if (await doesFileExist(sriHashesModule)) {
-		const hModule = /** @type {HashesModule} */ (
+		const hModule: HashesModule = (
 			await import(/* @vite-ignore */ sriHashesModule)
 		)
 
@@ -754,12 +734,11 @@ export async function generateSRIHashesModule(
 	}
 }
 
-/**
- * @param {Logger} logger
- * @param {import('./main.js').StrictShieldOptions} shieldOptions
- */
-export const processStaticFiles = async (logger, { distDir, sri }) => {
-	const h = /** @satisfies {HashesCollection} */ {
+export const processStaticFiles = async (
+	logger: Logger,
+	{ distDir, sri }: StrictShieldOptions,
+): Promise<void> => {
+	const h = {
 		inlineScriptHashes: new Set(),
 		inlineStyleHashes: new Set(),
 		extScriptHashes: new Set(),
@@ -769,7 +748,8 @@ export const processStaticFiles = async (logger, { distDir, sri }) => {
 			scripts: new Map(),
 			styles: new Map(),
 		},
-	}
+	} satisfies HashesCollection
+
 	await scanAllowLists(sri, h)
 	await scanForNestedResources(logger, distDir, h)
 	await scanDirectory(
@@ -794,13 +774,11 @@ export const processStaticFiles = async (logger, { distDir, sri }) => {
 	)
 }
 
-/**
- * @param {Logger} logger
- * @param {MiddlewareHashes} globalHashes
- * @param {Required<SRIOptions>} sri
- * @returns {import('astro').MiddlewareHandler}
- */
-export const getMiddlewareHandler = (logger, globalHashes, sri) => {
+export const getMiddlewareHandler = (
+	logger: Logger,
+	globalHashes: MiddlewareHashes,
+	sri: Required<SRIOptions>,
+): MiddlewareHandler => {
 	/** @satisfies {import('astro').MiddlewareHandler} */
 	return async (_ctx, next) => {
 		const response = await next()
@@ -824,19 +802,13 @@ export const getMiddlewareHandler = (logger, globalHashes, sri) => {
 
 /**
  * Variant of `getMiddlewareHandler` that also applies security headers.
- *
- * @param {Logger} logger
- * @param {MiddlewareHashes} globalHashes
- * @param {SecurityHeadersOptions} securityHeadersOpts
- * @param {Required<SRIOptions>} sri
- * @returns {import('astro').MiddlewareHandler}
  */
 export const getCSPMiddlewareHandler = (
-	logger,
-	globalHashes,
-	securityHeadersOpts,
-	sri,
-) => {
+	logger: Logger,
+	globalHashes: MiddlewareHashes,
+	securityHeadersOpts: SecurityHeadersOptions,
+	sri: Required<SRIOptions>,
+): MiddlewareHandler => {
 	/** @satisfies {import('astro').MiddlewareHandler} */
 	return async (_ctx, next) => {
 		const response = await next()
@@ -861,19 +833,12 @@ export const getCSPMiddlewareHandler = (
 const middlewareVirtualModuleId = 'virtual:@kindspells/astro-shield/middleware'
 const resolvedMiddlewareVirtualModuleId = `\0${middlewareVirtualModuleId}`
 
-/**
- * @param {Logger} logger
- * @param {Required<SRIOptions>} sri
- * @param {SecurityHeadersOptions | undefined} securityHeadersOptions
- * @param {string} publicDir
- * @returns {Promise<string>}
- */
 const loadVirtualMiddlewareModule = async (
-	logger,
-	sri,
-	securityHeadersOptions,
-	publicDir,
-) => {
+	logger: Logger,
+	sri: Required<SRIOptions>,
+	securityHeadersOptions: SecurityHeadersOptions | undefined,
+	publicDir: string,
+): Promise<string> => {
 	let extraImports = ''
 	let staticHashesModuleLoader = ''
 
@@ -882,7 +847,7 @@ const loadVirtualMiddlewareModule = async (
 
 		if (!shouldRegenerateHashesModule) {
 			try {
-				const hashesModule = /** @type {HashesModule} */ (
+				const hashesModule: HashesModule = (
 					await import(/* @vite-ignore */ sri.hashesModule)
 				)
 
@@ -906,7 +871,7 @@ const loadVirtualMiddlewareModule = async (
 		}
 
 		if (shouldRegenerateHashesModule) {
-			const h = /** @satisfies {HashesCollection} */ {
+			const h = {
 				inlineScriptHashes: new Set(),
 				inlineStyleHashes: new Set(),
 				extScriptHashes: new Set(),
@@ -916,7 +881,7 @@ const loadVirtualMiddlewareModule = async (
 					scripts: new Map(),
 					styles: new Map(),
 				},
-			}
+			} satisfies HashesCollection
 
 			// We generate a provisional hashes module. It won't contain the hashes for
 			// resources created by Astro, but it can be useful nonetheless.
@@ -989,14 +954,12 @@ export const onRequest = await (async () => {
 `
 }
 
-/**
- * @param {Logger} logger
- * @param {Required<SRIOptions>} sri
- * @param {SecurityHeadersOptions | undefined} securityHeaders
- * @param {string} publicDir
- * @return {import('vite').Plugin}
- */
-const getViteMiddlewarePlugin = (logger, sri, securityHeaders, publicDir) => {
+const getViteMiddlewarePlugin = (
+	logger: Logger,
+	sri: Required<SRIOptions>,
+	securityHeaders: SecurityHeadersOptions | undefined,
+	publicDir: string,
+): Plugin => {
 	return {
 		name: 'vite-plugin-astro-shield',
 		resolveId(id) {
@@ -1026,8 +989,10 @@ const getViteMiddlewarePlugin = (logger, sri, securityHeaders, publicDir) => {
  * @param {SecurityHeadersOptions | undefined} securityHeaders
  * @returns
  */
-export const getAstroConfigSetup = (sri, securityHeaders) => {
-	/** @type {Required<Integration['hooks']>['astro:config:setup']} */
+export const getAstroConfigSetup = (
+	sri: Required<SRIOptions>,
+	securityHeaders: SecurityHeadersOptions | undefined,
+): Required<AstroIntegration['hooks']>['astro:config:setup'] => {
 	return async ({ logger, addMiddleware, config, updateConfig }) => {
 		const publicDir = fileURLToPath(config.publicDir)
 		const plugin = getViteMiddlewarePlugin(

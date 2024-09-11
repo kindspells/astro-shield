@@ -9,14 +9,14 @@ import { relative, resolve } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-import type { HashesCollection } from '#as/core.mjs'
-import { generateSRIHash } from '#as/core.mjs'
-import { doesFileExist, scanDirectory } from '#as/fs.mjs'
+import type { HashesCollection } from '#as/core.mts'
+import { generateSRIHash } from '#as/core.mts'
+import { doesFileExist, scanDirectory } from '#as/fs.mts'
 
 const testsDir = new URL('.', import.meta.url).pathname
 
 describe('doesFileExist', () => {
-	it.each([['./core.test.mts'], ['../src/core.mjs'], ['../src/main.mjs']])(
+	it.each([['./core.test.mts'], ['../src/core.mts'], ['../src/main.mts']])(
 		'returns true for existing files',
 		async (filename: string) => {
 			expect(await doesFileExist(resolve(testsDir, filename))).toBe(true)

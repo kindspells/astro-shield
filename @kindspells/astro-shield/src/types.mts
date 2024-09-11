@@ -1,11 +1,3 @@
-/*
- * SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
- *
- * SPDX-License-Identifier: MIT
- */
-
-import type { AstroIntegration } from 'astro'
-
 // Options
 // -----------------------------------------------------------------------------
 // We don't include 'script-src' and 'style-src' because they are handled by the
@@ -154,12 +146,8 @@ export type ShieldOptions = {
 	/** @deprecated Use `sri.hashesModule` instead. */
 	sriHashesModule?: string | undefined
 }
+
 export type StrictShieldOptions = ShieldOptions & {
 	distDir: string
 	sri: SRIOptions & { enableStatic: boolean; enableMiddleware: boolean }
 }
-
-// Main Integration
-// -----------------------------------------------------------------------------
-export function shield(sriCspOptions: ShieldOptions): AstroIntegration
-export default shield

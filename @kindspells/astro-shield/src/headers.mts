@@ -1,45 +1,30 @@
-/**
- * @typedef {import('./core.js').PerPageHashes} PerPageHashes
- * @typedef {import('./main.js').CSPDirectiveNames} CSPDirectiveNames
- * @typedef {import('./main.js').CSPDirectives} CSPDirectives
- * @typedef {import('./main.js').CSPOptions} CSPOptions
- * @typedef {import('./main.js').SecurityHeadersOptions} SecurityHeadersOptions
- */
+import type { PerPageHashes } from './core.mts'
+import type {
+	CSPDirectives,
+	CSPOptions,
+	SecurityHeadersOptions,
+} from './types.mts'
 
-/**
- * @param {Set<string>} hashes
- * @returns {string}
- */
-export const serialiseHashes = hashes =>
+export const serialiseHashes = (hashes: Set<string>): string =>
 	Array.from(hashes)
 		.sort()
 		.map(h => `'${h}'`)
 		.join(' ')
 
-/**
- * @param {Set<string>} hashes
- * @returns {string}
- */
-export const serializeCspDirectiveSources = hashes =>
+export const serializeCspDirectiveSources = (hashes: Set<string>): string =>
 	Array.from(hashes).sort().join(' ')
 
-/**
- * @param {CSPDirectives} directives
- * @returns {string}
- */
-export const serialiseCspDirectives = directives =>
+export const serialiseCspDirectives = (directives: CSPDirectives): string =>
 	Object.entries(directives)
 		.sort()
 		.map(([k, v]) => `${k} ${v}`)
 		.join('; ')
 
-/**
- *
- * @param {CSPDirectives} directives
- * @param {'script-src' | 'style-src'} srcType
- * @param {Set<string>} hashes
- */
-export const setSrcDirective = (directives, srcType, hashes) => {
+export const setSrcDirective = (
+	directives: CSPDirectives,
+	srcType: 'script-src' | 'style-src',
+	hashes: Set<string>,
+): void => {
 	const baseSrcDirective = directives[srcType]
 	if (baseSrcDirective) {
 		const srcDirective = new Set(baseSrcDirective.split(/\s+/))
@@ -52,11 +37,7 @@ export const setSrcDirective = (directives, srcType, hashes) => {
 	}
 }
 
-/**
- * @param {string} cspHeader
- * @returns {CSPDirectives}
- */
-export const parseCspDirectives = cspHeader => {
+export const parseCspDirectives = (cspHeader: string): CSPDirectives => {
 	return cspHeader
 		? Object.fromEntries(
 				cspHeader
@@ -74,20 +55,19 @@ export const parseCspDirectives = cspHeader => {
 		: {}
 }
 
-/**
- * @param {Record<string, string>} plainHeaders
- * @param {PerPageHashes} pageHashes
- * @param {CSPOptions} cspOpts
- */
-export const patchCspHeader = (plainHeaders, pageHashes, cspOpts) => {
+export const patchCspHeader = (
+	plainHeaders: Record<string, string>,
+	pageHashes: PerPageHashes,
+	cspOpts: CSPOptions,
+): void => {
 	const directives = Object.hasOwn(plainHeaders, 'content-security-policy')
 		? {
 				...cspOpts.cspDirectives,
 				...parseCspDirectives(
-					/** @type {string} */ (plainHeaders['content-security-policy']),
+					plainHeaders['content-security-policy'] as string,
 				),
 			}
-		: cspOpts.cspDirectives ?? /** @type {CSPDirectives} */ ({})
+		: cspOpts.cspDirectives ?? ({} satisfies CSPDirectives)
 
 	if (pageHashes.scripts.size > 0) {
 		setSrcDirective(directives, 'script-src', pageHashes.scripts)
@@ -104,13 +84,11 @@ export const patchCspHeader = (plainHeaders, pageHashes, cspOpts) => {
 	}
 }
 
-/**
- * @param {Headers} headers
- * @param {PerPageHashes} pageHashes
- * @param {SecurityHeadersOptions} securityHeadersOpts
- * @returns {Headers}
- */
-export const patchHeaders = (headers, pageHashes, securityHeadersOpts) => {
+export const patchHeaders = (
+	headers: Headers,
+	pageHashes: PerPageHashes,
+	securityHeadersOpts: SecurityHeadersOptions,
+): Headers => {
 	const plainHeaders = Object.fromEntries(headers.entries())
 
 	if (securityHeadersOpts.contentSecurityPolicy !== undefined) {

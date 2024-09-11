@@ -6,6 +6,7 @@
 
 		"baseUrl": ".",
 		"noEmit": true,
+		"allowImportingTsExtensions": true,
 
 		"allowJs": true,
 		"checkJs": true,

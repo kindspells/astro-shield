@@ -6,6 +6,15 @@ type: 'library'
 platform: 'node'
 
 tasks:
+  build:
+    platform: 'system'
+    script: 'rm -rf ./dist && pnpm rollup --config ./rollup.config.mjs'
+    inputs:
+      - 'rollup.config.mjs'
+      - 'package.json'
+      - 'src/**/*'
+    outputs:
+      - 'dist/**/*'
   lint:
     deps:
       - '~:lint.biome'
@@ -24,6 +33,8 @@ tasks:
     inputs:
       - 'package.json'
       - 'src/**/*'
+    deps:
+      - '~:build'
   lint.tsc:
     command: 'tsc -p . --noEmit'
     inputs:
@@ -40,6 +51,8 @@ tasks:
       - 'e2e/**/*'
     options:
       runInCI: false
+    deps:
+      - '~:build'
   test.unit:
     command: 'vitest -c vitest.config.unit.mts run'
     inputs:
@@ -48,6 +61,8 @@ tasks:
       - 'tests/**/*'
     options:
       runInCI: false
+    deps:
+      - '~:build'
   test.unit.cov:
     command: 'vitest -c vitest.config.unit.mts run --coverage'
     inputs:
@@ -56,3 +71,5 @@ tasks:
       - 'tests/**/*'
     outputs:
       - 'coverage-unit/**/*'
+    deps:
+      - '~:build'

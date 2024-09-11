@@ -5,46 +5,35 @@
  */
 
 import { fileURLToPath } from 'node:url'
-import { getAstroConfigSetup, processStaticFiles } from './core.mjs'
 
-/**
- * @typedef {import('astro').AstroIntegration} AstroIntegration
- * @typedef {AstroIntegration['hooks']} AstroHooks
- * @typedef {import('./core.js').MiddlewareHashes} MiddlewareHashes
- * @typedef {import('./main.js').SRIOptions} SRIOptions
- * @typedef {import('./main.js').ShieldOptions} ShieldOptions
- */
+import type { AstroIntegration } from 'astro'
 
-/**
- * @param {Required<SRIOptions>} sri
- * @returns {NonNullable<AstroHooks['astro:build:done']>}
- */
-const getAstroBuildDone =
-	sri =>
-	/** @satisfies {NonNullable<AstroHooks['astro:build:done']>} */
-	async ({ dir, logger }) =>
+import { getAstroConfigSetup, processStaticFiles } from './core.mts'
+import type { ShieldOptions, SRIOptions } from './types.mts'
+
+type AstroHooks = AstroIntegration['hooks']
+
+const getAstroBuildDone = (
+	sri: Required<SRIOptions>,
+): NonNullable<AstroHooks['astro:build:done']> =>
+	(async ({ dir, logger }) =>
 		await processStaticFiles(logger, {
 			distDir: fileURLToPath(dir),
 			sri,
-		})
+		})) satisfies NonNullable<AstroHooks['astro:build:done']>
 
-/** @param {string} msg */
-const logWarn = msg =>
+const logWarn = (msg: string): void =>
 	console.warn(`\nWARNING (@kindspells/astro-shield):\n\t${msg}\n`)
 
 // Integration
 // -----------------------------------------------------------------------------
-/**
- * @param {ShieldOptions} sriCspOptions
- * @returns {AstroIntegration}
- */
 export const shield = ({
 	enableMiddleware_SRI,
 	enableStatic_SRI,
 	sriHashesModule,
 	securityHeaders,
 	sri,
-}) => {
+}: ShieldOptions): AstroIntegration => {
 	// TODO: Remove deprecated options in a future release
 	if (enableMiddleware_SRI !== undefined) {
 		logWarn(
@@ -75,7 +64,7 @@ export const shield = ({
 		logWarn('`sriHashesModule` is ignored when `enableStatic_SRI` is `false`')
 	}
 
-	return /** @satisfies {AstroIntegration} */ {
+	return {
 		name: '@kindspells/astro-shield',
 		hooks: {
 			...(_sri.enableStatic === true
@@ -89,7 +78,7 @@ export const shield = ({
 					}
 				: undefined),
 		},
-	}
+	} satisfies AstroIntegration
 }
 
 export default shield
