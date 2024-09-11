@@ -5,21 +5,22 @@
 	"scripts": {
 		"astro": "astro",
 		"build": "moon run build",
-		"deploy":"sst deploy --stage prod",
+		"sst:deploy": "sst deploy --stage prod",
 		"dev": "sst dev astro dev",
 		"preview": "astro preview",
 		"start": "astro dev"
 	},
 	"dependencies": {
-		"astro-sst": "^2.41.5",
-		"sharp": "0.32.6",
-		"sst": "^3.0.13"
+		"astro-sst": "^2.43.5",
+		"sharp": "0.33.5",
+		"sst": "^3.1.2"
 	},
 	"devDependencies": {
-		"@astrojs/check": "^0.5.10",
-		"@astrojs/starlight": "^0.21.5",
+		"@astrojs/check": "^0.9.3",
+		"@astrojs/starlight": "^0.27.1",
+		"@astrojs/ts-plugin": "^1.10.2",
 		"@kindspells/astro-shield": "workspace:^",
-		"astro": "^4.7.0",
-		"typescript": "^5.4.5"
+		"astro": "^4.15.4",
+		"typescript": "^5.6.2"
 	}
 }

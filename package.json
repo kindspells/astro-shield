@@ -10,16 +10,16 @@
 		}
 	],
 	"devDependencies": {
-		"@biomejs/biome": "^1.7.1",
-		"@moonrepo/cli": "^1.24.2",
-		"@vitest/coverage-v8": "^1.5.2",
-		"publint": "^0.2.7",
-		"vitest": "^1.5.2"
+		"@biomejs/biome": "^1.8.3",
+		"@moonrepo/cli": "^1.28.1",
+		"@vitest/coverage-v8": "^1.6.0",
+		"publint": "^0.2.10",
+		"vitest": "^1.6.0"
 	},
 	"engines": {
 		"node": ">= 18.0.0"
 	},
-	"packageManager": "pnpm@9.0.6",
+	"packageManager": "pnpm@9.10.0",
 	"scripts": {
 		"format": "biome format --write .",
 		"install-githooks": "if [ -d .git ]; then git config core.hooksPath .hooks; fi"

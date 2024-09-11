@@ -5,5 +5,8 @@
 	 * SPDX-License-Identifier: MIT
 	 */
 	"extends": "astro/tsconfigs/strictest",
-	"exclude": ["dist/**/*", "node_modules/**/*"]
+	"exclude": ["dist/**/*", "node_modules/**/*"],
+	"compilerOptions": {
+		"plugins": [{ "name": "@astrojs/ts-plugin" }]
+	}
 }

@@ -16,10 +16,6 @@ export default defineConfig({
 	image: {
 		service: passthroughImageService(),
 	},
-	i18n: {
-		locales: ['en'],
-		defaultLocale: 'en',
-	},
 	integrations: [
 		shield({}),
 		starlight({
