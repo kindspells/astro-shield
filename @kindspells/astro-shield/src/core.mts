@@ -243,7 +243,10 @@ export const updateStaticPageSriHashes = async (
 						let resourceContent: string | ArrayBuffer | Buffer
 						if (urlLikeRegex.test(src)) {
 							setCrossorigin = true
-							const resourceResponse = await fetch(src.startsWith('//') ? `https:${src}` : src, { method: 'GET' })
+							const resourceResponse = await fetch(
+								src.startsWith('//') ? `https:${src}` : src,
+								{ method: 'GET' },
+							)
 							resourceContent = await resourceResponse.arrayBuffer()
 						} else if (src.startsWith('/')) {
 							const resourcePath = resolve(distDir, `.${src}`)
