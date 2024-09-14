@@ -8,7 +8,7 @@
 	},
 	"license": "MIT",
 	"dependencies": {
-		"astro": "^4.15.4"
+		"astro": "^4.15.6"
 	},
 	"devDependencies": {
 		"@kindspells/astro-shield": "workspace:*"

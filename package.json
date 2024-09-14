@@ -10,11 +10,11 @@
 		}
 	],
 	"devDependencies": {
-		"@biomejs/biome": "^1.8.3",
+		"@biomejs/biome": "^1.9.0",
 		"@moonrepo/cli": "^1.28.2",
-		"@vitest/coverage-v8": "^2.0.5",
+		"@vitest/coverage-v8": "^2.1.1",
 		"publint": "^0.2.10",
-		"vitest": "^2.0.5"
+		"vitest": "^2.1.1"
 	},
 	"engines": {
 		"node": ">= 18.0.0"

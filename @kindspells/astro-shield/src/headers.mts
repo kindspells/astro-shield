@@ -67,7 +67,7 @@ export const patchCspHeader = (
 					plainHeaders['content-security-policy'] as string,
 				),
 			}
-		: cspOpts.cspDirectives ?? ({} satisfies CSPDirectives)
+		: (cspOpts.cspDirectives ?? ({} satisfies CSPDirectives))
 
 	if (pageHashes.scripts.size > 0) {
 		setSrcDirective(directives, 'script-src', pageHashes.scripts)
