@@ -22,7 +22,10 @@
 		}
 	},
 	"imports": {
-		"#as/*": "./src/*"
+		"#as/*": {
+			"types": "./src/*.mts",
+			"import": "./dist/*.mjs"
+		}
 	},
 	"files": ["dist/*"],
 	"scripts": {

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import type { MiddlewareHashes } from './core.mts'
+import type { MiddlewareHashes } from './types.mts'
 
 let globalHashes: MiddlewareHashes
 

@@ -111,7 +111,14 @@ export type SRIOptions = {
 	stylesAllowListUrls?: string[]
 }
 
+type VercelConfig = {
+	provider: 'vercel'
+	configFile: string // TODO: auto-discovery?
+}
+
 export type SecurityHeadersOptions = {
+	enableOnStaticPages?: VercelConfig | undefined
+
 	/**
 	 * - If set, it controls how the CSP (Content Security Policy) header will be
 	 *   generated in the middleware.
@@ -150,4 +157,27 @@ export type ShieldOptions = {
 export type StrictShieldOptions = ShieldOptions & {
 	distDir: string
 	sri: SRIOptions & { enableStatic: boolean; enableMiddleware: boolean }
+}
+
+export type Logger = {
+	info(msg: string): void
+	warn(msg: string): void
+	error(msg: string): void
+}
+
+export type MiddlewareHashes = {
+	scripts: Map<string, string>
+	styles: Map<string, string>
+}
+
+export type PerPageHashes = { scripts: Set<string>; styles: Set<string> }
+export type PerPageHashesCollection = Map<string, PerPageHashes>
+
+export type HashesCollection = {
+	inlineScriptHashes: Set<string>
+	inlineStyleHashes: Set<string>
+	extScriptHashes: Set<string>
+	extStyleHashes: Set<string>
+	perPageSriHashes: PerPageHashesCollection
+	perResourceSriHashes: MiddlewareHashes
 }

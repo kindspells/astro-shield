@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 
 import type { AstroIntegration } from 'astro'
 
-import { getAstroConfigSetup, processStaticFiles } from './core.mts'
+import { getAstroConfigSetup, processStaticFiles } from '#as/core'
 import type { ShieldOptions, SRIOptions } from './types.mts'
 
 type AstroHooks = AstroIntegration['hooks']

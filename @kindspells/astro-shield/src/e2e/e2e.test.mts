@@ -23,9 +23,9 @@ import {
 	it,
 } from 'vitest'
 
-import type { HashesModule } from '#as/core.mjs'
-import { generateSRIHash } from '#as/core.mjs'
-import { doesFileExist } from '#as/fs.mjs'
+import type { HashesModule } from '../core.mts'
+import { generateSRIHash } from '../core.mts'
+import { doesFileExist } from '../fs.mts'
 
 const execFile = promisify(_execFile)
 

@@ -12,8 +12,8 @@ import {
 	serialiseCspDirectives,
 	serialiseHashes,
 	setSrcDirective,
-} from '#as/headers.mjs'
-import type { CSPDirectives, SecurityHeadersOptions } from '#as/types.mts'
+} from '../headers.mjs'
+import type { CSPDirectives, SecurityHeadersOptions } from '../types.mts'
 
 describe('serialiseHashes', () => {
 	it('returns an empty string for an empty set', () => {

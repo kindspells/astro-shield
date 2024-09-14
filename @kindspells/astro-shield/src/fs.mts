@@ -7,8 +7,7 @@
 import { readdir, stat } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
-import type { HashesCollection, Logger } from './core.mts'
-import type { SRIOptions } from './types.mts'
+import type { HashesCollection, Logger, SRIOptions } from './types.mts'
 
 export const doesFileExist = async (path: string): Promise<boolean> => {
 	try {

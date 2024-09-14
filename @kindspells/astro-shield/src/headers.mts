@@ -1,4 +1,4 @@
-import type { PerPageHashes } from './core.mts'
+import type { PerPageHashes } from './types.mts'
 import type {
 	CSPDirectives,
 	CSPOptions,

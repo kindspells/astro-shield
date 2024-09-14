@@ -7,7 +7,7 @@
 import type { AstroIntegration } from 'astro'
 import { describe, expect, it } from 'vitest'
 
-import defaultIntegrationExport, { shield } from '#as/main.mts'
+import defaultIntegrationExport, { shield } from '../main.mts'
 
 describe('sriCSP', () => {
 	it('is exported as default', () => {

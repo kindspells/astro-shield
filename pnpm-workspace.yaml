@@ -5,4 +5,4 @@
 packages:
   - 'docs'
   - '@kindspells/*'
-  - '@kindspells/astro-shield/e2e/fixtures/*'
+  - '@kindspells/astro-shield/src/e2e/fixtures/*'

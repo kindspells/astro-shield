@@ -15,33 +15,14 @@ import type { Plugin } from 'vite'
 import { doesFileExist, scanDirectory } from './fs.mts'
 import { patchHeaders } from './headers.mts'
 import type {
+	HashesCollection,
+	Logger,
+	MiddlewareHashes,
+	PerPageHashes,
 	SecurityHeadersOptions,
 	SRIOptions,
 	StrictShieldOptions,
 } from './types.mts'
-
-export type MiddlewareHashes = {
-	scripts: Map<string, string>
-	styles: Map<string, string>
-}
-
-export type PerPageHashes = { scripts: Set<string>; styles: Set<string> }
-export type PerPageHashesCollection = Map<string, PerPageHashes>
-
-export type HashesCollection = {
-	inlineScriptHashes: Set<string>
-	inlineStyleHashes: Set<string>
-	extScriptHashes: Set<string>
-	extStyleHashes: Set<string>
-	perPageSriHashes: PerPageHashesCollection
-	perResourceSriHashes: MiddlewareHashes
-}
-
-export type Logger = {
-	info(msg: string): void
-	warn(msg: string): void
-	error(msg: string): void
-}
 
 export type HashesModule = {
 	[k in keyof HashesCollection]: HashesCollection[k] extends Set<string>

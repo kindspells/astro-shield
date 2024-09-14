@@ -23,13 +23,14 @@ const outputBaseConfig = {
 
 export default defineConfig([
 	{
-		input: 'src/main.mts',
-		output: [{ format: 'esm', file: 'dist/main.mjs', sourcemap: true }],
+		input: 'src/core.mts',
+		output: [{ format: 'esm', file: 'dist/core.mjs', sourcemap: true }],
 		...outputBaseConfig,
 	},
 	{
-		input: 'src/core.mts',
-		output: [{ format: 'esm', file: 'dist/core.mjs', sourcemap: true }],
+		input: 'src/main.mts',
+		output: [{ format: 'esm', file: 'dist/main.mjs', sourcemap: true }],
+		external: ['#as/core'],
 		...outputBaseConfig,
 	},
 	{
@@ -40,6 +41,7 @@ export default defineConfig([
 	{
 		input: 'src/main.mts',
 		output: [{ format: 'esm', file: 'dist/main.d.mts' }],
+		external: ['#as/core'],
 		plugins: [dts()],
 	},
 ])

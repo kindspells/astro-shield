@@ -21,8 +21,8 @@ import {
 	sriHashesEqual,
 	updateDynamicPageSriHashes,
 	updateStaticPageSriHashes,
-} from '#as/core.mts'
-import { doesFileExist } from '#as/fs.mts'
+} from '../core.mts'
+import { doesFileExist } from '../fs.mts'
 
 type SriHashes = {
 	scripts: Record<string, string>
@@ -615,7 +615,7 @@ describe('updateStaticPageSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="/core.mjs"></script>
+				<script type="module" src="/state.mjs"></script>
 			</body>
 		</html>`
 
@@ -624,7 +624,7 @@ describe('updateStaticPageSriHashes', () => {
 				<title>My Test Page</title>
 			</head>
 			<body>
-				<script type="module" src="/core.mjs" integrity="sha256-Pl+u7V7n6H0yGnuW+XJq9vAtnskDhX+uuHdOPF/MuEU="></script>
+				<script type="module" src="/state.mjs" integrity="sha256-GnAS2y0U5qIXDOpQOY7sE+D1/ncp19EQxwySQzSR/bQ="></script>
 			</body>
 		</html>`
 
@@ -642,7 +642,7 @@ describe('updateStaticPageSriHashes', () => {
 
 		expect(
 			h.extScriptHashes.has(
-				'sha256-Pl+u7V7n6H0yGnuW+XJq9vAtnskDhX+uuHdOPF/MuEU=',
+				'sha256-GnAS2y0U5qIXDOpQOY7sE+D1/ncp19EQxwySQzSR/bQ=',
 			),
 		).toBe(true)
 		expect(h.inlineScriptHashes.size).toBe(0)
