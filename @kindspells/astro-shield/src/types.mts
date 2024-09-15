@@ -111,13 +111,29 @@ export type SRIOptions = {
 	stylesAllowListUrls?: string[]
 }
 
+type NetlifyConfig = {
+	provider: 'netlify'
+} & (
+	| {
+			mode: '_headers'
+	  }
+	| {
+			mode: 'netlify.toml'
+			configFile: string // TODO: auto-discovery?
+	  }
+	| {
+			mode: 'both'
+			configFile: string // TODO: auto-discovery?
+	  }
+)
+
 type VercelConfig = {
 	provider: 'vercel'
 	configFile: string // TODO: auto-discovery?
 }
 
 export type SecurityHeadersOptions = {
-	enableOnStaticPages?: VercelConfig | undefined
+	enableOnStaticPages?: NetlifyConfig | VercelConfig | undefined
 
 	/**
 	 * - If set, it controls how the CSP (Content Security Policy) header will be

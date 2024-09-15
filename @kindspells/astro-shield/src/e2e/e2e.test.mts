@@ -142,8 +142,8 @@ const _checkHtmlIsPatched = async (
 }
 
 describe('static', () => {
-	const staticDir = resolve(fixturesDir, 'static')
-	const execOpts = { cwd: staticDir }
+	const projectDir = resolve(fixturesDir, 'static')
+	const execOpts = { cwd: projectDir }
 
 	beforeAll(async () => {
 		await execFile('pnpm', ['install'], execOpts)
@@ -204,9 +204,9 @@ describe('static', () => {
 					: undefined),
 			})
 
-			await checkHtmlIsPatched(resolve(staticDir, 'dist', 'index.html'))
+			await checkHtmlIsPatched(resolve(projectDir, 'dist', 'index.html'))
 
-			const modulePath = resolve(staticDir, 'src', 'generated', 'sri.mjs')
+			const modulePath = resolve(projectDir, 'src', 'generated', 'sri.mjs')
 			expect(await doesFileExist(modulePath)).toBe(true)
 			const generatedModule = await import(modulePath)
 
@@ -254,9 +254,9 @@ describe('static', () => {
 			env: { ...process.env, ENABLE_SRI_MODULE: 'false' },
 		})
 
-		await checkHtmlIsPatched(resolve(staticDir, 'dist', 'index.html'))
+		await checkHtmlIsPatched(resolve(projectDir, 'dist', 'index.html'))
 
-		const modulePath = resolve(staticDir, 'src', 'generated', 'sri.mjs')
+		const modulePath = resolve(projectDir, 'src', 'generated', 'sri.mjs')
 		expect(await doesFileExist(modulePath)).toBe(false)
 	})
 
@@ -266,9 +266,9 @@ describe('static', () => {
 			env: { ...process.env, ENABLE_STATIC_SRI: 'false' },
 		})
 
-		await checkHtmlIsNotPatched(resolve(staticDir, 'dist', 'index.html'))
+		await checkHtmlIsNotPatched(resolve(projectDir, 'dist', 'index.html'))
 
-		const modulePath = resolve(staticDir, 'src', 'generated', 'sri.mjs')
+		const modulePath = resolve(projectDir, 'src', 'generated', 'sri.mjs')
 		expect(await doesFileExist(modulePath)).toBe(false)
 	})
 })
