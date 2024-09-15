@@ -42,4 +42,50 @@ describe('parseNetlifyHeadersConfig', () => {
 			entries: testEntries,
 		} satisfies NetlifyHeadersRawConfig)
 	})
+
+	it('parses a valid config (spaces)', () => {
+		const config = `# This is a test config file
+
+/index.html
+  # Nested Comment
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+/es/index.html
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+`
+		const parsed = parseNetlifyHeadersConfig(config)
+		expect(parsed).toEqual({
+			indentWith: '  ',
+			entries: testEntries,
+		} satisfies NetlifyHeadersRawConfig)
+	})
+
+	it('raises an error for empty page configs', () => {
+		const config = `/index.html
+  # Nested Comment
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+/fr/index.html
+/es/index.html
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+`
+
+		expect(() => parseNetlifyHeadersConfig(config)).toThrowError(
+			'Bad syntax (line 5)',
+		)
+	})
+
+	it('raises an error for changing indentation', () => {
+		const config = `/index.html
+  # Nested Comment
+	X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+`
+
+		expect(() => parseNetlifyHeadersConfig(config)).toThrowError(
+			'Unexpected indentation (line 2)',
+		)
+	})
 })

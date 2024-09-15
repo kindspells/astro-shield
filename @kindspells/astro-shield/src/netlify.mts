@@ -40,7 +40,7 @@ const tryToInitializePathConfig = (
 	} else if (line.startsWith('#')) {
 		ctx.entries.push({ comment: line })
 	} else if (spacesRegex.test(line)) {
-		throw new Error('Unexpected indentation') // TODO: better error message, custom error
+		throw new Error(`Unexpected indentation (line ${lineNum})`) // TODO: better error message, custom error
 	} else if (line.startsWith('/')) {
 		ctx.currentPath = { path: line, entries: [] }
 		ctx.entries.push(ctx.currentPath)
@@ -103,7 +103,7 @@ const pushEntry = (
 		ctx.currentPath = undefined
 		tryToInitializePathConfig(lineNum, line, ctx)
 	} else if (match.groups?.indent !== ctx.indentWith) {
-		throw new Error('Unexpected indentation') // TODO: better error message, custom error
+		throw new Error(`Unexpected indentation (line ${lineNum})`) // TODO: better error message, custom error
 	} else {
 		pushLine(lineNum, match, ctx.currentPath)
 	}
