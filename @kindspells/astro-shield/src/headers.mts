@@ -27,7 +27,7 @@ export const setSrcDirective = (
 ): void => {
 	const baseSrcDirective = directives[srcType]
 	if (baseSrcDirective) {
-		const srcDirective = new Set(baseSrcDirective.split(/\s+/))
+		const srcDirective = new Set(baseSrcDirective.split(spacesRegex))
 		for (const hash of hashes) {
 			srcDirective.add(`'${hash}'`)
 		}
@@ -37,15 +37,20 @@ export const setSrcDirective = (
 	}
 }
 
+const cspSplitterRegex = /;\s*/i
+const spacesRegex = /\s+/i
+
 export const parseCspDirectives = (cspHeader: string): CSPDirectives => {
 	return cspHeader
 		? Object.fromEntries(
 				cspHeader
-					.split(/;\s*/i)
+					.split(cspSplitterRegex)
 					.filter(v => !!v)
 					.map(directive => {
 						// This is a hack to split the directive into _only_ two parts
-						const parts = directive.replace(/\s+/, '||||||').split('||||||')
+						const parts = directive
+							.replace(spacesRegex, '||||||')
+							.split('||||||')
 						return /** @type {[CSPDirectiveNames, string]} */ ([
 							parts[0],
 							parts[1] ?? '',

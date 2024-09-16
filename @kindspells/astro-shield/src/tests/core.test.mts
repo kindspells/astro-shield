@@ -14,7 +14,7 @@ import {
 	generateSRIHashesModule,
 	getCSPMiddlewareHandler,
 	getMiddlewareHandler,
-	getRegexProcessors,
+	regexProcessors,
 	pageHashesEqual,
 	scanAllowLists,
 	scanForNestedResources,
@@ -206,9 +206,12 @@ describe('getRegexProcessors', () => {
 	</html>`
 
 	describe('Script', () => {
-		const config = getRegexProcessors().filter(p => p.t === 'Script')[0]
+		const config = regexProcessors.filter(p => p.t === 'Script')[0]
 		assert(config)
+
 		const regex = config.regex
+		regex.lastIndex = 0 // We have to reset `regex`'s state, because it's "global"
+
 		const srcRegex = config.srcRegex
 
 		beforeEach(() => {
@@ -354,9 +357,11 @@ describe('getRegexProcessors', () => {
 	})
 
 	describe('Style', () => {
-		const config = getRegexProcessors().filter(p => p.t === 'Style')[0]
+		const config = regexProcessors.filter(p => p.t === 'Style')[0]
 		assert(config)
+
 		const regex = config.regex
+		regex.lastIndex = 0 // We have to reset `regex`'s state, because it's "global"
 
 		beforeEach(() => {
 			regex.lastIndex = 0
@@ -403,13 +408,7 @@ describe('getRegexProcessors', () => {
 				assert(match)
 				expect(match[0]).toEqual(styleBlock)
 				expect(match.groups?.content).toEqual(elemContent)
-				try {
-					expect(match.groups?.attrs).toEqual(attrs)
-				} catch (e) {
-					console.log(`"${match.groups?.attrs}"`)
-					console.log(`"${attrs}"`)
-					throw e
-				}
+				expect(match.groups?.attrs).toEqual(attrs)
 				expect(match.groups?.closingTrick).toBeFalsy()
 
 				expect(regex.exec(content)).toBeNull() // no more matches
@@ -851,7 +850,7 @@ describe('updateDynamicPageSriHashes', () => {
 		</html>`
 
 		const h = getMiddlewareHashes()
-		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+		const { pageHashes, updatedContent } = updateDynamicPageSriHashes(
 			console,
 			content,
 			h,
@@ -890,7 +889,7 @@ describe('updateDynamicPageSriHashes', () => {
 		</html>`
 
 		const h = getMiddlewareHashes()
-		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+		const { pageHashes, updatedContent } = updateDynamicPageSriHashes(
 			console,
 			content,
 			h,
@@ -933,7 +932,7 @@ describe('updateDynamicPageSriHashes', () => {
 		</html>`
 
 		const h = getMiddlewareHashes()
-		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+		const { pageHashes, updatedContent } = updateDynamicPageSriHashes(
 			console,
 			content,
 			h,
@@ -977,7 +976,7 @@ describe('updateDynamicPageSriHashes', () => {
 			'sha256-6vcZ3jYR5LROXY5VlgX+tgNuIUVynHfMRQFXUnXSf64=',
 		)
 
-		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+		const { pageHashes, updatedContent } = updateDynamicPageSriHashes(
 			console,
 			content,
 			h,
@@ -1024,7 +1023,7 @@ describe('updateDynamicPageSriHashes', () => {
 
 		const h = getMiddlewareHashes()
 		let warnCounter = 0
-		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+		const { pageHashes, updatedContent } = updateDynamicPageSriHashes(
 			{
 				info: () => {},
 				warn: () => {
@@ -1076,7 +1075,7 @@ describe('updateDynamicPageSriHashes', () => {
 			remoteScript,
 			'sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q=',
 		)
-		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+		const { pageHashes, updatedContent } = updateDynamicPageSriHashes(
 			console,
 			content,
 			h,
@@ -1123,7 +1122,7 @@ describe('updateDynamicPageSriHashes', () => {
 			remoteScript,
 			'sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q=',
 		)
-		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+		const { pageHashes, updatedContent } = updateDynamicPageSriHashes(
 			console,
 			content,
 			h,
@@ -1170,7 +1169,7 @@ describe('updateDynamicPageSriHashes', () => {
 			remoteScript,
 			'sha256-i4WR4ifasidZIuS67Rr6Knsy7/hK1xbVTc8ZAmnAv1Q=',
 		)
-		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+		const { pageHashes, updatedContent } = updateDynamicPageSriHashes(
 			console,
 			content,
 			h,
@@ -1223,7 +1222,7 @@ describe('updateDynamicPageSriHashes', () => {
 			'sha256-a8DhsANlpipCfrn1UYtdKQaaeWgSyW4hBvqdxDOfoow=',
 		)
 
-		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+		const { pageHashes, updatedContent } = updateDynamicPageSriHashes(
 			console,
 			content,
 			h,
@@ -1278,7 +1277,7 @@ describe('updateDynamicPageSriHashes', () => {
 		}
 
 		const h = getMiddlewareHashes()
-		const { updatedContent } = await updateDynamicPageSriHashes(
+		const { updatedContent } = updateDynamicPageSriHashes(
 			testLogger,
 			content,
 			h,
@@ -1319,7 +1318,7 @@ describe('updateDynamicPageSriHashes', () => {
 		}
 
 		const h = getMiddlewareHashes()
-		const { updatedContent } = await updateDynamicPageSriHashes(
+		const { updatedContent } = updateDynamicPageSriHashes(
 			testLogger,
 			content,
 			h,
@@ -1360,7 +1359,7 @@ describe('updateDynamicPageSriHashes', () => {
 			'sha256-6vcZ3jYR5LROXY5VlgX+tgNuIUVynHfMRQFXUnXSf64=',
 		)
 
-		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+		const { pageHashes, updatedContent } = updateDynamicPageSriHashes(
 			console,
 			content,
 			h,
@@ -1405,7 +1404,7 @@ describe('updateDynamicPageSriHashes', () => {
 			</body>
 		</html>`
 
-		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+		const { pageHashes, updatedContent } = updateDynamicPageSriHashes(
 			console,
 			content,
 			h,
@@ -1446,7 +1445,7 @@ describe('updateDynamicPageSriHashes', () => {
 			</body>
 		</html>`
 
-		const { pageHashes, updatedContent } = await updateDynamicPageSriHashes(
+		const { pageHashes, updatedContent } = updateDynamicPageSriHashes(
 			console,
 			content,
 			h,

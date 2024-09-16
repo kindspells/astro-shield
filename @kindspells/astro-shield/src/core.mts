@@ -95,43 +95,41 @@ const extractIntegrityHash = (attrs: string): string | undefined => {
 	return undefined
 }
 
-export const getRegexProcessors = () => {
-	return [
-		{
-			t: 'Script' as const,
-			t2: 'scripts' as const,
-			regex:
-				/<script(?<attrs>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_\/\.]+))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*script((?<closingTrick>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_]+))?)+?)|\s*>)/gi,
-			srcRegex:
-				/(^|\s+)src\s*=\s*("(?<src1>[^"]*)"|'(?<src2>[^']*)'|(?<src3>[a-z0-9\-_\/\.]+))/i,
-			replacer: scriptReplacer,
-			hasContent: true,
-			attrsRegex: undefined,
-		},
-		{
-			t: 'Style' as const,
-			t2: 'styles' as const,
-			regex:
-				/<style(?<attrs>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_\/\.]+))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*style((?<closingTrick>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_]+))?)+?)|\s*>)/gi,
-			srcRegex:
-				/(^|\s+)(href|src)\s*=\s*("(?<src1>[^"]*)"|'(?<src2>[^']*)'|(?<src3>[a-z0-9\-_\/\.]+))/i, // not really used
-			replacer: styleReplacer,
-			hasContent: true,
-			attrsRegex: undefined,
-		},
-		{
-			t: 'Style' as const,
-			t2: 'styles' as const,
-			regex:
-				/<link(?<attrs>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_\/\.]+))?)*?)\s*\/?>/gi,
-			srcRegex:
-				/(^|\s+)href\s*=\s*("(?<src1>[^"]*)"|'(?<src2>[^']*)'|(?<src3>[a-z0-9\-_\/\.]+))/i,
-			replacer: linkStyleReplacer,
-			hasContent: false,
-			attrsRegex: relStylesheetRegex,
-		},
-	] as const
-}
+export const regexProcessors = [
+	{
+		t: 'Script' as const,
+		t2: 'scripts' as const,
+		regex:
+			/<script(?<attrs>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_\/\.]+))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*script((?<closingTrick>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_]+))?)+?)|\s*>)/gi,
+		srcRegex:
+			/(^|\s+)src\s*=\s*("(?<src1>[^"]*)"|'(?<src2>[^']*)'|(?<src3>[a-z0-9\-_\/\.]+))/i,
+		replacer: scriptReplacer,
+		hasContent: true,
+		attrsRegex: undefined,
+	},
+	{
+		t: 'Style' as const,
+		t2: 'styles' as const,
+		regex:
+			/<style(?<attrs>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_\/\.]+))?)*?)\s*>(?<content>[\s\S]*?)<\/\s*style((?<closingTrick>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_]+))?)+?)|\s*>)/gi,
+		srcRegex:
+			/(^|\s+)(href|src)\s*=\s*("(?<src1>[^"]*)"|'(?<src2>[^']*)'|(?<src3>[a-z0-9\-_\/\.]+))/i, // not really used
+		replacer: styleReplacer,
+		hasContent: true,
+		attrsRegex: undefined,
+	},
+	{
+		t: 'Style' as const,
+		t2: 'styles' as const,
+		regex:
+			/<link(?<attrs>(\s+[a-z][a-z0-9\-_]*(\s*=\s*('[^']*'|"[^"]*"|[a-z0-9\-_\/\.]+))?)*?)\s*\/?>/gi,
+		srcRegex:
+			/(^|\s+)href\s*=\s*("(?<src1>[^"]*)"|'(?<src2>[^']*)'|(?<src3>[a-z0-9\-_\/\.]+))/i,
+		replacer: linkStyleReplacer,
+		hasContent: false,
+		attrsRegex: relStylesheetRegex,
+	},
+] as const
 
 /**
  * This function extracts SRI hashes from inline and external resources, and
@@ -149,8 +147,6 @@ export const updateStaticPageSriHashes = async (
 	allowInlineScripts: 'all' | 'static' | false = 'all',
 	allowInlineStyles: 'all' | 'static' | false = 'all',
 ): Promise<string> => {
-	const processors = getRegexProcessors()
-
 	const pageHashes =
 		h.perPageSriHashes.get(relativeFilepath) ??
 		({
@@ -170,7 +166,9 @@ export const updateStaticPageSriHashes = async (
 		replacer,
 		t,
 		t2,
-	} of processors) {
+	} of regexProcessors) {
+		regex.lastIndex = 0 // We have to reset `regex`'s state, because it's "global"
+
 		// biome-ignore lint/suspicious/noAssignInExpressions: safe
 		while ((match = regex.exec(content)) !== null) {
 			const attrs = match.groups?.attrs?.trim() ?? ''
@@ -285,14 +283,12 @@ export const updateStaticPageSriHashes = async (
 	return updatedContent
 }
 
-export const updateDynamicPageSriHashes = async (
+export const updateDynamicPageSriHashes = (
 	logger: Logger,
 	content: string,
 	globalHashes: MiddlewareHashes,
 	sri?: SRIOptions,
-): Promise<{ pageHashes: PerPageHashes; updatedContent: string }> => {
-	const processors = getRegexProcessors()
-
+): { pageHashes: PerPageHashes; updatedContent: string } => {
 	let updatedContent = content
 	let match: RegExpExecArray | null
 
@@ -309,7 +305,9 @@ export const updateDynamicPageSriHashes = async (
 		replacer,
 		t,
 		t2,
-	} of processors) {
+	} of regexProcessors) {
+		regex.lastIndex = 0 // We have to reset `regex`'s state, because it's "global"
+
 		// biome-ignore lint/suspicious/noAssignInExpressions: safe
 		while ((match = regex.exec(content)) !== null) {
 			const attrs = match.groups?.attrs?.trim() ?? ''
@@ -787,7 +785,7 @@ export const getMiddlewareHandler = (
 		const response = await next()
 		const content = await response.text()
 
-		const { updatedContent } = await updateDynamicPageSriHashes(
+		const { updatedContent } = updateDynamicPageSriHashes(
 			logger,
 			content,
 			globalHashes,
@@ -816,7 +814,7 @@ export const getCSPMiddlewareHandler = (
 		const response = await next()
 		const content = await response.text()
 
-		const { updatedContent, pageHashes } = await updateDynamicPageSriHashes(
+		const { updatedContent, pageHashes } = updateDynamicPageSriHashes(
 			logger,
 			content,
 			globalHashes,
@@ -995,6 +993,7 @@ export const getAstroConfigSetup = (
 	sri: Required<SRIOptions>,
 	securityHeaders: SecurityHeadersOptions | undefined,
 ): Required<AstroIntegration['hooks']>['astro:config:setup'] => {
+	// biome-ignore lint/suspicious/useAwait: We have to conform to the Astro API
 	return async ({ logger, addMiddleware, config, updateConfig }) => {
 		const publicDir = fileURLToPath(config.publicDir)
 		const plugin = getViteMiddlewarePlugin(

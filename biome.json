@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.9.0/schema.json",
+	"$schema": "https://biomejs.dev/schemas/1.9.1/schema.json",
 	"organizeImports": { "enabled": true },
 	"files": {
 		"include": ["*.json", "*.js", "*.mjs", "*.mts", "*.d.ts"],
@@ -14,7 +14,19 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"correctness": {
+				"all": true,
+				"noNodejsModules": "off",
+				"noUndeclaredDependencies": "off"
+			},
+			"performance": { "all": true },
+			"security": { "all": true },
+			"style": {
+				"all": true,
+				"useNamingConvention": "off"
+			},
+			"suspicious": { "all": true }
 		}
 	},
 	"formatter": {
@@ -34,5 +46,37 @@
 			"quoteStyle": "single",
 			"jsxQuoteStyle": "single"
 		}
-	}
+	},
+	"overrides": [
+		{
+			"include": ["*.test.mts"],
+			"linter": {
+				"rules": {
+					"performance": {
+						"useTopLevelRegex": "off"
+					},
+					"suspicious": {
+						"noEmptyBlockStatements": "off",
+						"noMisplacedAssertion": "off",
+						"useAwait": "off"
+					}
+				}
+			}
+		},
+		{
+			"include": [
+				"astro.config.mjs",
+				"rollup.config.mjs",
+				"vitest.config.*.mts",
+				"src/main.mts"
+			],
+			"linter": {
+				"rules": {
+					"style": {
+						"noDefaultExport": "off"
+					}
+				}
+			}
+		}
+	]
 }

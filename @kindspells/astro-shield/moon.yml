@@ -21,7 +21,7 @@ tasks:
       - '~:lint.publint'
       - '~:lint.tsc'
   lint.biome:
-    command: 'biome lint .'
+    command: 'biome lint . --error-on-warnings'
     inputs:
       - '*.json'
       - '*.mts'
