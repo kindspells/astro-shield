@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { NetlifyHeadersRawConfig } from '../netlify.mts'
 import {
+	buildNetlifyHeadersConfig,
 	parseNetlifyHeadersConfig,
 	readNetlifyHeadersFile,
 	serializeNetlifyHeadersConfig,
@@ -127,5 +128,109 @@ describe('serializeNetlifyHeadersConfig', () => {
 	X-Frame-Options: DENY
 	X-XSS-Protection: 1; mode=block
 `)
+	})
+})
+
+describe('buildNetlifyHeadersConfig', () => {
+	it('creates an "empty" config when there is no info to construct headers', () => {
+		const config = buildNetlifyHeadersConfig(
+			{},
+			{
+				perPageSriHashes: new Map([
+					['index.html', { scripts: new Set(), styles: new Set() }],
+				]),
+			},
+		)
+
+		expect(config.entries.length).toBe(0)
+	})
+
+	it('creates a basic csp config with resource hashes', () => {
+		const config = buildNetlifyHeadersConfig(
+			{ contentSecurityPolicy: {} },
+			{
+				perPageSriHashes: new Map([
+					[
+						'onlyscripts.html',
+						{
+							scripts: new Set([
+								'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=',
+								'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA=',
+							]),
+							styles: new Set(),
+						},
+					],
+					[
+						'onlystyles.html',
+						{
+							scripts: new Set(),
+							styles: new Set([
+								'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=',
+								'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE=',
+							]),
+						},
+					],
+					[
+						'scriptsandstyles.html',
+						{
+							scripts: new Set([
+								'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=',
+								'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA=',
+							]),
+							styles: new Set([
+								'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=',
+								'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE=',
+							]),
+						},
+					],
+					['nothing.html', { scripts: new Set(), styles: new Set() }],
+				]),
+			},
+		)
+
+		expect(config).toEqual({
+			indentWith: '\t',
+			entries: [
+				{
+					path: '/onlyscripts.html',
+					entries: [
+						{
+							headerName: 'content-security-policy',
+							value:
+								"script-src 'self' 'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=' 'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA='; style-src 'none'",
+						},
+					],
+				},
+				{
+					path: '/onlystyles.html',
+					entries: [
+						{
+							headerName: 'content-security-policy',
+							value:
+								"script-src 'none'; style-src 'self' 'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=' 'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE='",
+						},
+					],
+				},
+				{
+					path: '/scriptsandstyles.html',
+					entries: [
+						{
+							headerName: 'content-security-policy',
+							value:
+								"script-src 'self' 'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=' 'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA='; style-src 'self' 'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=' 'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE='",
+						},
+					],
+				},
+				{
+					path: '/nothing.html',
+					entries: [
+						{
+							headerName: 'content-security-policy',
+							value: "script-src 'none'; style-src 'none'",
+						},
+					],
+				},
+			],
+		} satisfies NetlifyHeadersRawConfig)
 	})
 })

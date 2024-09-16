@@ -1,4 +1,10 @@
 import { readFile } from 'node:fs/promises'
+import type {
+	CSPDirectives,
+	HashesCollection,
+	SecurityHeadersOptions,
+} from './types.mts'
+import { serialiseCspDirectives, setSrcDirective } from './headers.mts'
 
 type HeaderEntry = {
 	headerName: string
@@ -187,3 +193,51 @@ export const serializeNetlifyHeadersConfig = (
 
 	return result
 }
+
+export const buildNetlifyHeadersConfig = (
+	securityHeadersOptions: SecurityHeadersOptions,
+	resourceHashes: Pick<HashesCollection, 'perPageSriHashes'>,
+): NetlifyHeadersRawConfig => {
+	const config: NetlifyHeadersRawConfig = {
+		indentWith: '\t',
+		entries: [],
+	}
+
+	for (const [page, hashes] of resourceHashes.perPageSriHashes) {
+		const entries: (HeaderEntry | CommentEntry)[] = []
+
+		if (securityHeadersOptions.contentSecurityPolicy !== undefined) {
+			const directives: CSPDirectives =
+				securityHeadersOptions.contentSecurityPolicy.cspDirectives ?? {}
+
+			if (hashes.scripts.size > 0) {
+				setSrcDirective(directives, 'script-src', hashes.scripts)
+			} else {
+				directives['script-src'] = "'none'"
+			}
+			if (hashes.styles.size > 0) {
+				setSrcDirective(directives, 'style-src', hashes.styles)
+			} else {
+				directives['style-src'] = "'none'"
+			}
+
+			if (Object.keys(directives).length === 0) {
+				continue
+			}
+
+			entries.push({
+				headerName: 'content-security-policy',
+				value: serialiseCspDirectives(directives),
+			})
+		}
+
+		if (entries.length > 0) {
+			config.entries.push({ path: `/${page}`, entries })
+		}
+	}
+
+	return config
+}
+
+// mergeNetlifyHeadersConfig: netlify headers config + netlify headers config -> netlify headers config
+// patchNetlifyHeadersConfig: the orchestrator

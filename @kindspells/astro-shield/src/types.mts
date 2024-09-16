@@ -38,7 +38,6 @@ export type CSPOptions = {
 	 *
 	 * Defaults to `all`.
 	 */
-	// sriHashesStrategy?: 'all' | 'perPage' // TODO: Enable in the future
 
 	/**
 	 * - If set, it controls the "default" CSP directives (they can be overriden
@@ -46,6 +45,9 @@ export type CSPOptions = {
 	 * - If not set, the middleware will use a minimal set of default directives.
 	 */
 	cspDirectives?: CSPDirectives
+
+	// TODO:
+	// perPageCspDirectives?: Record<string, CSPDirectives>
 }
 
 export type SRIOptions = {

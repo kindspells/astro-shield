@@ -32,6 +32,10 @@ export type HashesModule = {
 			: Record<'scripts' | 'styles', Record<string, string>>
 }
 
+const exhaustiveGuard = (_v: never, caseName: string): void => {
+	throw new Error(`Unknown ${caseName}: ${_v}`)
+}
+
 export const generateSRIHash = (
 	data: string | ArrayBuffer | Buffer,
 ): string => {
@@ -724,7 +728,7 @@ export async function generateSRIHashesModule(
 
 export const processStaticFiles = async (
 	logger: Logger,
-	{ distDir, sri }: StrictShieldOptions,
+	{ distDir, sri, securityHeaders }: StrictShieldOptions,
 ): Promise<void> => {
 	const h = {
 		inlineScriptHashes: new Set(),
@@ -760,6 +764,18 @@ export const processStaticFiles = async (
 		sri.hashesModule,
 		sri.enableMiddleware,
 	)
+
+	if (securityHeaders?.enableOnStaticPages !== undefined) {
+		const provider = securityHeaders.enableOnStaticPages.provider
+		switch (provider) {
+			case 'netlify':
+				break
+			case 'vercel':
+				throw new Error('Vercel provider is still not supported')
+			default:
+				exhaustiveGuard(provider, 'provider')
+		}
+	}
 }
 
 export const getMiddlewareHandler = (
