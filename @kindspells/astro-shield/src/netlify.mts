@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises'
+
 type HeaderEntry = {
 	headerName: string
 	value: string
@@ -151,11 +153,37 @@ export const parseNetlifyHeadersConfig = (
 
 	return {
 		indentWith: ctx.indentWith ?? '\t',
-		entries: ctx.entries,
+		entries: ctx.entries.at(-1) === '' ? ctx.entries.slice(0, -1) : ctx.entries,
 	}
 }
 
-// export const readNetlifyHeadersFile =
-// 	async (): Promise<NetlifyHeadersRawConfig> => {
-// 		//
-// 	}
+export const readNetlifyHeadersFile = async (
+	path: string,
+): Promise<NetlifyHeadersRawConfig> => {
+	return parseNetlifyHeadersConfig(await readFile(path, 'utf8'))
+}
+
+export const serializeNetlifyHeadersConfig = (
+	config: NetlifyHeadersRawConfig,
+): string => {
+	const indent = config.indentWith
+	let result = ''
+
+	for (const entry of config.entries) {
+		if (entry === '') {
+			result += '\n'
+		} else if ('comment' in entry) {
+			result += `${entry.comment}\n`
+		} else if ('path' in entry) {
+			result += `${entry.path}\n${entry.entries
+				.map(e =>
+					'comment' in e
+						? `${indent}${e.comment}`
+						: `${indent}${e.headerName}: ${e.value}`,
+				)
+				.join('\n')}\n`
+		}
+	}
+
+	return result
+}

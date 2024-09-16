@@ -1,30 +1,35 @@
+import { resolve } from 'node:path'
+
 import { describe, expect, it } from 'vitest'
 
 import type { NetlifyHeadersRawConfig } from '../netlify.mts'
-import { parseNetlifyHeadersConfig } from '../netlify.mts'
+import {
+	parseNetlifyHeadersConfig,
+	readNetlifyHeadersFile,
+	serializeNetlifyHeadersConfig,
+} from '../netlify.mts'
+
+const testEntries = [
+	{ comment: '# This is a test config file' },
+	'',
+	{
+		path: '/index.html',
+		entries: [
+			{ comment: '# Nested Comment' },
+			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			{ headerName: 'X-XSS-Protection', value: '1; mode=block' },
+		],
+	},
+	{
+		path: '/es/index.html',
+		entries: [
+			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			{ headerName: 'X-XSS-Protection', value: '1; mode=block' },
+		],
+	},
+] satisfies NetlifyHeadersRawConfig['entries']
 
 describe('parseNetlifyHeadersConfig', () => {
-	const testEntries = [
-		{ comment: '# This is a test config file' },
-		'',
-		{
-			path: '/index.html',
-			entries: [
-				{ comment: '# Nested Comment' },
-				{ headerName: 'X-Frame-Options', value: 'DENY' },
-				{ headerName: 'X-XSS-Protection', value: '1; mode=block' },
-			],
-		},
-		{
-			path: '/es/index.html',
-			entries: [
-				{ headerName: 'X-Frame-Options', value: 'DENY' },
-				{ headerName: 'X-XSS-Protection', value: '1; mode=block' },
-			],
-		},
-		'',
-	] satisfies NetlifyHeadersRawConfig['entries']
-
 	it('parses a valid config (tabs)', () => {
 		const config = `# This is a test config file
 
@@ -87,5 +92,40 @@ describe('parseNetlifyHeadersConfig', () => {
 		expect(() => parseNetlifyHeadersConfig(config)).toThrowError(
 			'Unexpected indentation (line 2)',
 		)
+	})
+})
+
+describe('readNetlifyHeadersFile', () => {
+	const testsDir = new URL('.', import.meta.url).pathname
+
+	it('load and parses a valid config', async () => {
+		const config = await readNetlifyHeadersFile(
+			resolve(testsDir, 'fixtures', 'netlify_headers'),
+		)
+
+		expect(config).toEqual({
+			indentWith: '\t',
+			entries: testEntries,
+		} satisfies NetlifyHeadersRawConfig)
+	})
+})
+
+describe('serializeNetlifyHeadersConfig', () => {
+	it('serializes the config structure into a correct string', () => {
+		const serialized = serializeNetlifyHeadersConfig({
+			indentWith: '\t',
+			entries: testEntries,
+		} satisfies NetlifyHeadersRawConfig)
+
+		expect(serialized).toEqual(`# This is a test config file
+
+/index.html
+	# Nested Comment
+	X-Frame-Options: DENY
+	X-XSS-Protection: 1; mode=block
+/es/index.html
+	X-Frame-Options: DENY
+	X-XSS-Protection: 1; mode=block
+`)
 	})
 })

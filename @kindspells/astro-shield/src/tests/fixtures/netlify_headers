@@ -1,0 +1,9 @@
+# This is a test config file
+
+/index.html
+	# Nested Comment
+	X-Frame-Options: DENY
+	X-XSS-Protection: 1; mode=block
+/es/index.html
+	X-Frame-Options: DENY
+	X-XSS-Protection: 1; mode=block
