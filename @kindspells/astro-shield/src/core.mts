@@ -23,6 +23,7 @@ import type {
 	SRIOptions,
 	StrictShieldOptions,
 } from './types.mts'
+import { patchNetlifyHeadersConfig } from './netlify.mts'
 
 export type HashesModule = {
 	[k in keyof HashesCollection]: HashesCollection[k] extends Set<string>
@@ -767,6 +768,11 @@ export const processStaticFiles = async (
 		const provider = securityHeaders.enableOnStaticPages.provider
 		switch (provider) {
 			case 'netlify':
+				await patchNetlifyHeadersConfig(
+					resolve(distDir, '_headers'),
+					securityHeaders,
+					h,
+				)
 				break
 			case 'vercel':
 				throw new Error('Vercel provider is still not supported')

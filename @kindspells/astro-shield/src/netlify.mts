@@ -1,10 +1,12 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
+
 import type {
 	CSPDirectives,
 	HashesCollection,
 	SecurityHeadersOptions,
 } from './types.mts'
 import { serialiseCspDirectives, setSrcDirective } from './headers.mts'
+import { doesFileExist } from './fs.mts'
 
 type HeaderEntry = {
 	headerName: string
@@ -431,4 +433,21 @@ export const mergeNetlifyHeadersConfig = (
 	}
 }
 
-// patchNetlifyHeadersConfig: the orchestrator
+export const patchNetlifyHeadersConfig = async (
+	configPath: string,
+	securityHeadersOptions: SecurityHeadersOptions,
+	resourceHashes: Pick<HashesCollection, 'perPageSriHashes'>,
+): Promise<void> => {
+	const baseConfig = (await doesFileExist(configPath))
+		? await readNetlifyHeadersFile(configPath)
+		: { indentWith: '\t', entries: [] }
+
+	const patchConfig = buildNetlifyHeadersConfig(
+		securityHeadersOptions,
+		resourceHashes,
+	)
+
+	const mergedConfig = mergeNetlifyHeadersConfig(baseConfig, patchConfig)
+
+	await writeFile(configPath, serializeNetlifyHeadersConfig(mergedConfig))
+}
