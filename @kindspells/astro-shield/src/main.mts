@@ -9,17 +9,23 @@ import { fileURLToPath } from 'node:url'
 import type { AstroIntegration } from 'astro'
 
 import { getAstroConfigSetup, processStaticFiles } from '#as/core'
-import type { ShieldOptions, SRIOptions } from './types.mts'
+import type {
+	SecurityHeadersOptions,
+	ShieldOptions,
+	SRIOptions,
+} from './types.mts'
 
 type AstroHooks = AstroIntegration['hooks']
 
 const getAstroBuildDone = (
 	sri: Required<SRIOptions>,
+	securityHeaders: SecurityHeadersOptions | undefined,
 ): NonNullable<AstroHooks['astro:build:done']> =>
 	(async ({ dir, logger }) =>
 		await processStaticFiles(logger, {
 			distDir: fileURLToPath(dir),
 			sri,
+			securityHeaders,
 		})) satisfies NonNullable<AstroHooks['astro:build:done']>
 
 const logWarn = (msg: string): void =>
@@ -69,7 +75,7 @@ export const shield = ({
 		hooks: {
 			...(_sri.enableStatic === true
 				? {
-						'astro:build:done': getAstroBuildDone(_sri),
+						'astro:build:done': getAstroBuildDone(_sri, securityHeaders),
 					}
 				: undefined),
 			...(_sri.enableMiddleware === true

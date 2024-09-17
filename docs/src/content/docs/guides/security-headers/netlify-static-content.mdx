@@ -3,18 +3,18 @@
 #
 # SPDX-License-Identifier: MIT
 
-title: Content-Security-Policy (CSP)
-description: How to configure the Content-Security-Policy headers of your website with Astro-Shield
+title: Configuring CSP headers for static content on Netlify
+description: How to configure the Content-Security-Policy headers of your static pages on Netlify with Astro-Shield
 ---
 
 import { Aside, Code } from '@astrojs/starlight/components';
 
-To enable the generation of Content-Security-Policy headers for your SSR
-content, you have to set the option `securityHeaders.contentSecurityPolicy` to
-a non-null object.
+Ensuring that Netlify serves your static content with the correct
+`Content-Security-Policy` headers requires some additional configuration.
+Specifically, set `securityHeaders.enableOnStaticPages.provider` to the value
+`"netlify"`.
 
-If you want more control, then you can set other nested options, such as
-`cspDirectives`.
+See a more complete example:
 
 <Code
     lang="javascript"
@@ -31,7 +31,6 @@ export default defineConfig({
   integrations: [
     shield({
       sri: {
-        enableMiddleware: true,   // MUST be enabled for dynamic pages!
         hashesModule: modulePath, // SHOULD be set!
       },
 
@@ -39,9 +38,13 @@ export default defineConfig({
       //   middleware.
       // - If not set, no security headers will be generated in the middleware.
       securityHeaders: {
+        // This option is required to configure CSP headers for your static
+        // content on Netlify.
+        enableOnStaticPages: { provider: "netlify" },
+
         // - If set, it controls how the CSP (Content Security Policy) header will
         //   be generated in the middleware.
-        // - If not set, no CSP header will be generated in the middleware.
+        // - If not set, no CSP header will be configured for your static content.
         //   (there is no need to specify its inner options)
         contentSecurityPolicy: {
           // - If set, it controls the "default" CSP directives (they can be
@@ -60,21 +63,6 @@ export default defineConfig({
 />
 
 <Aside type='tip'>
-  By default, Astro-Shield will add `'self`' to the `script-src` directive. You
-  can override this behavior by setting your own `script-src` directive (which
-  can be an empty string).
-</Aside>
-
-<Aside type="caution">
-  When enabling CSP headers, it is advisable to also set the
-  `sri.enableMiddleware` option to `true`. It is also recommended to set the
-  `sri.hashesModule` option.
-</Aside>
-
-<Aside type='tip'>
-  If you want to set CSP headers for your static content, check the specific
-  guide for your deployment platform:
-
-  - [Netlify](/guides/security-headers/netlify-static-content/)
-  - Vercel: Coming soon!
+  To see how to configure CSP headers for your dynamic content, check the page
+  [Content-Security-Policy (CSP)](/guides/security-headers/content-security-policy/).
 </Aside>

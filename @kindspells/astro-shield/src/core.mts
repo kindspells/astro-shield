@@ -767,13 +767,22 @@ export const processStaticFiles = async (
 	if (securityHeaders?.enableOnStaticPages !== undefined) {
 		const provider = securityHeaders.enableOnStaticPages.provider
 		switch (provider) {
-			case 'netlify':
+			case 'netlify': {
+				if (
+					(securityHeaders.enableOnStaticPages.mode ?? '_headers') !==
+					'_headers'
+				) {
+					throw new Error(
+						'Netlify provider only supports "_headers" mode for now',
+					)
+				}
 				await patchNetlifyHeadersConfig(
 					resolve(distDir, '_headers'),
 					securityHeaders,
 					h,
 				)
 				break
+			}
 			case 'vercel':
 				throw new Error('Vercel provider is still not supported')
 			default:
