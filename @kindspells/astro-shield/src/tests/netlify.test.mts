@@ -235,6 +235,77 @@ describe('buildNetlifyHeadersConfig', () => {
 			],
 		} satisfies NetlifyHeadersRawConfig)
 	})
+
+	it('creates a "double entry" for "index.html" files', () => {
+		const config = buildNetlifyHeadersConfig(
+			{ contentSecurityPolicy: {} },
+			{
+				perPageSriHashes: new Map([
+					[
+						'index.html',
+						{
+							scripts: new Set([
+								'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=',
+							]),
+							styles: new Set(),
+						},
+					],
+					[
+						'es/index.html',
+						{
+							scripts: new Set([
+								'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=',
+							]),
+							styles: new Set(),
+						},
+					],
+					[
+						'fakeindex.html',
+						{
+							scripts: new Set([
+								'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=',
+							]),
+							styles: new Set(),
+						},
+					],
+				]),
+			},
+		)
+
+		const testEntries = [
+			{
+				headerName: 'content-security-policy',
+				value:
+					"script-src 'self' 'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c='; style-src 'none'",
+			},
+		]
+
+		expect(config).toEqual({
+			indentWith: '\t',
+			entries: [
+				{
+					path: '/',
+					entries: testEntries,
+				},
+				{
+					path: '/es/',
+					entries: testEntries,
+				},
+				{
+					path: '/es/index.html',
+					entries: testEntries,
+				},
+				{
+					path: '/fakeindex.html',
+					entries: testEntries,
+				},
+				{
+					path: '/index.html',
+					entries: testEntries,
+				},
+			],
+		} satisfies NetlifyHeadersRawConfig)
+	})
 })
 
 describe('mergeNetlifyHeadersConfig', () => {

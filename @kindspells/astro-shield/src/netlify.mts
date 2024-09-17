@@ -3,6 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 import type {
 	CSPDirectives,
 	HashesCollection,
+	PerPageHashes,
 	SecurityHeadersOptions,
 } from './types.mts'
 import { serialiseCspDirectives, setSrcDirective } from './headers.mts'
@@ -251,9 +252,16 @@ export const buildNetlifyHeadersConfig = (
 		entries: [],
 	}
 
-	for (const [page, hashes] of Array.from(
-		resourceHashes.perPageSriHashes,
-	).sort()) {
+	const pagesToIterate: [string, PerPageHashes][] = []
+	for (const [page, hashes] of resourceHashes.perPageSriHashes) {
+		if (page === 'index.html' || page.endsWith('/index.html')) {
+			pagesToIterate.push([page.slice(0, -10), hashes])
+		}
+		pagesToIterate.push([page, hashes])
+	}
+	pagesToIterate.sort()
+
+	for (const [page, hashes] of pagesToIterate) {
 		const pathEntries: (HeaderEntry | CommentEntry)[] = []
 
 		if (securityHeadersOptions.contentSecurityPolicy !== undefined) {
