@@ -753,17 +753,6 @@ export const processStaticFiles = async (
 		sri,
 	)
 
-	if (!sri.hashesModule) {
-		return
-	}
-
-	await generateSRIHashesModule(
-		logger,
-		h,
-		sri.hashesModule,
-		sri.enableMiddleware,
-	)
-
 	if (securityHeaders?.enableOnStaticPages !== undefined) {
 		const provider = securityHeaders.enableOnStaticPages.provider
 		switch (provider) {
@@ -788,6 +777,15 @@ export const processStaticFiles = async (
 			default:
 				exhaustiveGuard(provider, 'provider')
 		}
+	}
+
+	if (sri.hashesModule) {
+		await generateSRIHashesModule(
+			logger,
+			h,
+			sri.hashesModule,
+			sri.enableMiddleware,
+		)
 	}
 }
 
