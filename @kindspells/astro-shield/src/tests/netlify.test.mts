@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import type { NetlifyHeadersRawConfig } from '../netlify.mts'
 import {
 	buildNetlifyHeadersConfig,
+	mergeNetlifyHeadersConfig,
 	parseNetlifyHeadersConfig,
 	readNetlifyHeadersFile,
 	serializeNetlifyHeadersConfig,
@@ -188,9 +189,19 @@ describe('buildNetlifyHeadersConfig', () => {
 			},
 		)
 
+		// It also orders the entries to ensure that we have a canonical order
 		expect(config).toEqual({
 			indentWith: '\t',
 			entries: [
+				{
+					path: '/nothing.html',
+					entries: [
+						{
+							headerName: 'content-security-policy',
+							value: "script-src 'none'; style-src 'none'",
+						},
+					],
+				},
 				{
 					path: '/onlyscripts.html',
 					entries: [
@@ -221,13 +232,88 @@ describe('buildNetlifyHeadersConfig', () => {
 						},
 					],
 				},
+			],
+		} satisfies NetlifyHeadersRawConfig)
+	})
+})
+
+describe('mergeNetlifyHeadersConfig', () => {
+	it('can merge two configs preserving the order', () => {
+		const c1: NetlifyHeadersRawConfig = {
+			indentWith: '\t',
+			entries: [
 				{
-					path: '/nothing.html',
+					path: '/a.html',
+					entries: [{ headerName: 'X-Frame-Options', value: 'DENY' }],
+				},
+				{
+					path: '/c.html',
+					entries: [{ headerName: 'Cache-Control', value: 'no-cache' }],
+				},
+				{
+					path: '/cc.html',
+					entries: [], // empty on purpose
+				},
+				{
+					path: '/d.html', // shared path
+					entries: [
+						{ headerName: 'Cache-Control', value: 'no-cache' },
+						{ headerName: 'X-Frame-Options', value: 'DENY' },
+					],
+				},
+			],
+		}
+		const c2: NetlifyHeadersRawConfig = {
+			indentWith: '  ',
+			entries: [
+				{
+					path: '/b.html',
 					entries: [
 						{
 							headerName: 'content-security-policy',
-							value: "script-src 'none'; style-src 'none'",
+							value: "script-src 'none'",
 						},
+					],
+				},
+				{
+					path: '/d.html', // shared path
+					entries: [
+						{ headerName: 'X-Frame-Options', value: 'ALLOW' },
+						{ headerName: 'X-XSS-Protection', value: '1; mode=block' },
+					],
+				},
+			],
+		}
+
+		const merged = mergeNetlifyHeadersConfig(c1, c2)
+
+		expect(merged).toEqual({
+			indentWith: '\t',
+			entries: [
+				{
+					path: '/a.html',
+					entries: [{ headerName: 'X-Frame-Options', value: 'DENY' }],
+				},
+				{
+					path: '/b.html',
+					entries: [
+						{
+							headerName: 'content-security-policy',
+							value: "script-src 'none'",
+						},
+					],
+				},
+				{
+					path: '/c.html',
+					entries: [{ headerName: 'Cache-Control', value: 'no-cache' }],
+				},
+				// cc.html is discarded for not having entries
+				{
+					path: '/d.html',
+					entries: [
+						{ headerName: 'Cache-Control', value: 'no-cache' }, // from c1
+						{ headerName: 'X-Frame-Options', value: 'ALLOW' }, // overriden
+						{ headerName: 'X-XSS-Protection', value: '1; mode=block' }, // from c2
 					],
 				},
 			],

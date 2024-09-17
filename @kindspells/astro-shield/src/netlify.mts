@@ -194,6 +194,52 @@ export const serializeNetlifyHeadersConfig = (
 	return result
 }
 
+const compareConfigEntries = (
+	a: NetlifyPathHeaders | CommentEntry | EmptyLine,
+	b: NetlifyPathHeaders | CommentEntry | EmptyLine,
+): -1 | 0 | 1 => {
+	// We leave comments and empty lines in place
+	return a === '' || b === '' || 'comment' in a || 'comment' in b
+		? 0
+		: a.path < b.path
+			? -1
+			: a.path > b.path
+				? 1
+				: 0
+}
+
+const comparePathEntries = (
+	a: HeaderEntry | CommentEntry,
+	b: HeaderEntry | CommentEntry,
+): -1 | 0 | 1 => {
+	// We leave comments in place
+	return 'comment' in a || 'comment' in b
+		? 0
+		: a.headerName < b.headerName
+			? -1
+			: a.headerName > b.headerName
+				? 1
+				: a.value < b.value // headers can have many values
+					? -1
+					: a.value > b.value
+						? 1
+						: 0
+}
+
+const comparePathEntriesSimplified = (
+	a: HeaderEntry | CommentEntry,
+	b: HeaderEntry | CommentEntry,
+): -1 | 0 | 1 => {
+	// We leave comments in place
+	return 'comment' in a || 'comment' in b
+		? 0
+		: a.headerName < b.headerName
+			? -1
+			: a.headerName > b.headerName
+				? 1
+				: 0
+}
+
 export const buildNetlifyHeadersConfig = (
 	securityHeadersOptions: SecurityHeadersOptions,
 	resourceHashes: Pick<HashesCollection, 'perPageSriHashes'>,
@@ -203,8 +249,10 @@ export const buildNetlifyHeadersConfig = (
 		entries: [],
 	}
 
-	for (const [page, hashes] of resourceHashes.perPageSriHashes) {
-		const entries: (HeaderEntry | CommentEntry)[] = []
+	for (const [page, hashes] of Array.from(
+		resourceHashes.perPageSriHashes,
+	).sort()) {
+		const pathEntries: (HeaderEntry | CommentEntry)[] = []
 
 		if (securityHeadersOptions.contentSecurityPolicy !== undefined) {
 			const directives: CSPDirectives =
@@ -225,19 +273,162 @@ export const buildNetlifyHeadersConfig = (
 				continue
 			}
 
-			entries.push({
+			pathEntries.push({
 				headerName: 'content-security-policy',
 				value: serialiseCspDirectives(directives),
 			})
 		}
 
-		if (entries.length > 0) {
-			config.entries.push({ path: `/${page}`, entries })
+		if (pathEntries.length > 0) {
+			config.entries.push({
+				path: `/${page}`,
+				entries: pathEntries.sort(comparePathEntries),
+			})
 		}
 	}
 
 	return config
 }
 
-// mergeNetlifyHeadersConfig: netlify headers config + netlify headers config -> netlify headers config
+const mergeNetlifyPathHeaders = (
+	base: (HeaderEntry | CommentEntry)[],
+	patch: (HeaderEntry | CommentEntry)[],
+): (HeaderEntry | CommentEntry)[] => {
+	const merged: (HeaderEntry | CommentEntry)[] = []
+
+	let baseIndex = 0
+	let patchIndex = 0
+	while (baseIndex < base.length && patchIndex < patch.length) {
+		// biome-ignore lint/style/noNonNullAssertion: element is guaranteed to exist
+		const baseEntry = base[baseIndex]!
+		// biome-ignore lint/style/noNonNullAssertion: element is guaranteed to exist
+		const patchEntry = patch[patchIndex]!
+
+		switch (comparePathEntriesSimplified(baseEntry, patchEntry)) {
+			case -1: {
+				merged.push(baseEntry)
+				baseIndex += 1
+				break
+			}
+			case 0: {
+				if ('comment' in patchEntry) {
+					patchIndex += 1 // We discard comments in the patch
+				} else if ('comment' in baseEntry) {
+					merged.push(baseEntry)
+					baseIndex += 1
+				} else {
+					merged.push(patchEntry)
+					baseIndex += 1
+					patchIndex += 1
+				}
+				break
+			}
+			case 1: {
+				merged.push(patchEntry)
+				patchIndex += 1
+				break
+			}
+			default: {
+				throw new Error('Unreachable')
+			}
+		}
+	}
+	for (; baseIndex < base.length; baseIndex += 1) {
+		// biome-ignore lint/style/noNonNullAssertion: <explanation>
+		merged.push(base[baseIndex]!)
+	}
+	for (; patchIndex < patch.length; patchIndex += 1) {
+		// biome-ignore lint/style/noNonNullAssertion: <explanation>
+		merged.push(patch[patchIndex]!)
+	}
+
+	return merged
+}
+
+export const mergeNetlifyHeadersConfig = (
+	base: NetlifyHeadersRawConfig,
+	patch: NetlifyHeadersRawConfig,
+): NetlifyHeadersRawConfig => {
+	const indentWith = base.indentWith
+	const baseEntries = base.entries.slice().sort(compareConfigEntries)
+	const patchEntries = patch.entries.slice().sort(compareConfigEntries)
+	const mergedEntries: NetlifyHeadersRawConfig['entries'] = []
+
+	let baseIndex = 0
+	let patchIndex = 0
+	while (baseIndex < baseEntries.length && patchIndex < patchEntries.length) {
+		// biome-ignore lint/style/noNonNullAssertion: element is guaranteed to exist
+		const baseEntry = baseEntries[baseIndex]!
+		// biome-ignore lint/style/noNonNullAssertion: element is guaranteed to exist
+		const patchEntry = patchEntries[patchIndex]!
+
+		switch (compareConfigEntries(baseEntry, patchEntry)) {
+			case -1: {
+				if (
+					!(
+						typeof baseEntry === 'object' &&
+						'entries' in baseEntry &&
+						baseEntry.entries.length === 0
+					)
+				) {
+					// We discard entries with no headers nor comments
+					mergedEntries.push(baseEntry)
+				}
+				baseIndex += 1
+				break
+			}
+			case 0: {
+				if (patchEntry === '' || 'comment' in patchEntry) {
+					patchIndex += 1 // We discard comments in the patch
+				} else if (baseEntry === '' || 'comment' in baseEntry) {
+					mergedEntries.push(patchEntry)
+					patchIndex += 1
+				} else if (baseEntry.path === patchEntry.path) {
+					mergedEntries.push({
+						path: baseEntry.path,
+						entries: mergeNetlifyPathHeaders(
+							baseEntry.entries,
+							patchEntry.entries,
+						),
+					})
+					baseIndex += 1
+					patchIndex += 1
+				} else {
+					throw new Error('Unreachable')
+				}
+				break
+			}
+			case 1: {
+				if (
+					!(
+						typeof patchEntry === 'object' &&
+						'entries' in patchEntry &&
+						patchEntry.entries.length === 0
+					)
+				) {
+					// We discard entries with no headers nor comments
+					mergedEntries.push(patchEntry)
+				}
+				patchIndex += 1
+				break
+			}
+			default:
+				throw new Error('Unreachable')
+		}
+	}
+	for (; baseIndex < baseEntries.length; baseIndex += 1) {
+		// biome-ignore lint/style/noNonNullAssertion: element is guaranteed to exist
+		mergedEntries.push(baseEntries[baseIndex]!)
+	}
+	for (; patchIndex < patchEntries.length; patchIndex += 1) {
+		// biome-ignore lint/style/noNonNullAssertion: element is guaranteed to exist
+		mergedEntries.push(patchEntries[patchIndex]!)
+	}
+
+	return {
+		indentWith,
+		entries: mergedEntries,
+	}
+}
+
 // patchNetlifyHeadersConfig: the orchestrator
