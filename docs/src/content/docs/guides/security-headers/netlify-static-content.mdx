@@ -62,7 +62,22 @@ export default defineConfig({
 `}
 />
 
+<Aside type='caution'>
+  As of today, the support for headers generation on static pages is limited to
+  the `_headers` file that Netlify reads from the deploy directory (typically
+  `dist/`).
+
+  Support for other methods, such as the `netlify.toml` file is not yet available.
+</Aside>
+
 <Aside type='tip'>
   To see how to configure CSP headers for your dynamic content, check the page
   [Content-Security-Policy (CSP)](/guides/security-headers/content-security-policy/).
+</Aside>
+
+<Aside type='tip'>
+  To learn more about how to configure headers for static content on Netlify,
+  see their official documentation:
+  - [Netlify: Headers](https://docs.netlify.com/routing/headers)
+  - [Netlify: File Based Configuration (Headers)](https://docs.netlify.com/configure-builds/file-based-configuration/#headers)
 </Aside>
