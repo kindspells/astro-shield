@@ -9,6 +9,12 @@ import { shield } from '@kindspells/astro-shield'
 import aws from 'astro-sst'
 import { defineConfig, passthroughImageService } from 'astro/config'
 
+const locales = {
+	root: { lang: 'en', label: 'English' },
+	ca: { lang: 'ca', label: 'Català' },
+	es: { lang: 'es', label: 'Español' },
+}
+
 export default defineConfig({
 	output: 'static',
 	adapter: aws(),
@@ -20,27 +26,35 @@ export default defineConfig({
 		shield({}),
 		starlight({
 			title: 'Astro-Shield Docs',
-			defaultLocale: 'en',
-			locales: {
-				root: {
-					label: 'English',
-					lang: 'en',
-				},
-				en: {
-					label: 'English',
-					lang: 'en',
-				},
-			},
+			defaultLocale: 'root',
+			locales,
 			social: {
 				github: 'https://github.com/kindspells/astro-shield',
 			},
 			sidebar: [
 				{
 					label: 'Start Here',
-					items: [{ label: 'Getting Started', link: '/getting-started/' }],
+					translations: {
+						ca: 'Comença Aquí',
+						es: 'Empieza Aquí',
+					},
+					items: [
+						{
+							label: 'Getting Started',
+							translations: {
+								ca: 'Començant',
+								es: 'Empezando',
+							},
+							link: '/getting-started/',
+						},
+					],
 				},
 				{
 					label: 'Guides',
+					translations: {
+						ca: 'Guies',
+						es: 'Guías',
+					},
 					items: [
 						{
 							label: 'Subresource Integrity',
@@ -50,12 +64,20 @@ export default defineConfig({
 						},
 						{
 							label: 'Security Headers',
+							translations: {
+								ca: 'Capçaleres de Seguretat',
+								es: 'Cabeceras de Seguridad',
+							},
 							autogenerate: {
 								directory: 'guides/security-headers',
 							},
 						},
 						{
 							label: 'Hosting Integrations',
+							translations: {
+								ca: "Proveïdors d'Allotjament",
+								es: 'Proveedores de Alojamiento',
+							},
 							autogenerate: {
 								directory: 'guides/hosting-integrations',
 							},
@@ -64,25 +86,46 @@ export default defineConfig({
 				},
 				{
 					label: 'Reference',
-					items: [{ label: 'Configuration', link: '/reference/configuration/' }],
+					translations: {
+						ca: 'Referència',
+						es: 'Referencia',
+					},
+					items: [
+						{
+							label: 'Configuration',
+							translations: {
+								ca: 'Configuració',
+								es: 'Configuración',
+							},
+							link: '/reference/configuration/',
+						},
+					],
 				},
 				{
 					label: 'Other',
+					translations: {
+						ca: 'Altres',
+						es: 'Otros',
+					},
 					items: [
 						{
 							label: 'Known Limitations',
+							translations: {
+								ca: 'Problemes Coneguts',
+								es: 'Problemas Conocidos',
+							},
 							link: '/other/known-limitations/',
 						},
 						{
 							label: 'Contributing',
+							translations: {
+								ca: 'Contribució',
+								es: 'Contribución',
+							},
 							link: 'https://github.com/kindspells/astro-shield/blob/main/CONTRIBUTING.md',
 						},
 					],
 				},
-				// {
-				// 	label: 'Reference',
-				// 	autogenerate: { directory: 'reference' },
-				// },
 			],
 		}),
 	],

@@ -17,7 +17,7 @@
 	},
 	"devDependencies": {
 		"@astrojs/check": "^0.9.3",
-		"@astrojs/starlight": "^0.27.1",
+		"@astrojs/starlight": "^0.28.1",
 		"@astrojs/ts-plugin": "^1.10.2",
 		"@kindspells/astro-shield": "workspace:^",
 		"astro": "^4.15.7",
