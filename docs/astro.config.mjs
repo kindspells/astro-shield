@@ -54,7 +54,17 @@ export default defineConfig({
 								directory: 'guides/security-headers',
 							},
 						},
+						{
+							label: 'Hosting Integrations',
+							autogenerate: {
+								directory: 'guides/hosting-integrations',
+							},
+						},
 					],
+				},
+				{
+					label: 'Reference',
+					items: [{ label: 'Configuration', link: '/reference/configuration/' }],
 				},
 				{
 					label: 'Other',

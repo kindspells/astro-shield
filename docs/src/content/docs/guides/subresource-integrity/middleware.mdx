@@ -15,9 +15,7 @@ By default, Astro-Shield does not enable SRI for SSR (Server-Side-Rendered)
 content, but you can easily enable it by setting the `sri.enableMiddleware`
 option to `true` in your Astro config file.
 
-<Code
-    lang="javascript"
-    code={`
+```js
 import { resolve } from 'node:path'
 
 import { defineConfig } from 'astro/config'
@@ -36,8 +34,7 @@ export default defineConfig({
     }),
   ],
 })
-`}
-/>
+```
 
 <Aside type="caution">
   When enabling SRI for SSR content it is advisable to set the
@@ -55,9 +52,7 @@ safe.
 
 We can define a list of allowed resource URLs like in the example below:
 
-<Code
-    lang="javascript"
-    code={`
+```js
 import { resolve } from 'node:path'
 
 import { defineConfig } from 'astro/config'
@@ -83,8 +78,7 @@ export default defineConfig({
     }),
   ],
 })
-`}
-/>
+```
 
 <Aside type="note">
   Resources that are served from the same origin are allowed. We don't need to
@@ -100,9 +94,7 @@ You can do this by setting the options `sri.allowInlineScripts` and
 `sri.allowInlineStyles` to `false` or `'static'` (this one allows inline
 resources only in static content).
 
-<Code
-    lang="javascript"
-    code={`
+```js
 import { resolve } from 'node:path'
 
 import { defineConfig } from 'astro/config'
@@ -124,8 +116,7 @@ export default defineConfig({
     }),
   ],
 })
-`}
-/>
+```
 
 <Aside type="caution">
   Astro might decide to inline some resources in the final HTML output for
@@ -134,16 +125,13 @@ export default defineConfig({
 
   As a workaround, we can force `Vite` to never inline resources by adding the
   following configuration to the `astro.config.mjs` file:
-  <Code
-    lang="javascript"
-    code={`
-import { defineConfig } from 'astro/config'
+  ```js
+  import { defineConfig } from 'astro/config'
 
-export default defineConfig({
-  vite: {
-    build: { assetsInlineLimit: 0 },
-  },
-})
-`}
-  />
+  export default defineConfig({
+    vite: {
+      build: { assetsInlineLimit: 0 },
+    },
+  })
+  ```
 </Aside>
