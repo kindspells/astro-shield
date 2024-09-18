@@ -1,0 +1,43 @@
+---
+# SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+#
+# SPDX-License-Identifier: MIT
+
+title: Benvingut a Astro-Shield
+description: Protegeix les teves pàgines web Astro amb Astro-Shield.
+template: splash
+hero:
+  tagline: Comença a protegir la teva pàgina web amb Astro-Shield!
+  image:
+    file: ../../../assets/astro-shield.webp
+  actions:
+    - text: Començar
+      link: /getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: Aprèn sobre les integracions d'Astro
+      link: https://docs.astro.build/en/guides/integrations-guide/
+      icon: external
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Què fa
+
+<CardGrid stagger>
+    <Card title="Implementar la Integritat de Subrecursos" icon="pencil">
+        Astro-Shield s'encarrega de calcular els hashes SRI i de configurar l'atribut
+        `integrity` a les etiquetes de script i estil per a tu.
+    </Card>
+    <Card title="Configurar les capçaleres de Content-Security-Policy" icon="seti:lock">
+        Astro-Shield pot configurar automàticament les capçaleres de `Content-Security-Policy`
+        per a tu.
+    </Card>
+    <Card title="Bloquejar scripts injectats" icon="close">
+        Quan Astro-Shield detecta un script sospitós (és a dir, probablement injectat per
+        un atacant), l'eliminarà de l'HTML renderitzat.
+    </Card>
+    {/* <Card title="Prevenir la Contaminació de Prototips" icon="seti:gulp">
+        Blablablah...
+    </Card> */}
+</CardGrid>

@@ -1,0 +1,55 @@
+---
+# SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+#
+# SPDX-License-Identifier: MIT
+
+title: Empezando
+description: Empieza a proteger tus sitios web Astro con Astro-Shield.
+---
+
+## Introducción
+
+Astro-Shield te ayudará a mejorar la seguridad de tu sitio Astro permitiéndote
+aplicar muchas de las mejores prácticas de seguridad, tales como:
+- [Integridad de Subrecursos](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity)
+- [Política de Seguridad de Contenidos](https://developer.mozilla.org/es/docs/Web/HTTP/CSP)
+
+## Cómo instalar
+
+import { Code, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Para instalar, ejecuta el siguiente comando en tu terminal:
+
+<Tabs>
+  <TabItem label="npm">
+```bash
+npm install --save-dev @kindspells/astro-Shield
+```
+  </TabItem>
+  <TabItem label="pnpm">
+```bash
+pnpm add --save-dev @kindspells/astro-shield
+```
+  </TabItem>
+  <TabItem label="yarn">
+```bash
+yarn add --dev @kindspells/astro-shield
+```
+  </TabItem>
+</Tabs>
+
+## Activando la integración
+
+En tu archivo `astro.config.mjs`, importa Astro-Shield y agrégalo a la lista
+de integraciones:
+
+```js
+import { defineConfig } from 'astro/config'
+import { shield } from '@kindspells/astro-shield'
+
+export default defineConfig({
+  integrations: [
+    shield({})
+  ]
+})
+```
