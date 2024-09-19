@@ -236,6 +236,7 @@ export const updateStaticPageSriHashes = async (
 							const resourcePath = resolve(distDir, `.${src}`)
 							resourceContent = await readFile(resourcePath)
 						} else {
+							// TODO: should we remove the element?
 							logger.warn(`Unable to process external resource: "${src}"`)
 							continue
 						}

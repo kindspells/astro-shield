@@ -820,6 +820,143 @@ describe('updateStaticPageSriHashes', () => {
 		expect(h.extScriptHashes.size).toBe(0)
 		expect(h.inlineStyleHashes.size).toBe(0)
 	})
+
+	it('removes inline scripts (without precomputed sri hash) when they are not allowed', async () => {
+		// No "pre-loaded" hashes
+		const h = getEmptyHashes()
+
+		const content = `<!DOCTYPE html><html lang="en">
+		<head>
+			<title>My Static Test Site</title>
+			<script type="module">console.log("Hello!");
+	</script>
+	</head>
+	<body>
+		<h1>The Title</h1>
+		<p>The text</p>
+	</body>
+</html>`
+
+		const expected = `<!DOCTYPE html><html lang="en">
+		<head>
+			<title>My Static Test Site</title>
+			
+	</head>
+	<body>
+		<h1>The Title</h1>
+		<p>The text</p>
+	</body>
+</html>`
+
+		const updated = await updateStaticPageSriHashes(
+			console,
+			testsDir,
+			'index.html',
+			content,
+			h,
+			false,
+		)
+
+		expect(updated).toEqual(expected)
+
+		// "no changes"
+		expect(h.inlineScriptHashes.size).toBe(0)
+		expect(h.inlineStyleHashes.size).toBe(0)
+		expect(h.extScriptHashes.size).toBe(0)
+		expect(h.extStyleHashes.size).toBe(0)
+	})
+
+	it('removes inline styles (without precomputed sri hash) when they are not allowed', async () => {
+		// No "pre-loaded" hashes
+		const h = getEmptyHashes()
+
+		const content = `<!DOCTYPE html><html lang="en">
+		<head>
+			<title>My Static Test Site</title>
+			<style>h1 { color: red; }</style>
+	</head>
+	<body>
+		<h1>The Title</h1>
+		<p>The text</p>
+	</body>
+</html>`
+
+		const expected = `<!DOCTYPE html><html lang="en">
+		<head>
+			<title>My Static Test Site</title>
+			
+	</head>
+	<body>
+		<h1>The Title</h1>
+		<p>The text</p>
+	</body>
+</html>`
+
+		const updated = await updateStaticPageSriHashes(
+			console,
+			testsDir,
+			'index.html',
+			content,
+			h,
+			'all', // irrelevant for this test
+			false,
+		)
+
+		expect(updated).toEqual(expected)
+
+		// "no changes"
+		expect(h.inlineScriptHashes.size).toBe(0)
+		expect(h.inlineStyleHashes.size).toBe(0)
+		expect(h.extScriptHashes.size).toBe(0)
+		expect(h.extStyleHashes.size).toBe(0)
+	})
+
+	it('skips resources using unknown protocol', async () => {
+		const remoteScript = 'ftp://example.com/myscript.js'
+		const content = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<script type="module" src="${remoteScript}"></script>
+			</body>
+		</html>`
+
+		// TODO: we should probably remove the script as well
+		const expected = `<html>
+			<head>
+				<title>My Test Page</title>
+			</head>
+			<body>
+				<script type="module" src="${remoteScript}"></script>
+			</body>
+		</html>`
+
+		const h = getEmptyHashes()
+		let warnCounter = 0
+		const updated = await updateStaticPageSriHashes(
+			{
+				info: () => {},
+				warn: () => {
+					warnCounter += 1
+				},
+				error: () => {},
+			},
+			rootDir,
+			'index.html',
+			content,
+			h,
+		)
+
+		expect(updated).toEqual(expected)
+		expect(warnCounter).toBe(1)
+
+		// "no changes"
+		expect(h.inlineScriptHashes.size).toBe(0)
+		expect(h.inlineStyleHashes.size).toBe(0)
+		expect(h.extScriptHashes.size).toBe(0)
+		expect(h.extStyleHashes.size).toBe(0)
+	})
 })
 
 describe('updateDynamicPageSriHashes', () => {
