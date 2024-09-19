@@ -9,6 +9,7 @@ import { resolve } from 'node:path'
 
 import type { HashesCollection, Logger, SRIOptions } from './types.mts'
 
+/** @internal */
 export const doesFileExist = async (path: string): Promise<boolean> => {
 	try {
 		await stat(path)
@@ -21,6 +22,7 @@ export const doesFileExist = async (path: string): Promise<boolean> => {
 	}
 }
 
+/** @internal */
 export const scanDirectory = async (
 	logger: Logger,
 	currentPath: string,

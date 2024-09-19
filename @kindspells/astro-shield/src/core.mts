@@ -24,6 +24,7 @@ import type {
 	StrictShieldOptions,
 } from './types.mts'
 import { patchNetlifyHeadersConfig } from './netlify.mts'
+import { exhaustiveGuard } from './utils.mts'
 
 export type HashesModule = {
 	[k in keyof HashesCollection]: HashesCollection[k] extends Set<string>
@@ -31,10 +32,6 @@ export type HashesModule = {
 		: k extends 'perPageSriHashes'
 			? Record<string, { scripts: string[]; styles: string[] }>
 			: Record<'scripts' | 'styles', Record<string, string>>
-}
-
-const exhaustiveGuard = (_v: never, caseName: string): void => {
-	throw new Error(`Unknown ${caseName}: ${_v}`)
 }
 
 export const generateSRIHash = (
@@ -964,7 +961,8 @@ export const onRequest = await (async () => {
 `
 }
 
-const getViteMiddlewarePlugin = (
+/** @internal */
+export const getViteMiddlewarePlugin = (
 	logger: Logger,
 	sri: Required<SRIOptions>,
 	securityHeaders: SecurityHeadersOptions | undefined,

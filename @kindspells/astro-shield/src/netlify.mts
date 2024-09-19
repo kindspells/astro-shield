@@ -127,11 +127,11 @@ const processPathLine = (
 ): void => {
 	let match: RegExpMatchArray | null = null
 
-	// biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
+	// biome-ignore lint/suspicious/noAssignInExpressions: best way to do it
 	if ((match = commentRegex.exec(line))) {
 		pushEntry(match, lineNum, line, pushComment, ctx)
 	}
-	// biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
+	// biome-ignore lint/suspicious/noAssignInExpressions: best way to do it
 	else if ((match = headerRegex.exec(line))) {
 		pushEntry(match, lineNum, line, pushHeader, ctx)
 	} else if (!spacesRegex.test(line)) {
@@ -211,7 +211,8 @@ const compareConfigEntries = (
 				: 0
 }
 
-const comparePathEntries = (
+/** @internal */
+export const comparePathEntries = (
 	a: HeaderEntry | CommentEntry,
 	b: HeaderEntry | CommentEntry,
 ): -1 | 0 | 1 => {
@@ -229,7 +230,8 @@ const comparePathEntries = (
 						: 0
 }
 
-const comparePathEntriesSimplified = (
+/** @internal */
+export const comparePathEntriesSimplified = (
 	a: HeaderEntry | CommentEntry,
 	b: HeaderEntry | CommentEntry,
 ): -1 | 0 | 1 => {
@@ -344,11 +346,11 @@ const mergeNetlifyPathHeaders = (
 		}
 	}
 	for (; baseIndex < base.length; baseIndex += 1) {
-		// biome-ignore lint/style/noNonNullAssertion: <explanation>
+		// biome-ignore lint/style/noNonNullAssertion: guaranteed to exist
 		merged.push(base[baseIndex]!)
 	}
 	for (; patchIndex < patch.length; patchIndex += 1) {
-		// biome-ignore lint/style/noNonNullAssertion: <explanation>
+		// biome-ignore lint/style/noNonNullAssertion: guaranteed to exist
 		merged.push(patch[patchIndex]!)
 	}
 

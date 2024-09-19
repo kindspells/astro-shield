@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest'
 import type { NetlifyHeadersRawConfig } from '../netlify.mts'
 import {
 	buildNetlifyHeadersConfig,
+	comparePathEntries,
+	comparePathEntriesSimplified,
 	mergeNetlifyHeadersConfig,
 	parseNetlifyHeadersConfig,
 	readNetlifyHeadersFile,
@@ -30,6 +32,104 @@ const testEntries = [
 		],
 	},
 ] satisfies NetlifyHeadersRawConfig['entries']
+
+describe('comparePathEntries', () => {
+	it.each([
+		[{ comment: 'Comment A' }, { comment: 'Comment B' }],
+		[
+			{ comment: 'Comment A' },
+			{ headerName: 'X-Frame-Options', value: 'DENY' },
+		],
+		[
+			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			{ comment: 'Comment A' },
+		],
+	] as const)('returns 0 if there is any comment', (entryA, entryB) => {
+		expect(comparePathEntries(entryA, entryB)).toBe(0)
+	})
+
+	it.each([
+		[
+			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			0,
+		],
+		[
+			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			-1,
+		],
+		[
+			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			1,
+		],
+		[
+			{ headerName: 'X-Frame-Options', value: 'ALLOW' },
+			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			-1,
+		],
+		[
+			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			{ headerName: 'X-Frame-Options', value: 'ALLOW' },
+			1,
+		],
+	] as const)(
+		'compares headers by name and value',
+		(entryA, entryB, result) => {
+			expect(comparePathEntries(entryA, entryB)).toBe(result)
+		},
+	)
+})
+
+describe('comparePathEntriesSimplified', () => {
+	it.each([
+		[{ comment: 'Comment A' }, { comment: 'Comment B' }],
+		[
+			{ comment: 'Comment A' },
+			{ headerName: 'X-Frame-Options', value: 'DENY' },
+		],
+		[
+			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			{ comment: 'Comment A' },
+		],
+	] as const)('returns 0 if there is any comment', (entryA, entryB) => {
+		expect(comparePathEntriesSimplified(entryA, entryB)).toBe(0)
+	})
+
+	it.each([
+		[
+			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			0,
+		],
+		[
+			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			-1,
+		],
+		[
+			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			1,
+		],
+		[
+			{ headerName: 'X-Frame-Options', value: 'ALLOW' },
+			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			0,
+		],
+		[
+			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			{ headerName: 'X-Frame-Options', value: 'ALLOW' },
+			0,
+		],
+	] as const)(
+		'compares headers by name and value',
+		(entryA, entryB, result) => {
+			expect(comparePathEntriesSimplified(entryA, entryB)).toBe(result)
+		},
+	)
+})
 
 describe('parseNetlifyHeadersConfig', () => {
 	it('parses a valid config (tabs)', () => {

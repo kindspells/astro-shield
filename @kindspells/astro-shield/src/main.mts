@@ -51,7 +51,7 @@ export const shield = ({
 	} satisfies Required<SRIOptions>
 
 	if (_sri.hashesModule && _sri.enableStatic === false) {
-		logWarn('`sriHashesModule` is ignored when `enableStatic_SRI` is `false`')
+		logWarn('`sri.hashesModule` is ignored when `sri.enableStatic` is `false`')
 	}
 
 	return {

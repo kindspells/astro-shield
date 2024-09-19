@@ -73,3 +73,9 @@ tasks:
       - 'coverage-unit/**/*'
     deps:
       - '~:build'
+  test:
+    deps:
+      - '~:test.unit.cov'
+      - '~:test.e2e'
+    options:
+      runInCI: false

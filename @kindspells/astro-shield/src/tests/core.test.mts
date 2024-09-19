@@ -21,6 +21,8 @@ import {
 	sriHashesEqual,
 	updateDynamicPageSriHashes,
 	updateStaticPageSriHashes,
+	getAstroConfigSetup,
+	getViteMiddlewarePlugin,
 } from '../core.mts'
 import { doesFileExist } from '../fs.mts'
 
@@ -2027,5 +2029,69 @@ describe('getCSPMiddlewareHandler', () => {
 		<!-- The script will be removed -->
 	</body>
 </html>`)
+	})
+})
+
+describe('getViteMiddlewarePlugin', () => {
+	it('returns a vite middleware plugin object', async () => {
+		const plugin = getViteMiddlewarePlugin(
+			console,
+			{
+				enableStatic: false,
+				enableMiddleware: false,
+				allowInlineScripts: false,
+				allowInlineStyles: false,
+				hashesModule: '/path/to/hashes.mjs',
+				scriptsAllowListUrls: [],
+				stylesAllowListUrls: [],
+			},
+			{},
+			'/path/to/site/',
+		)
+
+		expect(plugin).toHaveProperty('name')
+		expect(plugin).toHaveProperty('resolveId')
+		expect(plugin).toHaveProperty('load')
+
+		expect(plugin.name).toBe('vite-plugin-astro-shield')
+
+		assert(typeof plugin.resolveId === 'function')
+		expect(
+			(plugin.resolveId as unknown as (a: string) => string | undefined)(
+				'virtual:@kindspells/astro-shield/middleware',
+			),
+		).toStrictEqual('\u0000virtual:@kindspells/astro-shield/middleware')
+		expect(
+			(plugin.resolveId as unknown as (a: string) => string | undefined)(
+				'virtual:@something/else/middleware',
+			),
+		).toStrictEqual(undefined)
+
+		assert(typeof plugin.load === 'function')
+		// We won't check the "happy path" because it triggers too many side effects
+		expect(
+			await (plugin.load as (a: string) => Promise<string | undefined>)(
+				'virtual:@something/else/middleware',
+			),
+		).toStrictEqual(undefined)
+	})
+})
+
+describe('getAstroConfigSetup', () => {
+	// We don't test anything else because it would trigger too many side effects
+	it('returns an "astro:config:setup" hook function', () => {
+		const setup = getAstroConfigSetup(
+			{
+				enableStatic: false,
+				enableMiddleware: false,
+				allowInlineScripts: false,
+				allowInlineStyles: false,
+				hashesModule: '/path/to/hashes.mjs',
+				scriptsAllowListUrls: [],
+				stylesAllowListUrls: [],
+			},
+			{},
+		)
+		expect(typeof setup).toBe('function')
 	})
 })
