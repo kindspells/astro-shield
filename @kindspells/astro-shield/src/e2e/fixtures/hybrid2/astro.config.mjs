@@ -9,13 +9,8 @@ import node from '@astrojs/node'
 import { shield } from '@kindspells/astro-shield'
 import { defineConfig } from 'astro/config'
 
-/**
- * @typedef {{ -readonly [key in keyof T]: T[key] }} Mutable<T>
- * @template {any} T
- */
-
 const rootDir = new URL('.', import.meta.url).pathname
-const sriHashesModule = resolve(rootDir, 'src', 'generated', 'sri.mjs')
+const hashesModule = resolve(rootDir, 'src', 'generated', 'sri.mjs')
 
 // https://astro.build/config
 export default defineConfig({
@@ -24,9 +19,11 @@ export default defineConfig({
 	adapter: node({ mode: 'standalone' }),
 	integrations: [
 		shield({
-			enableStatic_SRI: true,
-			enableMiddleware_SRI: true,
-			sriHashesModule,
+			sri: {
+				enableStatic: true,
+				enableMiddleware: true,
+				hashesModule,
+			},
 		}),
 	],
 	vite: {

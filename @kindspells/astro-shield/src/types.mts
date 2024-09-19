@@ -161,15 +161,6 @@ export type ShieldOptions = {
 	 * Defaults to `undefined`.
 	 */
 	securityHeaders?: SecurityHeadersOptions | undefined
-
-	/** @deprecated Use `sri.enableStatic` instead. */
-	enableStatic_SRI?: boolean | undefined
-
-	/** @deprecated Use `sri.enableMiddleware` instead. */
-	enableMiddleware_SRI?: boolean | undefined
-
-	/** @deprecated Use `sri.hashesModule` instead. */
-	sriHashesModule?: string | undefined
 }
 
 export type StrictShieldOptions = ShieldOptions & {

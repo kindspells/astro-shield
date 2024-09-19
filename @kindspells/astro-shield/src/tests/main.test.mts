@@ -52,8 +52,10 @@ describe('sriCSP', () => {
 
 	it('returns hooks only for dynamic content when we enable middleware and disable static sri', () => {
 		const integration = shield({
-			enableStatic_SRI: false,
-			enableMiddleware_SRI: true,
+			sri: {
+				enableStatic: false,
+				enableMiddleware: true,
+			},
 		})
 		checkIntegration(integration, ['astro:config:setup'])
 	})

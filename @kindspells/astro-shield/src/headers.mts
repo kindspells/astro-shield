@@ -1,4 +1,4 @@
-import type { PerPageHashes } from './types.mts'
+import type { CSPDirectiveNames, PerPageHashes } from './types.mts'
 import type {
 	CSPDirectives,
 	CSPOptions,
@@ -51,10 +51,10 @@ export const parseCspDirectives = (cspHeader: string): CSPDirectives => {
 						const parts = directive
 							.replace(spacesRegex, '||||||')
 							.split('||||||')
-						return /** @type {[CSPDirectiveNames, string]} */ ([
-							parts[0],
-							parts[1] ?? '',
-						])
+						return [parts[0] as CSPDirectiveNames, parts[1] ?? ''] satisfies [
+							CSPDirectiveNames,
+							string,
+						]
 					}) ?? [],
 			)
 		: {}

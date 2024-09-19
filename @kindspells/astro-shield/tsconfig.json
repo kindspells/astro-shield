@@ -17,10 +17,6 @@
 
 		"strict": true,
 		"noImplicitAny": true,
-		"strictNullChecks": true,
-		"strictFunctionTypes": true,
-		"strictBindCallApply": true,
-		"strictPropertyInitialization": true,
 		"noImplicitThis": true,
 		"useUnknownInCatchVariables": true,
 		"alwaysStrict": true,
@@ -31,7 +27,6 @@
 		"noImplicitOverride": true,
 		"noPropertyAccessFromIndexSignature": false,
 		"noUncheckedSideEffectImports": true,
-		"strictBuiltinIteratorReturn": true,
 
 		"skipLibCheck": true
 	},

@@ -8,11 +8,6 @@ import node from '@astrojs/node'
 import { shield } from '@kindspells/astro-shield'
 import { defineConfig } from 'astro/config'
 
-/**
- * @typedef {{ -readonly [key in keyof T]: T[key] }} Mutable<T>
- * @template {any} T
- */
-
 // https://astro.build/config
 export default defineConfig({
 	output: 'server',
@@ -20,8 +15,10 @@ export default defineConfig({
 	adapter: node({ mode: 'standalone' }),
 	integrations: [
 		shield({
-			enableStatic_SRI: false,
-			enableMiddleware_SRI: true,
+			sri: {
+				enableStatic: false,
+				enableMiddleware: true,
+			},
 		}),
 	],
 })

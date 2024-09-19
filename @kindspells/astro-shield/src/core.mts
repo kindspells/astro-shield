@@ -725,21 +725,23 @@ export async function generateSRIHashesModule(
 	}
 }
 
+const newHashesCollection = (): HashesCollection => ({
+	inlineScriptHashes: new Set(),
+	inlineStyleHashes: new Set(),
+	extScriptHashes: new Set(),
+	extStyleHashes: new Set(),
+	perPageSriHashes: new Map(),
+	perResourceSriHashes: {
+		scripts: new Map(),
+		styles: new Map(),
+	},
+})
+
 export const processStaticFiles = async (
 	logger: Logger,
 	{ distDir, sri, securityHeaders }: StrictShieldOptions,
 ): Promise<void> => {
-	const h = {
-		inlineScriptHashes: new Set(),
-		inlineStyleHashes: new Set(),
-		extScriptHashes: new Set(),
-		extStyleHashes: new Set(),
-		perPageSriHashes: new Map(),
-		perResourceSriHashes: {
-			scripts: new Map(),
-			styles: new Map(),
-		},
-	} satisfies HashesCollection
+	const h = newHashesCollection()
 
 	await scanAllowLists(sri, h)
 	await scanForNestedResources(logger, distDir, h)
@@ -884,17 +886,7 @@ const loadVirtualMiddlewareModule = async (
 		}
 
 		if (shouldRegenerateHashesModule) {
-			const h = {
-				inlineScriptHashes: new Set(),
-				inlineStyleHashes: new Set(),
-				extScriptHashes: new Set(),
-				extStyleHashes: new Set(),
-				perPageSriHashes: new Map(),
-				perResourceSriHashes: {
-					scripts: new Map(),
-					styles: new Map(),
-				},
-			} satisfies HashesCollection
+			const h = newHashesCollection()
 
 			// We generate a provisional hashes module. It won't contain the hashes for
 			// resources created by Astro, but it can be useful nonetheless.

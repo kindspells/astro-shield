@@ -9,13 +9,8 @@ import { env } from 'node:process'
 import { shield } from '@kindspells/astro-shield'
 import { defineConfig } from 'astro/config'
 
-/**
- * @typedef {{ -readonly [key in keyof T]: T[key] }} Mutable<T>
- * @template {any} T
- */
-
 const rootDir = new URL('.', import.meta.url).pathname
-const sriHashesModule = resolve(rootDir, 'src', 'generated', 'sri.mjs')
+const hashesModule = resolve(rootDir, 'src', 'generated', 'sri.mjs')
 
 // https://astro.build/config
 export default defineConfig({
@@ -23,12 +18,14 @@ export default defineConfig({
 	trailingSlash: 'always',
 	integrations: [
 		shield({
-			...((env.ENABLE_SRI_MODULE ?? 'true') === 'true'
-				? { sriHashesModule }
-				: undefined),
-			...(env.ENABLE_STATIC_SRI
-				? { enableStatic_SRI: env.ENABLE_STATIC_SRI === 'true' }
-				: undefined),
+			sri: {
+				...((env.ENABLE_SRI_MODULE ?? 'true') === 'true'
+					? { hashesModule }
+					: undefined),
+				...(env.ENABLE_STATIC_SRI
+					? { enableStatic: env.ENABLE_STATIC_SRI === 'true' }
+					: undefined),
+			},
 		}),
 	],
 })
