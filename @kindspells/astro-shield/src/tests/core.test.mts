@@ -830,7 +830,7 @@ describe('updateDynamicPageSriHashes', () => {
 		}
 	}
 
-	it('adds sri hash to inline script', async () => {
+	it('adds sri hash to inline script', () => {
 		const content = `<html>
 			<head>
 				<title>My Test Page</title>
@@ -869,7 +869,7 @@ describe('updateDynamicPageSriHashes', () => {
 		)
 	})
 
-	it('preserves sri hash in inline script', async () => {
+	it('preserves sri hash in inline script', () => {
 		const content = `<html>
 			<head>
 				<title>My Test Page</title>
@@ -908,7 +908,7 @@ describe('updateDynamicPageSriHashes', () => {
 		)
 	})
 
-	it('adds sri hash to inline style', async () => {
+	it('adds sri hash to inline style', () => {
 		const content = `<html>
 			<head>
 				<title>My Test Page</title>
@@ -950,7 +950,7 @@ describe('updateDynamicPageSriHashes', () => {
 		expect(h.styles.size).toBe(0)
 	})
 
-	it('adds sri hash to external script (same origin)', async () => {
+	it('adds sri hash to external script (same origin)', () => {
 		const content = `<html>
 			<head>
 				<title>My Test Page</title>
@@ -1000,7 +1000,7 @@ describe('updateDynamicPageSriHashes', () => {
 		expect(pageHashes.styles.size).toBe(0)
 	})
 
-	it('removes external script when not explicitly allowed (cross origin)', async () => {
+	it('removes external script when not explicitly allowed (cross origin)', () => {
 		const remoteScript =
 			'https://raw.githubusercontent.com/KindSpells/astro-shield/ae9521048f2129f633c075b7f7ef24e11bbd1884/main.mjs'
 		const content = `<html>
@@ -1049,7 +1049,7 @@ describe('updateDynamicPageSriHashes', () => {
 		expect(pageHashes.styles.size).toBe(0)
 	})
 
-	it('adds sri hash to external script when allow-listed (cross origin)', async () => {
+	it('adds sri hash to external script when allow-listed (cross origin)', () => {
 		const remoteScript =
 			'https://raw.githubusercontent.com/KindSpells/astro-shield/ae9521048f2129f633c075b7f7ef24e11bbd1884/main.mjs'
 		const content = `<html>
@@ -1096,7 +1096,7 @@ describe('updateDynamicPageSriHashes', () => {
 		expect(pageHashes.styles.size).toBe(0)
 	})
 
-	it('adds sri hash to external script without duplicating the crossorigin attribute when allow-listed (cross origin)', async () => {
+	it('adds sri hash to external script without duplicating the crossorigin attribute when allow-listed (cross origin)', () => {
 		const remoteScript =
 			'https://raw.githubusercontent.com/KindSpells/astro-shield/ae9521048f2129f633c075b7f7ef24e11bbd1884/main.mjs'
 		const content = `<html>
@@ -1143,7 +1143,7 @@ describe('updateDynamicPageSriHashes', () => {
 		expect(pageHashes.styles.size).toBe(0)
 	})
 
-	it('adds sri hash to external script when allow-listed (cross origin, "relative protocl")', async () => {
+	it('adds sri hash to external script when allow-listed (cross origin, "relative protocl")', () => {
 		const remoteScript =
 			'//raw.githubusercontent.com/KindSpells/astro-shield/ae9521048f2129f633c075b7f7ef24e11bbd1884/main.mjs'
 		const content = `<html>
@@ -1190,7 +1190,7 @@ describe('updateDynamicPageSriHashes', () => {
 		expect(pageHashes.styles.size).toBe(0)
 	})
 
-	it('adds sri hash to external style (same origin)', async () => {
+	it('adds sri hash to external style (same origin)', () => {
 		const content = `<html>
 			<head>
 				<title>My Test Page</title>
@@ -1244,7 +1244,7 @@ describe('updateDynamicPageSriHashes', () => {
 	})
 
 	// TODO: Maybe some day we don't treat the next case as special
-	it('leaves untouched "dev" resources', async () => {
+	it('leaves untouched "dev" resources', () => {
 		const content = `<html>
 			<head>
 				<title>My Test Page</title>
@@ -1287,7 +1287,7 @@ describe('updateDynamicPageSriHashes', () => {
 		expect(warnCalls).toBe(0)
 	})
 
-	it('logs problems to get SRI hash for "local" resource', async () => {
+	it('logs problems to get SRI hash for "local" resource', () => {
 		const content = `<html>
 			<head>
 				<title>My Test Page</title>
@@ -1331,7 +1331,7 @@ describe('updateDynamicPageSriHashes', () => {
 		)
 	})
 
-	it('removes scripts with both src and content', async () => {
+	it('removes scripts with both src and content', () => {
 		const content = `<html>
 			<head>
 				<title>My Test Page</title>
@@ -1378,7 +1378,7 @@ describe('updateDynamicPageSriHashes', () => {
 		expect(pageHashes.styles.size).toBe(0)
 	})
 
-	it('removes external scripts with integrity mismatch', async () => {
+	it('removes external scripts with integrity mismatch', () => {
 		// "pre-loaded" (its value will differ from the one in the content)
 		const h = getMiddlewareHashes()
 		h.scripts.set(
@@ -1423,7 +1423,7 @@ describe('updateDynamicPageSriHashes', () => {
 		expect(pageHashes.styles.size).toBe(0)
 	})
 
-	it('removes external (cross-origin) scripts with integrity attribute but not explicitly allowed', async () => {
+	it('removes external (cross-origin) scripts with integrity attribute but not explicitly allowed', () => {
 		// No "pre-loaded" hashes
 		const h = getMiddlewareHashes()
 
@@ -1450,6 +1450,91 @@ describe('updateDynamicPageSriHashes', () => {
 			content,
 			h,
 			// We do not pass an allow-list
+		)
+
+		expect(updatedContent).toEqual(expected)
+
+		// "no changes"
+		expect(h.scripts.size).toBe(0)
+		expect(h.styles.size).toBe(0)
+		expect(pageHashes.scripts.size).toBe(0)
+		expect(pageHashes.styles.size).toBe(0)
+	})
+
+	it('removes inline scripts when they are not allowed', () => {
+		// No "pre-loaded" hashes
+		const h = getMiddlewareHashes()
+
+		const content = `<!DOCTYPE html><html lang="en">
+		<head>
+			<title>My Static Test Site</title>
+			<script type="module" integrity="sha256-2WuRaoBDyP6+xwvZy812CbGbnJEtRyaQ+TISjVXfIkw=">console.log("Hello!");
+	</script>
+	</head>
+	<body>
+		<h1>The Title</h1>
+		<p>The text</p>
+	</body>
+</html>`
+
+		const expected = `<!DOCTYPE html><html lang="en">
+		<head>
+			<title>My Static Test Site</title>
+			
+	</head>
+	<body>
+		<h1>The Title</h1>
+		<p>The text</p>
+	</body>
+</html>`
+
+		const { pageHashes, updatedContent } = updateDynamicPageSriHashes(
+			console,
+			content,
+			h,
+			{ allowInlineScripts: false },
+		)
+
+		expect(updatedContent).toEqual(expected)
+
+		// "no changes"
+		expect(h.scripts.size).toBe(0)
+		expect(h.styles.size).toBe(0)
+		expect(pageHashes.scripts.size).toBe(0)
+		expect(pageHashes.styles.size).toBe(0)
+	})
+
+	it('removes inline styles when they are not allowed', () => {
+		// No "pre-loaded" hashes
+		const h = getMiddlewareHashes()
+
+		const content = `<!DOCTYPE html><html lang="en">
+		<head>
+			<title>My Static Test Site</title>
+			<style integrity="sha256-VATw/GI1Duwve1FGJ+z3c4gwulpBbeoGo1DqO20SdxM=">h1 { color: red; }</style>
+	</head>
+	<body>
+		<h1>The Title</h1>
+		<p>The text</p>
+	</body>
+</html>`
+
+		const expected = `<!DOCTYPE html><html lang="en">
+		<head>
+			<title>My Static Test Site</title>
+			
+	</head>
+	<body>
+		<h1>The Title</h1>
+		<p>The text</p>
+	</body>
+</html>`
+
+		const { pageHashes, updatedContent } = updateDynamicPageSriHashes(
+			console,
+			content,
+			h,
+			{ allowInlineStyles: false },
 		)
 
 		expect(updatedContent).toEqual(expected)

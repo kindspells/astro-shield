@@ -3703,7 +3703,7 @@ snapshots:
 
   '@types/sax@1.2.7':
     dependencies:
-      '@types/node': 17.0.45
+      '@types/node': 22.5.5
 
   '@types/unist@2.0.11': {}
 

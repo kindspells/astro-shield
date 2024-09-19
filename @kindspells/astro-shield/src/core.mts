@@ -257,6 +257,7 @@ export const updateStaticPageSriHashes = async (
 					h[`inline${t}Hashes`].add(sriHash)
 					pageHashes[t2].add(sriHash)
 				} else {
+					// TODO: TEST CASE!
 					logger.warn(
 						`Removing inline ${t.toLowerCase()} block (inline ${t2} are disabled).`,
 					)
@@ -418,6 +419,7 @@ export const updateDynamicPageSriHashes = (
 						}
 					} else {
 						// TODO: Introduce flag to decide if external resources using unknown protocols should be removed
+						// TODO: TEST CASE!
 						logger.warn(`Unable to process external resource: "${src}".`)
 						continue
 					}
@@ -468,7 +470,7 @@ const processHTMLFile = async (
 	distDir: string,
 	h: HashesCollection,
 	sri?: SRIOptions,
-) => {
+): Promise<void> => {
 	const content = await readFile(filePath, 'utf8')
 	const updatedContent = await updateStaticPageSriHashes(
 		logger,
@@ -513,7 +515,7 @@ export const pageHashesEqual = (
 	for (const [aKey, aValue] of Object.entries(a)) {
 		const bValue = b[aKey]
 		if (!bValue) {
-			return false
+			return false // TODO: TEST CASE!
 		}
 
 		if (
@@ -545,12 +547,12 @@ export const sriHashesEqual = (
 
 	for (const [aKey, aValue] of Object.entries(a.scripts)) {
 		if (b.scripts[aKey] !== aValue) {
-			return false
+			return false // TODO: TEST CASE!
 		}
 	}
 	for (const [aKey, aValue] of Object.entries(a.styles)) {
 		if (b.styles[aKey] !== aValue) {
-			return false
+			return false // TODO: TEST CASE!
 		}
 	}
 
@@ -617,6 +619,7 @@ export const scanAllowLists = async (
 	}
 }
 
+// TODO: TEST CASE!
 export async function generateSRIHashesModule(
 	logger: Logger,
 	h: HashesCollection,
@@ -737,6 +740,7 @@ const newHashesCollection = (): HashesCollection => ({
 	},
 })
 
+// TODO: TEST CASE!
 export const processStaticFiles = async (
 	logger: Logger,
 	{ distDir, sri, securityHeaders }: StrictShieldOptions,
