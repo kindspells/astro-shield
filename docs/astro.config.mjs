@@ -124,6 +124,14 @@ export default defineConfig({
 							},
 							link: 'https://github.com/kindspells/astro-shield/blob/main/CONTRIBUTING.md',
 						},
+						{
+							label: 'Team & Services',
+							translations: {
+								ca: 'Equip i Serveis',
+								es: 'Equipo y Servicios',
+							},
+							link: '/other/team-services/',
+						},
 					],
 				},
 			],
