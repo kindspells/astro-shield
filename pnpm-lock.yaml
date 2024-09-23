@@ -57,8 +57,8 @@ importers:
   '@kindspells/astro-shield/src/e2e/fixtures/dynamic':
     dependencies:
       '@astrojs/node':
-        specifier: ^8.3.3
-        version: 8.3.3(astro@4.15.8(@types/node@22.5.5)(rollup@4.22.0)(typescript@5.6.2))
+        specifier: ^8.3.4
+        version: 8.3.4(astro@4.15.8(@types/node@22.5.5)(rollup@4.22.0)(typescript@5.6.2))
       astro:
         specifier: ^4.15.8
         version: 4.15.8(@types/node@22.5.5)(rollup@4.22.0)(typescript@5.6.2)
@@ -70,8 +70,8 @@ importers:
   '@kindspells/astro-shield/src/e2e/fixtures/hybrid':
     dependencies:
       '@astrojs/node':
-        specifier: ^8.3.3
-        version: 8.3.3(astro@4.15.8(@types/node@22.5.5)(rollup@4.22.0)(typescript@5.6.2))
+        specifier: ^8.3.4
+        version: 8.3.4(astro@4.15.8(@types/node@22.5.5)(rollup@4.22.0)(typescript@5.6.2))
       astro:
         specifier: ^4.15.8
         version: 4.15.8(@types/node@22.5.5)(rollup@4.22.0)(typescript@5.6.2)
@@ -83,8 +83,8 @@ importers:
   '@kindspells/astro-shield/src/e2e/fixtures/hybrid2':
     dependencies:
       '@astrojs/node':
-        specifier: ^8.3.3
-        version: 8.3.3(astro@4.15.8(@types/node@22.5.5)(rollup@4.22.0)(typescript@5.6.2))
+        specifier: ^8.3.4
+        version: 8.3.4(astro@4.15.8(@types/node@22.5.5)(rollup@4.22.0)(typescript@5.6.2))
       astro:
         specifier: ^4.15.8
         version: 4.15.8(@types/node@22.5.5)(rollup@4.22.0)(typescript@5.6.2)
@@ -96,8 +96,8 @@ importers:
   '@kindspells/astro-shield/src/e2e/fixtures/hybrid3':
     dependencies:
       '@astrojs/node':
-        specifier: ^8.3.3
-        version: 8.3.3(astro@4.15.8(@types/node@22.5.5)(rollup@4.22.0)(typescript@5.6.2))
+        specifier: ^8.3.4
+        version: 8.3.4(astro@4.15.8(@types/node@22.5.5)(rollup@4.22.0)(typescript@5.6.2))
       astro:
         specifier: ^4.15.8
         version: 4.15.8(@types/node@22.5.5)(rollup@4.22.0)(typescript@5.6.2)
@@ -186,8 +186,8 @@ packages:
     peerDependencies:
       astro: ^4.8.0
 
-  '@astrojs/node@8.3.3':
-    resolution: {integrity: sha512-idrKhnnPSi0ABV+PCQsRQqVNwpOvVDF/+fkwcIiE8sr9J8EMvW9g/oyAt8T4X2OBJ8FUzYPL8klfCdG7r0eB5g==}
+  '@astrojs/node@8.3.4':
+    resolution: {integrity: sha512-xzQs39goN7xh9np9rypGmbgZj3AmmjNxEMj9ZWz5aBERlqqFF3n8A/w/uaJeZ/bkHS60l1BXVS0tgsQt9MFqBA==}
     peerDependencies:
       astro: ^4.2.0
 
@@ -2332,8 +2332,8 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  send@0.18.0:
-    resolution: {integrity: sha512-qqWzuOjSFOuqPjFe4NOsMLafToQQwBSOEpS+FwEt3A2V3vKubTquT3vmLTQpFgMXp8AlFWFuP1qKaJZOtPpVXg==}
+  send@0.19.0:
+    resolution: {integrity: sha512-dW41u5VfLXu8SJh5bwRmyYUbAoSB3c9uQh6L8h/KtsFREPWpbX1lrljJo186Jc4nmci/sGUZ9a0a0J2zgfq2hw==}
     engines: {node: '>= 0.8.0'}
 
   server-destroy@1.0.1:
@@ -2979,10 +2979,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/node@8.3.3(astro@4.15.8(@types/node@22.5.5)(rollup@4.22.0)(typescript@5.6.2))':
+  '@astrojs/node@8.3.4(astro@4.15.8(@types/node@22.5.5)(rollup@4.22.0)(typescript@5.6.2))':
     dependencies:
       astro: 4.15.8(@types/node@22.5.5)(rollup@4.22.0)(typescript@5.6.2)
-      send: 0.18.0
+      send: 0.19.0
       server-destroy: 1.0.1
     transitivePeerDependencies:
       - supports-color
@@ -5648,7 +5648,7 @@ snapshots:
 
   semver@7.6.3: {}
 
-  send@0.18.0:
+  send@0.19.0:
     dependencies:
       debug: 2.6.9
       depd: 2.0.0
