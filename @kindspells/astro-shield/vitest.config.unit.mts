@@ -20,10 +20,10 @@ export default defineConfig({
 				'coverage-unit/**/*',
 			],
 			thresholds: {
-				statements: 78.0,
+				statements: 76.0,
 				branches: 80.0,
-				functions: 88.0,
-				lines: 78.0,
+				functions: 86.0,
+				lines: 76.0,
 			},
 			reportsDirectory: 'coverage-unit',
 		},

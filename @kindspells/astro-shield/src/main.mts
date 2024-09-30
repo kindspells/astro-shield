@@ -4,29 +4,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { fileURLToPath } from 'node:url'
-
 import type { AstroIntegration } from 'astro'
 
-import { getAstroConfigSetup, processStaticFiles } from '#as/core'
-import type {
-	SecurityHeadersOptions,
-	ShieldOptions,
-	SRIOptions,
-} from './types.mts'
-
-type AstroHooks = AstroIntegration['hooks']
-
-const getAstroBuildDone = (
-	sri: Required<SRIOptions>,
-	securityHeaders: SecurityHeadersOptions | undefined,
-): NonNullable<AstroHooks['astro:build:done']> =>
-	(async ({ dir, logger }) =>
-		await processStaticFiles(logger, {
-			distDir: fileURLToPath(dir),
-			sri,
-			securityHeaders,
-		})) satisfies NonNullable<AstroHooks['astro:build:done']>
+import { getAstroConfigSetup } from '#as/core'
+import type { IntegrationState, ShieldOptions, SRIOptions } from './types.mts'
 
 const logWarn = (msg: string): void =>
 	console.warn(`\nWARNING (@kindspells/astro-shield):\n\t${msg}\n`)
@@ -54,19 +35,12 @@ export const shield = ({
 		logWarn('`sri.hashesModule` is ignored when `sri.enableStatic` is `false`')
 	}
 
+	const state: IntegrationState = { config: {} }
+
 	return {
 		name: '@kindspells/astro-shield',
 		hooks: {
-			...(_sri.enableStatic === true
-				? {
-						'astro:build:done': getAstroBuildDone(_sri, securityHeaders),
-					}
-				: undefined),
-			...(_sri.enableMiddleware === true
-				? {
-						'astro:config:setup': getAstroConfigSetup(_sri, securityHeaders),
-					}
-				: undefined),
+			'astro:config:setup': getAstroConfigSetup(state, _sri, securityHeaders),
 		},
 	} satisfies AstroIntegration
 }

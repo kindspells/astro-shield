@@ -2,15 +2,15 @@ import { readFile, writeFile } from 'node:fs/promises'
 
 import type {
 	CSPDirectives,
-	HashesCollection,
 	PerPageHashes,
+	PerPageHashesCollection,
 	SecurityHeadersOptions,
 } from './types.mts'
 import { serialiseCspDirectives, setSrcDirective } from './headers.mts'
 import { doesFileExist } from './fs.mts'
 
 type HeaderEntry = {
-	headerName: string
+	key: string
 	value: string
 }
 
@@ -81,7 +81,7 @@ const pushHeader = (
 	}
 
 	currentPath?.entries.push({
-		headerName: match.groups.name,
+		key: match.groups.name,
 		value: match.groups.value,
 	})
 }
@@ -188,7 +188,7 @@ export const serializeNetlifyHeadersConfig = (
 				.map(e =>
 					'comment' in e
 						? `${indent}${e.comment}`
-						: `${indent}${e.headerName}: ${e.value}`,
+						: `${indent}${e.key}: ${e.value}`,
 				)
 				.join('\n')}\n`
 		}
@@ -219,9 +219,9 @@ export const comparePathEntries = (
 	// We leave comments in place
 	return 'comment' in a || 'comment' in b
 		? 0
-		: a.headerName < b.headerName
+		: a.key < b.key
 			? -1
-			: a.headerName > b.headerName
+			: a.key > b.key
 				? 1
 				: a.value < b.value // headers can have many values
 					? -1
@@ -238,16 +238,16 @@ export const comparePathEntriesSimplified = (
 	// We leave comments in place
 	return 'comment' in a || 'comment' in b
 		? 0
-		: a.headerName < b.headerName
+		: a.key < b.key
 			? -1
-			: a.headerName > b.headerName
+			: a.key > b.key
 				? 1
 				: 0
 }
 
 export const buildNetlifyHeadersConfig = (
 	securityHeadersOptions: SecurityHeadersOptions,
-	resourceHashes: Pick<HashesCollection, 'perPageSriHashes'>,
+	perPageSriHashes: PerPageHashesCollection,
 ): NetlifyHeadersRawConfig => {
 	const config: NetlifyHeadersRawConfig = {
 		indentWith: '\t',
@@ -255,7 +255,7 @@ export const buildNetlifyHeadersConfig = (
 	}
 
 	const pagesToIterate: [string, PerPageHashes][] = []
-	for (const [page, hashes] of resourceHashes.perPageSriHashes) {
+	for (const [page, hashes] of perPageSriHashes.entries()) {
 		if (page === 'index.html' || page.endsWith('/index.html')) {
 			pagesToIterate.push([page.slice(0, -10), hashes])
 		}
@@ -286,7 +286,7 @@ export const buildNetlifyHeadersConfig = (
 			}
 
 			pathEntries.push({
-				headerName: 'content-security-policy',
+				key: 'content-security-policy',
 				value: serialiseCspDirectives(directives),
 			})
 		}
@@ -446,7 +446,7 @@ export const mergeNetlifyHeadersConfig = (
 export const patchNetlifyHeadersConfig = async (
 	configPath: string,
 	securityHeadersOptions: SecurityHeadersOptions,
-	resourceHashes: Pick<HashesCollection, 'perPageSriHashes'>,
+	perPageSriHashes: PerPageHashesCollection,
 ): Promise<void> => {
 	const baseConfig = (await doesFileExist(configPath))
 		? await readNetlifyHeadersFile(configPath)
@@ -454,7 +454,7 @@ export const patchNetlifyHeadersConfig = async (
 
 	const patchConfig = buildNetlifyHeadersConfig(
 		securityHeadersOptions,
-		resourceHashes,
+		perPageSriHashes,
 	)
 
 	const mergedConfig = mergeNetlifyHeadersConfig(baseConfig, patchConfig)

@@ -1,3 +1,5 @@
+import type { AstroConfig } from 'astro'
+
 // Options
 // -----------------------------------------------------------------------------
 // We don't include 'script-src' and 'style-src' because they are handled by the
@@ -113,26 +115,8 @@ export type SRIOptions = {
 	stylesAllowListUrls?: string[]
 }
 
-type NetlifyConfig = {
-	provider: 'netlify'
-} & (
-	| {
-			mode: '_headers'
-	  }
-	| {
-			mode: 'netlify.toml'
-			configFile: string // TODO: auto-discovery?
-	  }
-	| {
-			mode: 'both'
-			configFile: string // TODO: auto-discovery?
-	  }
-)
-
-type VercelConfig = {
-	provider: 'vercel'
-	configFile: string // TODO: auto-discovery?
-}
+type NetlifyConfig = { provider: 'netlify' }
+type VercelConfig = { provider: 'vercel' }
 
 export type SecurityHeadersOptions = {
 	enableOnStaticPages?: NetlifyConfig | VercelConfig | undefined
@@ -164,6 +148,7 @@ export type ShieldOptions = {
 }
 
 export type StrictShieldOptions = ShieldOptions & {
+	state: IntegrationState
 	distDir: string
 	sri: SRIOptions & { enableStatic: boolean; enableMiddleware: boolean }
 }
@@ -190,3 +175,5 @@ export type HashesCollection = {
 	perPageSriHashes: PerPageHashesCollection
 	perResourceSriHashes: MiddlewareHashes
 }
+
+export type IntegrationState = { config: Partial<AstroConfig> }
