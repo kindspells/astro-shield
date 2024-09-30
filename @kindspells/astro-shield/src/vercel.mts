@@ -104,7 +104,11 @@ export const buildVercelConfig = (
 		}
 
 		if (Object.keys(headers).length > 0) {
-			routes.push({ src: `/${page}`, headers })
+			routes.push({
+				src: `^/${page.replaceAll('.', '\\.')}$`,
+				headers,
+				continue: true,
+			})
 		}
 	}
 
@@ -115,7 +119,7 @@ export const mergeVercelConfig = (
 	base: VercelConfig,
 	patch: VercelConfig,
 ): VercelConfig => {
-	return { ...base, routes: [...(base.routes ?? []), ...(patch.routes ?? [])] }
+	return { ...base, routes: [...(patch.routes ?? []), ...(base.routes ?? [])] }
 }
 
 export const serializeVercelConfig = (config: VercelConfig): string => {

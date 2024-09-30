@@ -157,31 +157,35 @@ describe('buildVercelConfig', () => {
 			version: 3,
 			routes: [
 				{
-					src: '/nothing.html',
+					src: '^/nothing\\.html$',
 					headers: {
 						'content-security-policy': "script-src 'none'; style-src 'none'",
 					},
+					continue: true,
 				},
 				{
-					src: '/onlyscripts.html',
+					src: '^/onlyscripts\\.html$',
 					headers: {
 						'content-security-policy':
 							"script-src 'self' 'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=' 'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA='; style-src 'none'",
 					},
+					continue: true,
 				},
 				{
-					src: '/onlystyles.html',
+					src: '^/onlystyles\\.html$',
 					headers: {
 						'content-security-policy':
 							"script-src 'none'; style-src 'self' 'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=' 'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE='",
 					},
+					continue: true,
 				},
 				{
-					src: '/scriptsandstyles.html',
+					src: '^/scriptsandstyles\\.html$',
 					headers: {
 						'content-security-policy':
 							"script-src 'self' 'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=' 'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA='; style-src 'self' 'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=' 'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE='",
 					},
+					continue: true,
 				},
 			],
 		} satisfies VercelConfig)
@@ -225,25 +229,28 @@ describe('buildVercelConfig', () => {
 			version: 3,
 			routes: [
 				{
-					src: '/nested/',
+					src: '^/nested/$',
 					headers: {
 						'content-security-policy':
 							"script-src 'self' 'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=' 'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA='; style-src 'self' 'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=' 'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE='",
 					},
+					continue: true,
 				},
 				{
-					src: '/nested/index.html',
+					src: '^/nested/index\\.html$',
 					headers: {
 						'content-security-policy':
 							"script-src 'self' 'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=' 'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA='; style-src 'self' 'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=' 'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE='",
 					},
+					continue: true,
 				},
 				{
-					src: '/notindex.html',
+					src: '^/notindex\\.html$',
 					headers: {
 						'content-security-policy':
 							"script-src 'self' 'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=' 'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA='; style-src 'self' 'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=' 'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE='",
 					},
+					continue: true,
 				},
 			],
 		})
@@ -287,25 +294,28 @@ describe('buildVercelConfig', () => {
 			version: 3,
 			routes: [
 				{
-					src: '/nested',
+					src: '^/nested$',
 					headers: {
 						'content-security-policy':
 							"script-src 'self' 'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=' 'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA='; style-src 'self' 'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=' 'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE='",
 					},
+					continue: true,
 				},
 				{
-					src: '/nested/index.html',
+					src: '^/nested/index\\.html$',
 					headers: {
 						'content-security-policy':
 							"script-src 'self' 'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=' 'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA='; style-src 'self' 'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=' 'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE='",
 					},
+					continue: true,
 				},
 				{
-					src: '/notindex.html',
+					src: '^/notindex\\.html$',
 					headers: {
 						'content-security-policy':
 							"script-src 'self' 'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=' 'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA='; style-src 'self' 'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=' 'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE='",
 					},
+					continue: true,
 				},
 			],
 		})
@@ -344,16 +354,16 @@ describe('mergeVercelConfig', () => {
 			version: 3,
 			routes: [
 				{
-					src: '/nothing.html',
-					headers: {
-						'content-security-policy': "script-src 'none'; style-src 'none'",
-					},
-				},
-				{
 					src: '/onlystyles.html',
 					headers: {
 						'content-security-policy':
 							"script-src 'none'; style-src 'self' 'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=' 'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE='",
+					},
+				},
+				{
+					src: '/nothing.html',
+					headers: {
+						'content-security-policy': "script-src 'none'; style-src 'none'",
 					},
 				},
 			],
