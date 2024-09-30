@@ -1,0 +1,29 @@
+{
+	"version": 3,
+	"routes": [
+		{
+			"src": "/es",
+			"headers": {
+				"Location": "/es/"
+			},
+			"status": 308
+		},
+		{
+			"src": "/new",
+			"headers": {
+				"Location": "/new/"
+			},
+			"status": 308
+		},
+		{
+			"src": "^/_astro/(.*)$",
+			"headers": {
+				"cache-control": "public, max-age=31536000, immutable"
+			},
+			"continue": true
+		},
+		{
+			"handle": "filesystem"
+		}
+	]
+}

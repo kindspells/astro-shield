@@ -20,15 +20,15 @@ const testEntries = [
 		path: '/index.html',
 		entries: [
 			{ comment: '# Nested Comment' },
-			{ headerName: 'X-Frame-Options', value: 'DENY' },
-			{ headerName: 'X-XSS-Protection', value: '1; mode=block' },
+			{ key: 'X-Frame-Options', value: 'DENY' },
+			{ key: 'X-XSS-Protection', value: '1; mode=block' },
 		],
 	},
 	{
 		path: '/es/index.html',
 		entries: [
-			{ headerName: 'X-Frame-Options', value: 'DENY' },
-			{ headerName: 'X-XSS-Protection', value: '1; mode=block' },
+			{ key: 'X-Frame-Options', value: 'DENY' },
+			{ key: 'X-XSS-Protection', value: '1; mode=block' },
 		],
 	},
 ] satisfies NetlifyHeadersRawConfig['entries']
@@ -36,42 +36,36 @@ const testEntries = [
 describe('comparePathEntries', () => {
 	it.each([
 		[{ comment: 'Comment A' }, { comment: 'Comment B' }],
-		[
-			{ comment: 'Comment A' },
-			{ headerName: 'X-Frame-Options', value: 'DENY' },
-		],
-		[
-			{ headerName: 'X-Frame-Options', value: 'DENY' },
-			{ comment: 'Comment A' },
-		],
+		[{ comment: 'Comment A' }, { key: 'X-Frame-Options', value: 'DENY' }],
+		[{ key: 'X-Frame-Options', value: 'DENY' }, { comment: 'Comment A' }],
 	] as const)('returns 0 if there is any comment', (entryA, entryB) => {
 		expect(comparePathEntries(entryA, entryB)).toBe(0)
 	})
 
 	it.each([
 		[
-			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
-			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			{ key: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			{ key: 'Authorization', value: 'Bearer 0123456789abcdef' },
 			0,
 		],
 		[
-			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
-			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			{ key: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			{ key: 'X-Frame-Options', value: 'DENY' },
 			-1,
 		],
 		[
-			{ headerName: 'X-Frame-Options', value: 'DENY' },
-			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			{ key: 'X-Frame-Options', value: 'DENY' },
+			{ key: 'Authorization', value: 'Bearer 0123456789abcdef' },
 			1,
 		],
 		[
-			{ headerName: 'X-Frame-Options', value: 'ALLOW' },
-			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			{ key: 'X-Frame-Options', value: 'ALLOW' },
+			{ key: 'X-Frame-Options', value: 'DENY' },
 			-1,
 		],
 		[
-			{ headerName: 'X-Frame-Options', value: 'DENY' },
-			{ headerName: 'X-Frame-Options', value: 'ALLOW' },
+			{ key: 'X-Frame-Options', value: 'DENY' },
+			{ key: 'X-Frame-Options', value: 'ALLOW' },
 			1,
 		],
 	] as const)(
@@ -85,42 +79,36 @@ describe('comparePathEntries', () => {
 describe('comparePathEntriesSimplified', () => {
 	it.each([
 		[{ comment: 'Comment A' }, { comment: 'Comment B' }],
-		[
-			{ comment: 'Comment A' },
-			{ headerName: 'X-Frame-Options', value: 'DENY' },
-		],
-		[
-			{ headerName: 'X-Frame-Options', value: 'DENY' },
-			{ comment: 'Comment A' },
-		],
+		[{ comment: 'Comment A' }, { key: 'X-Frame-Options', value: 'DENY' }],
+		[{ key: 'X-Frame-Options', value: 'DENY' }, { comment: 'Comment A' }],
 	] as const)('returns 0 if there is any comment', (entryA, entryB) => {
 		expect(comparePathEntriesSimplified(entryA, entryB)).toBe(0)
 	})
 
 	it.each([
 		[
-			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
-			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			{ key: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			{ key: 'Authorization', value: 'Bearer 0123456789abcdef' },
 			0,
 		],
 		[
-			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
-			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			{ key: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			{ key: 'X-Frame-Options', value: 'DENY' },
 			-1,
 		],
 		[
-			{ headerName: 'X-Frame-Options', value: 'DENY' },
-			{ headerName: 'Authorization', value: 'Bearer 0123456789abcdef' },
+			{ key: 'X-Frame-Options', value: 'DENY' },
+			{ key: 'Authorization', value: 'Bearer 0123456789abcdef' },
 			1,
 		],
 		[
-			{ headerName: 'X-Frame-Options', value: 'ALLOW' },
-			{ headerName: 'X-Frame-Options', value: 'DENY' },
+			{ key: 'X-Frame-Options', value: 'ALLOW' },
+			{ key: 'X-Frame-Options', value: 'DENY' },
 			0,
 		],
 		[
-			{ headerName: 'X-Frame-Options', value: 'DENY' },
-			{ headerName: 'X-Frame-Options', value: 'ALLOW' },
+			{ key: 'X-Frame-Options', value: 'DENY' },
+			{ key: 'X-Frame-Options', value: 'ALLOW' },
 			0,
 		],
 	] as const)(
@@ -236,11 +224,7 @@ describe('buildNetlifyHeadersConfig', () => {
 	it('creates an "empty" config when there is no info to construct headers', () => {
 		const config = buildNetlifyHeadersConfig(
 			{},
-			{
-				perPageSriHashes: new Map([
-					['index.html', { scripts: new Set(), styles: new Set() }],
-				]),
-			},
+			new Map([['index.html', { scripts: new Set(), styles: new Set() }]]),
 		)
 
 		expect(config.entries.length).toBe(0)
@@ -249,44 +233,42 @@ describe('buildNetlifyHeadersConfig', () => {
 	it('creates a basic csp config with resource hashes', () => {
 		const config = buildNetlifyHeadersConfig(
 			{ contentSecurityPolicy: {} },
-			{
-				perPageSriHashes: new Map([
-					[
-						'onlyscripts.html',
-						{
-							scripts: new Set([
-								'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=',
-								'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA=',
-							]),
-							styles: new Set(),
-						},
-					],
-					[
-						'onlystyles.html',
-						{
-							scripts: new Set(),
-							styles: new Set([
-								'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=',
-								'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE=',
-							]),
-						},
-					],
-					[
-						'scriptsandstyles.html',
-						{
-							scripts: new Set([
-								'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=',
-								'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA=',
-							]),
-							styles: new Set([
-								'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=',
-								'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE=',
-							]),
-						},
-					],
-					['nothing.html', { scripts: new Set(), styles: new Set() }],
-				]),
-			},
+			new Map([
+				[
+					'onlyscripts.html',
+					{
+						scripts: new Set([
+							'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=',
+							'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA=',
+						]),
+						styles: new Set(),
+					},
+				],
+				[
+					'onlystyles.html',
+					{
+						scripts: new Set(),
+						styles: new Set([
+							'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=',
+							'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE=',
+						]),
+					},
+				],
+				[
+					'scriptsandstyles.html',
+					{
+						scripts: new Set([
+							'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=',
+							'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA=',
+						]),
+						styles: new Set([
+							'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=',
+							'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE=',
+						]),
+					},
+				],
+				['nothing.html', { scripts: new Set(), styles: new Set() }],
+			]),
 		)
 
 		// It also orders the entries to ensure that we have a canonical order
@@ -297,7 +279,7 @@ describe('buildNetlifyHeadersConfig', () => {
 					path: '/nothing.html',
 					entries: [
 						{
-							headerName: 'content-security-policy',
+							key: 'content-security-policy',
 							value: "script-src 'none'; style-src 'none'",
 						},
 					],
@@ -306,7 +288,7 @@ describe('buildNetlifyHeadersConfig', () => {
 					path: '/onlyscripts.html',
 					entries: [
 						{
-							headerName: 'content-security-policy',
+							key: 'content-security-policy',
 							value:
 								"script-src 'self' 'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=' 'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA='; style-src 'none'",
 						},
@@ -316,7 +298,7 @@ describe('buildNetlifyHeadersConfig', () => {
 					path: '/onlystyles.html',
 					entries: [
 						{
-							headerName: 'content-security-policy',
+							key: 'content-security-policy',
 							value:
 								"script-src 'none'; style-src 'self' 'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=' 'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE='",
 						},
@@ -326,7 +308,7 @@ describe('buildNetlifyHeadersConfig', () => {
 					path: '/scriptsandstyles.html',
 					entries: [
 						{
-							headerName: 'content-security-policy',
+							key: 'content-security-policy',
 							value:
 								"script-src 'self' 'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=' 'sha256-KWrCkmqpW9eWGwZRBZ9KqXsoHtAbAH/zPJvmUhsMKpA='; style-src 'self' 'sha256-VC84dQdO3Mo7nZIRaNTJgrqPQ0foHI8gdp/DS+e9/lk=' 'sha256-iwd3GNfA+kImEozakD3ZZQSZ8VVb3MFBOhJH6dEMnDE='",
 						},
@@ -339,42 +321,40 @@ describe('buildNetlifyHeadersConfig', () => {
 	it('creates a "double entry" for "index.html" files', () => {
 		const config = buildNetlifyHeadersConfig(
 			{ contentSecurityPolicy: {} },
-			{
-				perPageSriHashes: new Map([
-					[
-						'index.html',
-						{
-							scripts: new Set([
-								'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=',
-							]),
-							styles: new Set(),
-						},
-					],
-					[
-						'es/index.html',
-						{
-							scripts: new Set([
-								'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=',
-							]),
-							styles: new Set(),
-						},
-					],
-					[
-						'fakeindex.html',
-						{
-							scripts: new Set([
-								'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=',
-							]),
-							styles: new Set(),
-						},
-					],
-				]),
-			},
+			new Map([
+				[
+					'index.html',
+					{
+						scripts: new Set([
+							'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=',
+						]),
+						styles: new Set(),
+					},
+				],
+				[
+					'es/index.html',
+					{
+						scripts: new Set([
+							'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=',
+						]),
+						styles: new Set(),
+					},
+				],
+				[
+					'fakeindex.html',
+					{
+						scripts: new Set([
+							'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c=',
+						]),
+						styles: new Set(),
+					},
+				],
+			]),
 		)
 
 		const testEntries = [
 			{
-				headerName: 'content-security-policy',
+				key: 'content-security-policy',
 				value:
 					"script-src 'self' 'sha256-071spvYLMvnwaR0H7M2dfK0enB0cGtydTbgJkdoWq7c='; style-src 'none'",
 			},
@@ -415,11 +395,11 @@ describe('mergeNetlifyHeadersConfig', () => {
 			entries: [
 				{
 					path: '/a.html',
-					entries: [{ headerName: 'X-Frame-Options', value: 'DENY' }],
+					entries: [{ key: 'X-Frame-Options', value: 'DENY' }],
 				},
 				{
 					path: '/c.html',
-					entries: [{ headerName: 'Cache-Control', value: 'no-cache' }],
+					entries: [{ key: 'Cache-Control', value: 'no-cache' }],
 				},
 				{
 					path: '/cc.html',
@@ -428,8 +408,8 @@ describe('mergeNetlifyHeadersConfig', () => {
 				{
 					path: '/d.html', // shared path
 					entries: [
-						{ headerName: 'Cache-Control', value: 'no-cache' },
-						{ headerName: 'X-Frame-Options', value: 'DENY' },
+						{ key: 'Cache-Control', value: 'no-cache' },
+						{ key: 'X-Frame-Options', value: 'DENY' },
 					],
 				},
 			],
@@ -441,7 +421,7 @@ describe('mergeNetlifyHeadersConfig', () => {
 					path: '/b.html',
 					entries: [
 						{
-							headerName: 'content-security-policy',
+							key: 'content-security-policy',
 							value: "script-src 'none'",
 						},
 					],
@@ -449,8 +429,8 @@ describe('mergeNetlifyHeadersConfig', () => {
 				{
 					path: '/d.html', // shared path
 					entries: [
-						{ headerName: 'X-Frame-Options', value: 'ALLOW' },
-						{ headerName: 'X-XSS-Protection', value: '1; mode=block' },
+						{ key: 'X-Frame-Options', value: 'ALLOW' },
+						{ key: 'X-XSS-Protection', value: '1; mode=block' },
 					],
 				},
 			],
@@ -463,28 +443,28 @@ describe('mergeNetlifyHeadersConfig', () => {
 			entries: [
 				{
 					path: '/a.html',
-					entries: [{ headerName: 'X-Frame-Options', value: 'DENY' }],
+					entries: [{ key: 'X-Frame-Options', value: 'DENY' }],
 				},
 				{
 					path: '/b.html',
 					entries: [
 						{
-							headerName: 'content-security-policy',
+							key: 'content-security-policy',
 							value: "script-src 'none'",
 						},
 					],
 				},
 				{
 					path: '/c.html',
-					entries: [{ headerName: 'Cache-Control', value: 'no-cache' }],
+					entries: [{ key: 'Cache-Control', value: 'no-cache' }],
 				},
 				// cc.html is discarded for not having entries
 				{
 					path: '/d.html',
 					entries: [
-						{ headerName: 'Cache-Control', value: 'no-cache' }, // from c1
-						{ headerName: 'X-Frame-Options', value: 'ALLOW' }, // overriden
-						{ headerName: 'X-XSS-Protection', value: '1; mode=block' }, // from c2
+						{ key: 'Cache-Control', value: 'no-cache' }, // from c1
+						{ key: 'X-Frame-Options', value: 'ALLOW' }, // overriden
+						{ key: 'X-XSS-Protection', value: '1; mode=block' }, // from c2
 					],
 				},
 			],

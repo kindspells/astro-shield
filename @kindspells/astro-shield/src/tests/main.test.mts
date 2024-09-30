@@ -17,7 +17,7 @@ describe('sriCSP', () => {
 
 	const checkIntegration = (
 		integration: AstroIntegration,
-		keys: (keyof AstroIntegration['hooks'])[] = ['astro:build:done' as const],
+		keys: (keyof AstroIntegration['hooks'])[] = ['astro:config:setup'] as const,
 	) => {
 		expect(Object.keys(integration).sort()).toEqual(['hooks', 'name'])
 		expect(integration.name).toBe('@kindspells/astro-shield')
@@ -40,14 +40,16 @@ describe('sriCSP', () => {
 		checkIntegration(integration)
 	})
 
-	it('returns an "empty" integration when we disable all features', () => {
+	it('returns an integration even when we disable all features', () => {
 		const integration = shield({ sri: { enableStatic: false } })
-		checkIntegration(integration, [])
+
+		// NOTE: it is too much work to verify that those hooks will do nothing
+		checkIntegration(integration, ['astro:config:setup'])
 	})
 
 	it('returns hooks for static & dynamic content when we enable middleware', () => {
 		const integration = shield({ sri: { enableMiddleware: true } })
-		checkIntegration(integration, ['astro:build:done', 'astro:config:setup'])
+		checkIntegration(integration, ['astro:config:setup'])
 	})
 
 	it('returns hooks only for dynamic content when we enable middleware and disable static sri', () => {

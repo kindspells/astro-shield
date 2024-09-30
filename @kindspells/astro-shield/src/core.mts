@@ -16,6 +16,7 @@ import { doesFileExist, scanDirectory } from './fs.mts'
 import { patchHeaders } from './headers.mts'
 import type {
 	HashesCollection,
+	IntegrationState,
 	Logger,
 	MiddlewareHashes,
 	PerPageHashes,
@@ -25,6 +26,9 @@ import type {
 } from './types.mts'
 import { patchNetlifyHeadersConfig } from './netlify.mts'
 import { exhaustiveGuard } from './utils.mts'
+import { patchVercelHeadersConfig } from './vercel.mts'
+
+type AstroHooks = AstroIntegration['hooks']
 
 export type HashesModule = {
 	[k in keyof HashesCollection]: HashesCollection[k] extends Set<string>
@@ -741,7 +745,7 @@ const newHashesCollection = (): HashesCollection => ({
 // TODO: TEST CASE!
 export const processStaticFiles = async (
 	logger: Logger,
-	{ distDir, sri, securityHeaders }: StrictShieldOptions,
+	{ state, distDir, sri, securityHeaders }: StrictShieldOptions,
 ): Promise<void> => {
 	const h = newHashesCollection()
 
@@ -761,23 +765,23 @@ export const processStaticFiles = async (
 		const provider = securityHeaders.enableOnStaticPages.provider
 		switch (provider) {
 			case 'netlify': {
-				if (
-					(securityHeaders.enableOnStaticPages.mode ?? '_headers') !==
-					'_headers'
-				) {
-					throw new Error(
-						'Netlify provider only supports "_headers" mode for now',
-					)
-				}
 				await patchNetlifyHeadersConfig(
 					resolve(distDir, '_headers'),
 					securityHeaders,
-					h,
+					h.perPageSriHashes,
 				)
 				break
 			}
-			case 'vercel':
-				throw new Error('Vercel provider is still not supported')
+			case 'vercel': {
+				await patchVercelHeadersConfig(
+					logger,
+					distDir,
+					state.config,
+					securityHeaders,
+					h.perPageSriHashes,
+				)
+				break
+			}
 			default:
 				exhaustiveGuard(provider, 'provider')
 		}
@@ -992,29 +996,61 @@ export const getViteMiddlewarePlugin = (
 	}
 }
 
+const getAstroBuildDone = (
+	state: IntegrationState,
+	sri: Required<SRIOptions>,
+	securityHeaders: SecurityHeadersOptions | undefined,
+): NonNullable<AstroHooks['astro:build:done']> =>
+	(async ({ dir, logger }) => {
+		if (sri.enableStatic) {
+			await processStaticFiles(logger, {
+				state,
+				distDir: fileURLToPath(dir),
+				sri,
+				securityHeaders,
+			})
+		}
+	}) satisfies NonNullable<AstroHooks['astro:build:done']>
+
 /**
  * @param {Required<SRIOptions>} sri
  * @param {SecurityHeadersOptions | undefined} securityHeaders
  * @returns
  */
 export const getAstroConfigSetup = (
+	state: IntegrationState,
 	sri: Required<SRIOptions>,
 	securityHeaders: SecurityHeadersOptions | undefined,
 ): Required<AstroIntegration['hooks']>['astro:config:setup'] => {
 	// biome-ignore lint/suspicious/useAwait: We have to conform to the Astro API
 	return async ({ logger, addMiddleware, config, updateConfig }) => {
-		const publicDir = fileURLToPath(config.publicDir)
-		const plugin = getViteMiddlewarePlugin(
-			logger,
-			sri,
-			securityHeaders,
-			publicDir,
-		)
-		updateConfig({ vite: { plugins: [plugin] } })
+		state.config = config
 
-		addMiddleware({
-			order: 'post',
-			entrypoint: 'virtual:@kindspells/astro-shield/middleware',
+		if (sri.enableMiddleware) {
+			const publicDir = fileURLToPath(config.publicDir)
+			const plugin = getViteMiddlewarePlugin(
+				logger,
+				sri,
+				securityHeaders,
+				publicDir,
+			)
+			updateConfig({ vite: { plugins: [plugin] } })
+
+			addMiddleware({
+				order: 'post',
+				entrypoint: 'virtual:@kindspells/astro-shield/middleware',
+			})
+		}
+
+		updateConfig({
+			integrations: [
+				{
+					name: '@kindspells/astro-shield-post-config-setup',
+					hooks: {
+						'astro:build:done': getAstroBuildDone(state, sri, securityHeaders),
+					},
+				},
+			],
 		})
 	}
 }

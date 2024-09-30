@@ -16,12 +16,11 @@ const locales = {
 }
 
 export default defineConfig({
+	site: 'https://astro-shield.kindspells.dev',
 	output: 'static',
 	adapter: aws(),
-	site: 'https://astro-shield.kindspells.dev',
-	image: {
-		service: passthroughImageService(),
-	},
+	trailingSlash: 'always',
+	image: { service: passthroughImageService() },
 	integrations: [
 		shield({}),
 		starlight({
@@ -135,6 +134,10 @@ export default defineConfig({
 					],
 				},
 			],
+			lastUpdated: true,
+			editLink: {
+				baseUrl: 'https://github.com/kindspells/astro-shield/edit/main/docs/',
+			},
 		}),
 	],
 })

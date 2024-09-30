@@ -11,15 +11,15 @@
 	],
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.2",
-		"@moonrepo/cli": "^1.28.2",
+		"@moonrepo/cli": "^1.28.3",
 		"@vitest/coverage-v8": "^2.1.1",
 		"publint": "^0.2.11",
 		"vitest": "^2.1.1"
 	},
 	"engines": {
-		"node": ">= 18.0.0"
+		"node": ">= 22.9.0"
 	},
-	"packageManager": "pnpm@9.10.0",
+	"packageManager": "pnpm@9.11.0",
 	"scripts": {
 		"format": "biome format --write .",
 		"install-githooks": "if [ -d .git ]; then git config core.hooksPath .hooks; fi"
