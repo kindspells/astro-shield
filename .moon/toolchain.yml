@@ -5,4 +5,4 @@
 node:
   packageManager: 'pnpm'
   pnpm:
-    version: 9.10.0
+    version: 9.11.0
