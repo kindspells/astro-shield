@@ -141,7 +141,7 @@ export default defineConfig({
 								ca: 'Contribució',
 								es: 'Contribución',
 								hi: 'योगदान',
-								ru: 'Contributing',
+								ru: 'Внести свой вклад'
 							},
 							link: 'https://github.com/kindspells/astro-shield/blob/main/CONTRIBUTING.md',
 						},
