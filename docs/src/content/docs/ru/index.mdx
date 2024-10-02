@@ -1,0 +1,40 @@
+---
+# SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+#
+# SPDX-License-Identifier: MIT
+
+title: Добро пожаловать в Astro-Shield
+description: Защищайте свои Astro сайты с помощью Astro-Shield.
+template: splash
+hero:
+  tagline: Начините защищать свой сайт с помощью Astro-Shield!
+  image:
+    file: ../../../assets/astro-shield.webp
+  actions:
+    - text: Начать работу
+      link: /getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: Узнать об интеграциях Astro
+      link: https://docs.astro.build/en/guides/integrations-guide/
+      icon: external
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Что делает Astro-Shield?
+
+<CardGrid stagger>
+	<Card title="Реализует Subresource Integrity" icon="pencil">
+		Astro-Shield берет на себя расчет хэшей SRI и установку атрибута `integrity` для тегов script и style за вас.
+	</Card>
+	<Card title="Устанавливает Content-Security-Policy заголовки" icon="seti:lock">
+		Astro-Shield может автоматически выставлять заголовки `Content-Security-Policy` за вас.
+	</Card>
+	<Card title="Блокирует внедрённые вредоносные скрипты" icon="close">
+		Когда Astro-Shield обнаруживает вредоносный скрипт (который, например, мог быть вставлен злоумышленником), то он удаляет его из отрендеренного HTML.
+	</Card>
+	{/* <Card title="Prevent Prototype Pollution" icon="seti:gulp">
+		Blablablah...
+	</Card> */}
+</CardGrid>
