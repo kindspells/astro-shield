@@ -1,0 +1,136 @@
+---
+# SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+#
+# SPDX-License-Identifier: MIT
+
+title: SRI для SSR контента
+description: Как включить Subresource Integrity (SRI) для вашего контента при рендеринга на стороне сервера (SSR) в Astro.
+sidebar:
+  order: 2
+---
+
+import { Aside, Code } from '@astrojs/starlight/components';
+
+По умолчанию, Astro-Shield не включает SRI для контента,
+отрендеренного на стороне сервера (SSR), но вы можете легко включить его,
+установив опцию `sri.enableMiddleware` в `true` в вашем конфигурационном файле Astro.
+
+```js
+import { resolve } from 'node:path'
+
+import { defineConfig } from 'astro/config'
+import { shield } from '@kindspells/astro-shield'
+
+const rootDir = new URL('.', import.meta.url).pathname
+const modulePath = resolve(rootDir, 'src', 'generated', 'sriHashes.mjs')
+
+export default defineConfig({
+  integrations: [
+    shield({
+      sri: {
+        hashesModule: modulePath,
+        enableMiddleware: true,
+      },
+    }),
+  ],
+})
+```
+
+<Aside type="caution">
+  При включении SRI для контента, отрендеренного на стороне сервера (SSR),
+  рекомендуется также установить опцию `sri.hashesModule`.
+</Aside>
+
+## Усиление безопасности для динамического контента
+
+### Списки разрешенных ресурсов
+
+Astro-Shield будет блокировать любые кросс-доменные ресурсы, которые не разрешены явно.
+В противном случае это может открыть возможности для различных уязвимостей безопасности,
+вызванных загрузкой ненадежного контента и его пометкой как безопасного.
+
+Мы можем определить список разрешенных URL-адресов ресурсов, как в примере ниже:
+
+```js
+import { resolve } from 'node:path'
+
+import { defineConfig } from 'astro/config'
+import { shield } from '@kindspells/astro-shield'
+
+const rootDir = new URL('.', import.meta.url).pathname
+const modulePath = resolve(rootDir, 'src', 'generated', 'sriHashes.mjs')
+
+export default defineConfig({
+  integrations: [
+    shield({
+      sri: {
+        hashesModule: modulePath,
+        enableMiddleware: true,
+
+        scriptsAllowListUrls: [
+          'https://code.jquery.com/jquery-3.7.1.slim.min.js',
+        ],
+        stylesAllowListUrls: [
+          'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
+        ],
+      },
+    }),
+  ],
+})
+```
+
+<Aside type="note">
+  Ресурсы, которые обслуживаются из одного и того же источника, разрешены.
+  Нам не нужно добавлять их в список разрешенных.
+</Aside>
+
+### Блокировка inline-ресурсов
+
+Хотя Astro-Shield по умолчанию не блокирует inline-ресурсы,
+в некоторых случаях это может быть хорошей идеей, чтобы предотвратить
+[XSS атаки](https://developer.mozilla.org/en-US/docs/Web/Security/Types_of_attacks#cross-site_scripting_xss).
+Вы можете сделать это установив опции `sri.allowInlineScripts` и
+`sri.allowInlineStyles` в `false` или `'static'` (этот параметр позволяет использовать inline-ресурсы
+только в статическом контенте).
+
+```js
+import { resolve } from 'node:path'
+
+import { defineConfig } from 'astro/config'
+import { shield } from '@kindspells/astro-shield'
+
+const rootDir = new URL('.', import.meta.url).pathname
+const modulePath = resolve(rootDir, 'src', 'generated', 'sriHashes.mjs')
+
+export default defineConfig({
+  integrations: [
+    shield({
+      sri: {
+        hashesModule: modulePath,
+        enableMiddleware: true,
+
+        allowInlineScripts: false,
+        allowInlineStyles: 'static',
+      },
+    }),
+  ],
+})
+```
+
+<Aside type="caution">
+  Astro может решить встроить некоторые ресурсы в итоговый HTML-вывод
+  по причинам производительности. Это может конфликтовать с установкой
+  предыдущих опций в `false` или `'static'`.
+
+  В качестве обходного пути мы можем заставить `Vite` никогда не встраивать
+  inline-ресурсы, добавив следующую конфигурацию в файл `astro.config.mjs`:
+  ```js
+  import { defineConfig } from 'astro/config'
+
+  export default defineConfig({
+    vite: {
+      build: { assetsInlineLimit: 0 },
+    },
+  })
+  ```
+</Aside>
