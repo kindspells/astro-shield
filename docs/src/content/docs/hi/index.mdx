@@ -1,0 +1,43 @@
+---
+# SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+#
+# SPDX-License-Identifier: MIT
+
+title: आस्ट्रो-शील्ड में आपका स्वागत है
+description: आस्ट्रो-शील्ड के साथ अपनी आस्ट्रो साइटों की सुरक्षा करें।
+template: splash
+hero:
+  tagline: आस्ट्रो-शील्ड के साथ अपनी साइट की सुरक्षा शुरू करें!
+  image:
+    file: ../../../assets/astro-shield.webp
+  actions:
+    - text: शुरुआत करें
+      link: /getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: आस्ट्रो एकीकरण के बारे में जानें
+      link: https://docs.astro.build/en/guides/integrations-guide/
+      icon: external
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+
+## यह क्या करता है
+
+<CardGrid stagger>
+  <Card title="सबरिसोर्स इंटेग्रिटी लागू करें" icon="pencil">
+    आस्ट्रो-शील्ड आपके लिए SRI हैश की गणना करने और स्क्रिप्ट और स्टाइल टैग पर
+    `integrity` विशेषता सेट करने का ध्यान रखता है।
+  </Card>
+  <Card title="कंटेंट-सिक्योरिटी-पॉलिसी हेडर सेट करें" icon="seti:lock">
+    आस्ट्रो-शील्ड आपके लिए स्वचालित रूप से `Content-Security-Policy` हेडर सेट कर
+    सकता है।
+  </Card>
+  <Card title="इंजेक्टेड स्क्रिप्ट को ब्लॉक करें" icon="close">
+    जब आस्ट्रो-शील्ड एक संदिग्ध स्क्रिप्ट का पता लगाता है (यानी, संभवतः एक
+    हमलावर द्वारा इंजेक्ट की गई), तो यह उसे रेंडर किए गए HTML से हटा देगा।
+  </Card>
+  {/* <Card title="Prevent Prototype Pollution" icon="seti:gulp">
+		Blablablah...
+	</Card> */}
+</CardGrid>

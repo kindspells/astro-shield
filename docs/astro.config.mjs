@@ -13,6 +13,7 @@ const locales = {
 	root: { lang: 'en', label: 'English' },
 	ca: { lang: 'ca', label: 'Català' },
 	es: { lang: 'es', label: 'Español' },
+	hi: { lang: 'hi', label: 'हिन्दी' },
 }
 
 export default defineConfig({
@@ -36,6 +37,7 @@ export default defineConfig({
 					translations: {
 						ca: 'Comença Aquí',
 						es: 'Empieza Aquí',
+						hi: 'यहाँ से शुरू करें',
 					},
 					items: [
 						{
@@ -43,6 +45,7 @@ export default defineConfig({
 							translations: {
 								ca: 'Començant',
 								es: 'Empezando',
+								hi: 'शुरुआत करना',
 							},
 							link: '/getting-started/',
 						},
@@ -53,6 +56,7 @@ export default defineConfig({
 					translations: {
 						ca: 'Guies',
 						es: 'Guías',
+						hi: 'मार्गदर्शिकाएँ',
 					},
 					items: [
 						{
@@ -66,6 +70,7 @@ export default defineConfig({
 							translations: {
 								ca: 'Capçaleres de Seguretat',
 								es: 'Cabeceras de Seguridad',
+								hi: 'सुरक्षा हेडर',
 							},
 							autogenerate: {
 								directory: 'guides/security-headers',
@@ -76,6 +81,7 @@ export default defineConfig({
 							translations: {
 								ca: "Proveïdors d'Allotjament",
 								es: 'Proveedores de Alojamiento',
+								hi: 'होस्टिंग एकीकरण',
 							},
 							autogenerate: {
 								directory: 'guides/hosting-integrations',
@@ -88,6 +94,7 @@ export default defineConfig({
 					translations: {
 						ca: 'Referència',
 						es: 'Referencia',
+						hi: 'संदर्भ',
 					},
 					items: [
 						{
@@ -95,6 +102,7 @@ export default defineConfig({
 							translations: {
 								ca: 'Configuració',
 								es: 'Configuración',
+								hi: 'कॉन्फ़िगरेशन',
 							},
 							link: '/reference/configuration/',
 						},
@@ -105,6 +113,7 @@ export default defineConfig({
 					translations: {
 						ca: 'Altres',
 						es: 'Otros',
+						hi: 'अन्य',
 					},
 					items: [
 						{
@@ -112,6 +121,7 @@ export default defineConfig({
 							translations: {
 								ca: 'Problemes Coneguts',
 								es: 'Problemas Conocidos',
+								hi: 'ज्ञात सीमाएँ',
 							},
 							link: '/other/known-limitations/',
 						},
@@ -120,6 +130,7 @@ export default defineConfig({
 							translations: {
 								ca: 'Contribució',
 								es: 'Contribución',
+								hi: 'योगदान',
 							},
 							link: 'https://github.com/kindspells/astro-shield/blob/main/CONTRIBUTING.md',
 						},
@@ -128,6 +139,7 @@ export default defineConfig({
 							translations: {
 								ca: 'Equip i Serveis',
 								es: 'Equipo y Servicios',
+								hi: 'टीम और सेवाएँ',
 							},
 							link: '/other/team-services/',
 						},

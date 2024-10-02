@@ -1,0 +1,47 @@
+---
+# SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+#
+# SPDX-License-Identifier: MIT
+title: शुरुआत करना
+description: अपनी आस्ट्रो वेबसाइटों को आस्ट्रो-शील्ड के साथ सुरक्षित करना शुरू करें।
+---
+
+## परिचय
+
+आस्ट्रो-शील्ड आपको अपनी आस्ट्रो वेबसाइटों की सुरक्षा में सुधार करने में मदद करेगा,
+जो आपको सुरक्षा के व्यापक सर्वोत्तम अभ्यासों को लागू करने की अनुमति देता है, जैसे:
+
+- [सबरिसोर्स इंटेग्रिटी](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity)
+- [कंटेंट सिक्योरिटी पॉलिसी](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
+
+## कैसे इंस्टॉल करें
+
+import { Code, Tabs, TabItem } from "@astrojs/starlight/components";
+
+इसे इंस्टॉल करने के लिए, अपने टर्मिनल में निम्नलिखित कमांड चलाएँ:
+
+<Tabs>
+  <TabItem label="npm">
+    ```bash npm install --save-dev @kindspells/astro-shield ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash pnpm add --save-dev @kindspells/astro-shield ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash yarn add --dev @kindspells/astro-shield ```
+  </TabItem>
+</Tabs>
+
+## एकीकरण सक्रिय करना
+
+अपनी `astro.config.mjs` कॉन्फ़िगरेशन फ़ाइल में, आस्ट्रो-शील्ड को आयात करें और
+इसे सूची में जोड़ें:
+
+```js
+import { defineConfig } from "astro/config";
+import { shield } from "@kindspells/astro-shield";
+
+export default defineConfig({
+  integrations: [shield({})],
+});
+```
