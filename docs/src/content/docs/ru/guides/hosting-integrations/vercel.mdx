@@ -1,0 +1,71 @@
+---
+# SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+#
+# SPDX-License-Identifier: MIT
+
+title: Vercel
+description: Как настроить Astro-Shield для работы в Vercel
+---
+
+import { Aside, Code } from '@astrojs/starlight/components';
+
+## `Content-Security-Policy` для статического контента
+
+Чтобы Vercel обслуживал ваш статический контент с правильными заголовками `Content-Security-Policy`, требуется дополнительная настройка.
+А именно:
+1. Установите `securityHeaders.enableOnStaticPages.provider` в значение `"vercel"`.
+2. Установите адаптер `@astrojs/vercel/static` (установите пакет `@astrojs/vercel`, который вы можете проверить
+   [в его документации](https://docs.astro.build/en/guides/deploy/vercel/)).
+
+Рассмотрим полный пример:
+
+```js
+import { resolve } from 'node:path'
+
+import vercel from '@astrojs/vercel/static';
+import { shield } from '@kindspells/astro-shield'
+import { defineConfig } from 'astro/config'
+
+const rootDir = new URL('.', import.meta.url).pathname
+const modulePath = resolve(rootDir, 'src', 'generated', 'sriHashes.mjs')
+
+export default defineConfig({
+  adapter: vercel(),
+  integrations: [
+    shield({
+      // - Если установлено, то контролирует, как будут генерироваться заголовки безопасности.
+      // - Если не установлено, то заголовки безопасности не будут генерироваться.
+      securityHeaders: {
+        // Эта опция необходима для настройки заголовков CSP для вашего статического
+        // контента на Vercel.
+        enableOnStaticPages: { provider: "vercel" },
+
+        // - Если установлено, то контролирует, как будет генерироваться заголовок
+        //   CSP (Content Security Policy).
+        // - Если не установлено, то заголовок CSP не будет настроен для вашего
+        //   статического контента (нет необходимости указывать его внутренние параметры).
+        contentSecurityPolicy: {
+          // - Если установлено, контролирует значения по умолчанию директивы CSP
+          //   (они могут быть переопределены во время выполнения).
+          // - Если не установлено, Astro-Shield будет использовать минимальный
+          //   набор директив по умолчанию.
+          cspDirectives: {
+            'default-src': "'none'",
+          }
+        }
+      }
+    })
+  ]
+})
+```
+
+<Aside type='tip'>
+  Чтобы узнать, как настроить заголовки CSP для вашего динамического контента, ознакомьтесь со страницей
+  [Content-Security-Policy (CSP)](/ru/guides/security-headers/content-security-policy/#включение-csp-для-ssr-контента).
+</Aside>
+
+<Aside type='tip'>
+  Чтобы узнать больше о том, как настроить заголовки для статического контента на Vercel,
+  ознакомьтесь с их официальной документацией:
+  - [Vercel: Headers](https://vercel.com/docs/projects/project-configuration#headers)
+</Aside>

@@ -1,0 +1,76 @@
+---
+# SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+#
+# SPDX-License-Identifier: MIT
+
+title: Netlify
+description: Как настроить Astro-Shield для работы в Netlify
+---
+
+import { Aside, Code } from '@astrojs/starlight/components';
+
+## `Content-Security-Policy` для статического контента
+
+Чтобы Netlify обслуживал ваш статический контент с правильными заголовками
+`Content-Security-Policy`, требуется дополнительная настройка. В частности,
+установите `securityHeaders.enableOnStaticPages.provider` в значение `"netlify"`.
+
+Рассмотрим полный пример:
+
+```js
+import { resolve } from 'node:path'
+
+import { defineConfig } from 'astro/config'
+import { shield } from '@kindspells/astro-shield'
+
+const rootDir = new URL('.', import.meta.url).pathname
+const modulePath = resolve(rootDir, 'src', 'generated', 'sriHashes.mjs')
+
+export default defineConfig({
+  integrations: [
+    shield({
+      // - Если установлено, то контролирует, как будут генерироваться заголовки безопасности.
+      // - Если не установлено, то заголовки безопасности не будут генерироваться.
+      securityHeaders: {
+        // Эта опция необходима для настройки заголовков CSP для вашего статического
+        // контента на Netlify.
+        enableOnStaticPages: { provider: "netlify" },
+
+        // - Если установлено, то контролирует, как будет генерироваться заголовок
+        //   CSP (Content Security Policy).
+        // - Если не установлено, то заголовок CSP не будет настроен для вашего
+        //   статического контента (нет необходимости указывать его внутренние параметры).
+        contentSecurityPolicy: {
+          // - Если установлено, контролирует значения по умолчанию директивы CSP
+          //   (они могут быть переопределены во время выполнения).
+          // - Если не установлено, Astro-Shield будет использовать минимальный
+          //   набор директив по умолчанию.
+          cspDirectives: {
+            'default-src': "'none'",
+          }
+        }
+      }
+    })
+  ]
+})
+```
+
+<Aside type='caution'>
+  На сегодняшний день поддержка генерации заголовков для статических страниц
+  ограничена файлом `_headers`, который Netlify читает из каталога развертывания
+  (обычно `dist/`).
+
+  Поддержка других методов, таких как файл `netlify.toml`, пока недоступна.
+</Aside>
+
+<Aside type='tip'>
+  Чтобы узнать, как настроить заголовки CSP для вашего динамического контента, ознакомьтесь со страницей
+  [Content-Security-Policy (CSP)](/ru/guides/security-headers/content-security-policy/#включение-csp-для-ssr-контента).
+</Aside>
+
+<Aside type='tip'>
+  Чтобы узнать больше о том, как настроить заголовки для статического контента на Netlify,
+  ознакомьтесь с их официальной документацией:
+  - [Netlify: Headers](https://docs.netlify.com/routing/headers)
+  - [Netlify: File Based Configuration (Headers)](https://docs.netlify.com/configure-builds/file-based-configuration/#headers)
+</Aside>

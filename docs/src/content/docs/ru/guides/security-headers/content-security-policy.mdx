@@ -1,0 +1,80 @@
+---
+# SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+#
+# SPDX-License-Identifier: MIT
+
+title: Content-Security-Policy (CSP)
+description: Как настроить заголовки Content-Security-Policy вашего сайта с помощью Astro-Shield
+---
+
+import { Aside, Code } from '@astrojs/starlight/components';
+
+## Включение CSP для SSR контента
+
+Чтобы включить генерацию заголовков Content-Security-Policy для вашего SSR контента,
+необходимо установить опцию `securityHeaders.contentSecurityPolicy` в ненулевой объект.
+
+Если вам нужно больше контроля, вы можете установить другие вложенные параметры,
+такие как `cspDirectives`.
+
+```js
+import { resolve } from 'node:path'
+
+import { defineConfig } from 'astro/config'
+import { shield } from '@kindspells/astro-shield'
+
+const rootDir = new URL('.', import.meta.url).pathname
+const modulePath = resolve(rootDir, 'src', 'generated', 'sriHashes.mjs')
+
+export default defineConfig({
+  integrations: [
+    shield({
+      sri: {
+        enableMiddleware: true,   // ДОЛЖНО быть включено для динамических страниц!
+        hashesModule: modulePath, // ДОЛЖНО быть установлено!
+      },
+
+      // - Если установлено, то контролирует, как заголовки безопасности будут
+      //   генерироваться в middleware.
+      // - Если не установлено, то заголовки безопасности не будут генерироваться
+      //   в middleware.
+      securityHeaders: {
+        // - Если установлено, то контролирует, как заголовок CSP (Content Security Policy)
+        //   будет генерироваться в middleware.
+        // - Если не установлено, то заголовок CSP не будет генерироваться в
+        //   middleware.
+        //   (нет необходимости указывать его вложенные параметры)
+        contentSecurityPolicy: {
+          // - Если установлено, то контролирует "по умолчанию" директивы CSP
+          //   (они могут быть переопределены во время выполнения).
+          // - Если не установлено, то middleware будет использовать минимальный
+          //   набор директив по умолчанию.
+          cspDirectives: {
+            'default-src': "'none'",
+          }
+        }
+      }
+    })
+  ]
+})
+```
+
+<Aside type='tip'>
+  По умолчанию Astro-Shield добавит `'self'` в директиву `script-src`.
+  Вы можете переопределить это поведение, установив свою собственную
+  директиву `script-src` (которая может быть пустой строкой).
+</Aside>
+
+<Aside type="caution">
+  При включении заголовков CSP рекомендуется также установить опцию
+  `sri.enableMiddleware` в `true`. Также рекомендуется установить опцию
+  `sri.hashesModule`.
+</Aside>
+
+<Aside type='tip'>
+  Если вы хотите установить заголовки CSP для вашего статического контента,
+  ознакомьтесь с конкретным руководством для вашей платформы развертывания:
+
+  - [Netlify](/ru/guides/hosting-integrations/netlify/#content-security-policy-для-статического-контента)
+  - [Vercel](/ru/guides/hosting-integrations/vercel/#content-security-policy-для-статического-контента)
+</Aside>
