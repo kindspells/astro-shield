@@ -66,7 +66,7 @@ export default defineConfig({
 						{
 							label: 'Subresource Integrity',
 							autogenerate: {
-								directory: 'guides/subresource-integrity',
+								directory: 'guides/subresource-integrity'
 							},
 						},
 						{
@@ -78,7 +78,7 @@ export default defineConfig({
 								ru: 'Заголовки безопасности',
 							},
 							autogenerate: {
-								directory: 'guides/security-headers',
+								directory: 'guides/security-headers'
 							},
 						},
 						{

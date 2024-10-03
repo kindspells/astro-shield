@@ -1,0 +1,203 @@
+---
+# SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+#
+# SPDX-License-Identifier: MIT
+
+title: Справка по конфигурации
+description: Обзор всех конфигурационных настроет, поддерживаемых Astro-Shield.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Настройка интеграции `astro-shield`
+
+Astro-Shield — это интеграция, построенная поверх веб-фреймворка
+[Astro](https://astro.build). Мы можем настроить наш проект в
+конфигурационном файле `astro.config.mjs`:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+import { shield } from '@kindspells/astro-shield'
+
+export default defineConfig({
+	integrations: [
+		shield({}),
+	],
+})
+```
+
+Вы можете передать следующие опции в настройки интеграции `@kindspells/astro-shield`.
+
+### `sri`
+
+Опция `sri` позволяет нам настроить параметры, которые контролируют,
+как Astro-Shield будет обрабатывать целостность подресурсов (SRI) для нашего проекта.
+
+Тип: `object | undefined`, по умолчанию `undefined`.
+
+Пример:
+
+```js
+import { resolve } from 'node:path'
+
+import { defineConfig } from 'astro/config'
+import { shield } from '@kindspells/astro-shield'
+
+const rootDir = new URL('.', import.meta.url).pathname
+const modulePath = resolve(rootDir, 'src', 'generated', 'sriHashes.mjs')
+
+export default defineConfig({
+	integrations: [
+		shield({
+      sri: {
+        enableMiddleware: true,
+        hashesModule: modulePath,
+        allowInlineScripts: false,
+        allowInlineStyles: false,
+        scriptsAllowListUrls: [
+          'https://example.com/script.js',
+        ],
+      },
+    }),
+	],
+})
+```
+
+### `sri.allowInlineScripts`
+
+Определяет, должен ли Astro-Shield разрешать встроенные скрипты (и каким образом).
+Возможные значения:
+- `'all'` *(по умолчанию)*: Разрешить все встроенные скрипты на всех страницах.
+- `'static'`: Разрешить встроенные скрипты только на статических страницах.
+- `false`: Запретить все встроенные скрипты.
+
+### `sri.allowInlineStyles`
+
+Определяет, должен ли Astro-Shield разрешать встроенные стили (и каким образом).
+Возможные значения:
+- `'all'` *(по умолчанию)*: Разрешить все встроенные стили на всех страницах.
+- `'static'`: Разрешить встроенные стили только на статических страницах.
+- `false`: Запретить все встроенные стили.
+
+### `sri.enableMiddleware`
+
+Определяет, должен ли Astro-Shield включать middleware для вычисления хешей SRI
+для динамического контента.
+
+Это также необходимо в случае, если нам нужно сгенерировать заголовки
+Content-Security-Policy (CSP) для динамического контента.
+
+Тип: `boolean`, по умолчанию `false`.
+
+<Aside type='caution'>
+  Если установлено в `true`, рекомендуется также установить опцию
+  [`sri.hashesModule`](#srihashesmodule).
+</Aside>
+
+### `sri.enableStatic`
+
+Определяет, должен ли Astro-Shield генерировать хеши SRI для статического контента.
+
+Тип: `boolean`, по умолчанию `true`.
+
+### `sri.hashesModule`
+
+Указывает путь к автоматически сгенерированному модулю, который содержит и 
+кспортирует хеши SRI, вычисленные Astro-Shield для нашего контента.
+
+Мы можем импортировать этот модуль в наш собственный код, если нам нужно
+реализовать какую-либо пользовательскую логику, требующую хеши SRI, но его
+основное назначение — использоваться вместе с опцией [`sri.enableMiddleware`](#srienablemiddleware).
+
+Тип: `string | undefined`, по умолчанию `undefined`.
+
+### `sri.scriptsAllowListUrls`
+
+Скрипты с другого источника должны быть явно добавлены в белый список по
+URL, чтобы политики безопасности контента, применяемые через заголовки CSP,
+не блокировали их.
+
+Эта опция позволяет нам определить список URL-адресов скриптов, которые
+разрешено загружать на страницах.
+
+Тип: `string[]`, по умолчанию `[]`.
+
+### `sri.stylesAllowListUrls`
+
+Таблицы стилей с другого источника должны быть явно добавлены в белый список
+по URL, чтобы политики безопасности контента, применяемые через заголовки CSP,
+не блокировали их.
+
+Эта опция позволяет нам определить список URL-адресов таблиц стилей, которые
+разрешено загружать на страницах.
+
+Тип: `string[]`, по умолчанию `[]`.
+
+### `securityHeaders`
+
+Опция `securityHeaders` позволяет нам настроить параметры, которые контролируют,
+как Astro-Shield будет генерировать заголовки безопасности для нашего проекта.
+
+Если установлено, то будет контролировать как генерируются заголовки безопасности
+для проекта, в противном случае заголовки безопасности генерироваться не будут.
+
+Тип: `object | undefined`, по умолчанию `undefined`.
+
+Пример:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+import { shield } from '@kindspells/astro-shield'
+
+export default defineConfig({
+	integrations: [
+		shield({
+      securityHeaders: {
+        enableOnStaticPages: { provider: 'netlify' },
+        contentSecurityPolicy: {
+          cspDirectives: {
+            'default-src': "'none'",
+          },
+        },
+      },
+    }),
+	],
+})
+```
+
+### `securityHeaders.contentSecurityPolicy`
+
+Если установлено, то контролирует, как будет генерироваться заголовок
+Content-Security-Policy (CSP) для статического и/или динамического контента.
+
+Если не установлено, заголовок CSP не будет настроен для контента.
+
+Тип: `object | undefined`, по умолчанию `undefined`.
+
+#### `securityHeaders.contentSecurityPolicy.cspDirectives`
+
+Если установлено, контролирует значение по умолчанию директивы CSP
+(они могут быть переопределены во время выполнения).
+
+Если не установлено, то Astro-Shield будет использовать минимальный
+набор директив по умолчанию.
+
+Тип: `Record<CSPDirectiveName, string>`, по умолчанию `{}`.
+
+### `securityHeaders.enableOnStaticPages`
+
+Указывает, должен ли Astro-Shield "генерировать" заголовки безопасности
+для статического контента.
+
+Если установлено, то контролирует, как будут генерироваться заголовки
+безопасности для статического контента, в противном случае заголовки
+безопасности генерироваться не будут.
+
+Тип: `object | undefined`, по умолчанию `undefined`.
+
+#### `securityHeaders.enableOnStaticPages.provider`
+
+Возможные значения:
+- `'netlify'`: генерировать заголовки безопасности для статического контента на Netlify.
