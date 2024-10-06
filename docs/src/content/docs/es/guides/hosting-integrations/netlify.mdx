@@ -1,0 +1,80 @@
+---
+# SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+#
+# SPDX-License-Identifier: MIT
+
+title: Netlify
+description: Cómo configurar Astro-Shield para que funcione en Netlify
+---
+
+import { Aside, Code } from '@astrojs/starlight/components';
+
+## `Content-Security-Policy` para contenido estático
+
+Asegurar que Netlify sirve vuestro contenido estático con las cabeceras
+`Content-Security-Policy` requiere algo de configuración adicional.
+Concretamente, hay que asignar el valor `"netlify"` para la entrada
+`securityHeaders.enableOnStaticPages.provider` de nuestra configuración.
+
+Aquí tenéis un ejemplo más completo:
+
+```js
+import { resolve } from 'node:path'
+
+import { defineConfig } from 'astro/config'
+import { shield } from '@kindspells/astro-shield'
+
+const rootDir = new URL('.', import.meta.url).pathname
+const modulePath = resolve(rootDir, 'src', 'generated', 'sriHashes.mjs')
+
+export default defineConfig({
+  integrations: [
+    shield({
+      // - Si se establece, controla cómo se generarán las cabeceras de
+      //   seguridad.
+      // - Si no se establece, no se generarán cabeceras de seguridad.
+      securityHeaders: {
+        // Esta opción es necesaria para configurar las cabeceras CSP para tu
+        // contenido estático en Netlify.
+        enableOnStaticPages: { provider: "netlify" },
+
+        // - Si se establece, controla cómo se generará la cabecera CSP
+        //   (Content Security Policy).
+        // - Si no se establece, no se configurará ninguna cabecera CSP
+        //   para tu contenido estático (no es necesario especificar sus
+        //   opciones internas).
+        contentSecurityPolicy: {
+          // - Si se establece, controla las directivas CSP "por
+          //   defecto" (pueden ser sobreescritas en tiempo de ejecución).
+          // - Si no se establece, Astro-Shield usará un conjunto mínimo
+          //   de directivas por defecto.
+          cspDirectives: {
+            'default-src': "'none'",
+          }
+        }
+      }
+    })
+  ]
+})
+```
+
+<Aside type='caution'>
+  Por ahora, el soporte para la generación de cabeceras en páginas estáticas
+  se limita al archivo `_headers` que Netlify lee del directorio de despliegue
+  (típicamente `dist/`).
+
+  Todavía no hay soporte para otros métodos como el archivo `netlify.toml`.
+</Aside>
+
+<Aside type='tip'>
+  Para ver cómo configurar las cabeceras CSP para vuestro contenido dinámico,
+  consultad la página
+  [Content-Security-Policy (CSP)](/es/guides/security-headers/content-security-policy/#activando-csp-para-contenido-ssr).
+</Aside>
+
+<Aside type='tip'>
+  Para aprender más sobre cómo configurar cabeceras para contenido estático en
+  Netlify, consultad su documentación oficial:
+  - [Netlify: Headers](https://docs.netlify.com/routing/headers)
+  - [Netlify: File Based Configuration (Headers)](https://docs.netlify.com/configure-builds/file-based-configuration/#headers)
+</Aside>

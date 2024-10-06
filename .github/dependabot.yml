@@ -9,3 +9,27 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+    groups:
+      prod-deps-security:
+        applies-to: "security-updates"
+        dependency-type: "production"
+      dev-deps-security:
+        applies-to: "security-updates"
+        dependency-type: "development"
+      prod-deps:
+        applies-to: "version-updates"
+        dependency-type: "production"
+      dev-deps:
+        applies-to: "version-updates"
+        dependency-type: "development"
+    ignore:
+      - dependency-name: "@types/node"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
+      - dependency-name: "typescript"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"

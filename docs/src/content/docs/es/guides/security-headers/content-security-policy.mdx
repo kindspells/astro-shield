@@ -1,0 +1,84 @@
+---
+# SPDX-FileCopyrightText: 2024 KindSpells Labs S.L.
+#
+# SPDX-License-Identifier: MIT
+
+title: Content-Security-Policy (CSP)
+description: Cómo configurar las cabeceras Content-Security-Policy de tu sitio web con Astro-Shield
+---
+
+import { Aside, Code } from '@astrojs/starlight/components';
+
+## Activando CSP para contenido SSR
+
+Para habilitat la generación de cabeceras Content-Security-Policy para vuestro
+contenido SSR, tenéis que establecer la opción `securityHeaders.contentSecurityPolicy`
+a un objeto no nulo.
+
+Si queréis más control, entonces podéis establecer otras opciones anidadas,
+tales como `cspDirectives`.
+
+```js
+import { resolve } from 'node:path'
+
+import { defineConfig } from 'astro/config'
+import { shield } from '@kindspells/astro-shield'
+
+const rootDir = new URL('.', import.meta.url).pathname
+const modulePath = resolve(rootDir, 'src', 'generated', 'sriHashes.mjs')
+
+export default defineConfig({
+  integrations: [
+    shield({
+      sri: {
+        // DEBE estar habilitado para páginas dinámicas!
+        enableMiddleware: true,
+
+        // CONVIENE establecerlo!
+        hashesModule: modulePath,
+      },
+
+      // - Si se establece, controla cómo se generarán las cabeceras de
+      //   seguridad en el middleware.
+      // - Si no se establece, no se generarán cabeceras de seguridad en
+      //   el middleware.
+      securityHeaders: {
+        // - Si se establece, controla cómo se generará la cabecera CSP
+        //   (Content Security Policy) en el middleware.
+        // - Si no se establece, no se generará ninguna cabecera CSP en
+        //   el middleware. (no es necesario especificar sus opciones
+        //   internas)
+        contentSecurityPolicy: {
+          // - Si se establece, controla las directivas CSP "por
+          //   defecto" (pueden ser sobreescritas en tiempo de
+          //   ejecución).
+          // - Si no se establece, el middleware usará un conjunto
+          //   mínimo de directivas por defecto.
+          cspDirectives: {
+            'default-src': "'none'",
+          }
+        }
+      }
+    })
+  ]
+})
+```
+
+<Aside type='tip'>
+  Por defecto, Astro-Shield añadirá `'self`' a la directiva `script-src`. Podéis
+  sobreescribir este comportamiento estableciendo vuestra propia directiva
+  `script-src` (que puede ser un texto vacío).
+</Aside>
+
+<Aside type="caution">
+  Cuando habilitéis las cabeceras CSP, es recomendable también establecer la
+  opción `sri.enableMiddleware` a `true`. También se recomienda establecer la
+  opción `sri.hashesModule`.
+</Aside>
+
+<Aside type='tip'>
+  Si queréis establecer cabeceras CSP para vuestro contenido estático, consultad
+  la guía específica para vuestra plataforma de despliegue:
+  - [Netlify](/es/guides/hosting-integrations/netlify/#content-security-policy-para-contenido-estático)
+  - [Vercel](/es/guides/hosting-integrations/vercel/#content-security-policy-para-contenido-estático)
+</Aside>
