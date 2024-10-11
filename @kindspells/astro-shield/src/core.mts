@@ -148,6 +148,7 @@ export const updateStaticPageSriHashes = async (
 	h: HashesCollection,
 	allowInlineScripts: 'all' | 'static' | false = 'all',
 	allowInlineStyles: 'all' | 'static' | false = 'all',
+  state?: IntegrationState
 ): Promise<string> => {
 	const pageHashes =
 		h.perPageSriHashes.get(relativeFilepath) ??
@@ -234,7 +235,9 @@ export const updateStaticPageSriHashes = async (
 							)
 							resourceContent = await resourceResponse.arrayBuffer()
 						} else if (src.startsWith('/')) {
-							const resourcePath = resolve(distDir, `.${src}`)
+              const base = state?.config.base ?? ''
+              const updatedSrc = src.startsWith(base) ? src.replace(base, '') : src
+							const resourcePath = resolve(distDir, `.${updatedSrc}`)
 							resourceContent = await readFile(resourcePath)
 						} else {
 							// TODO: should we remove the element?
@@ -472,6 +475,7 @@ const processHTMLFile = async (
 	distDir: string,
 	h: HashesCollection,
 	sri?: SRIOptions,
+  state?: IntegrationState,
 ): Promise<void> => {
 	const content = await readFile(filePath, 'utf8')
 	const updatedContent = await updateStaticPageSriHashes(
@@ -482,6 +486,7 @@ const processHTMLFile = async (
 		h,
 		sri?.allowInlineScripts ?? 'all',
 		sri?.allowInlineStyles ?? 'all',
+    state,
 	)
 
 	if (updatedContent !== content) {
@@ -759,6 +764,7 @@ export const processStaticFiles = async (
 		processHTMLFile,
 		file => extname(file) === '.html',
 		sri,
+    state
 	)
 
 	if (securityHeaders?.enableOnStaticPages !== undefined) {

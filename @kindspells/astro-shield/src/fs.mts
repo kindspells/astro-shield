@@ -7,7 +7,7 @@
 import { readdir, stat } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
-import type { HashesCollection, Logger, SRIOptions } from './types.mts'
+import type { HashesCollection, IntegrationState, Logger, SRIOptions } from './types.mts'
 
 /** @internal */
 export const doesFileExist = async (path: string): Promise<boolean> => {
@@ -29,14 +29,16 @@ export const scanDirectory = async (
 	rootPath: string,
 	h: HashesCollection,
 	processFile: (
-		logger: Logger,
+    logger: Logger,
 		filePath: string,
 		distDir: string,
 		h: HashesCollection,
 		sri?: SRIOptions,
+    state?: IntegrationState,
 	) => Promise<void>,
 	filenameCondition: (filename: string) => boolean,
 	sri?: SRIOptions,
+  state?: IntegrationState,
 ): Promise<void> => {
 	for (const file of await readdir(currentPath)) {
 		const filePath = resolve(currentPath, file)
@@ -51,9 +53,10 @@ export const scanDirectory = async (
 				processFile,
 				filenameCondition,
 				sri,
+        state,
 			)
 		} else if (stats.isFile() && filenameCondition(file)) {
-			await processFile(logger, filePath, rootPath, h, sri)
+			await processFile(logger, filePath, rootPath, h, sri, state)
 		}
 	}
 }
