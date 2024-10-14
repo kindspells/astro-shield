@@ -9,7 +9,7 @@
 	"license": "MIT",
 	"dependencies": {
 		"@astrojs/node": "^8.3.4",
-		"astro": "^4.15.11"
+		"astro": "^4.16.1"
 	},
 	"devDependencies": {
 		"@kindspells/astro-shield": "workspace:*"
