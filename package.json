@@ -11,7 +11,7 @@
 	],
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.3",
-		"@moonrepo/cli": "^1.28.3",
+		"@moonrepo/cli": "^1.29.1",
 		"@vitest/coverage-v8": "^2.1.2",
 		"publint": "^0.2.11",
 		"vitest": "^2.1.2"
