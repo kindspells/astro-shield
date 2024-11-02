@@ -175,7 +175,10 @@ export const updateStaticPageSriHashes = async (
 		// biome-ignore lint/suspicious/noAssignInExpressions: safe
 		while ((match = regex.exec(content)) !== null) {
 			const attrs = match.groups?.attrs?.trim() ?? ''
-			const elemContent = match.groups?.content ?? ''
+
+			// We trim elemContent ONLY if it's made out of 100% whitespace characters
+			const _elemContent = match.groups?.content ?? ''
+			const elemContent = _elemContent.trim() === '' ? '' : _elemContent
 
 			let sriHash: string | undefined = undefined
 			let setCrossorigin = false
@@ -320,7 +323,10 @@ export const updateDynamicPageSriHashes = (
 		// biome-ignore lint/suspicious/noAssignInExpressions: safe
 		while ((match = regex.exec(content)) !== null) {
 			const attrs = match.groups?.attrs?.trim() ?? ''
-			const elemContent = match.groups?.content ?? ''
+
+			// We trim elemContent ONLY if it's made out of 100% whitespace characters
+			const _elemContent = match.groups?.content ?? ''
+			const elemContent = _elemContent.trim() === '' ? '' : _elemContent
 
 			let sriHash: string | undefined = undefined
 			let setCrossorigin = false
