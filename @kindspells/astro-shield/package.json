@@ -1,6 +1,6 @@
 {
 	"name": "@kindspells/astro-shield",
-	"version": "1.6.1",
+	"version": "1.7.0",
 	"description": "Astro integration to enhance your website's security with SubResource Integrity hashes, Content-Security-Policy headers, and other techniques.",
 	"private": false,
 	"type": "module",

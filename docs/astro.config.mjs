@@ -24,7 +24,6 @@ export default defineConfig({
 	trailingSlash: 'always',
 	image: { service: passthroughImageService() },
 	integrations: [
-		shield({}),
 		starlight({
 			title: 'Astro-Shield Docs',
 			defaultLocale: 'root',
@@ -66,7 +65,7 @@ export default defineConfig({
 						{
 							label: 'Subresource Integrity',
 							autogenerate: {
-								directory: 'guides/subresource-integrity'
+								directory: 'guides/subresource-integrity',
 							},
 						},
 						{
@@ -78,7 +77,7 @@ export default defineConfig({
 								ru: 'Заголовки безопасности',
 							},
 							autogenerate: {
-								directory: 'guides/security-headers'
+								directory: 'guides/security-headers',
 							},
 						},
 						{
@@ -141,7 +140,7 @@ export default defineConfig({
 								ca: 'Contribució',
 								es: 'Contribución',
 								hi: 'योगदान',
-								ru: 'Внести свой вклад'
+								ru: 'Внести свой вклад',
 							},
 							link: 'https://github.com/kindspells/astro-shield/blob/main/CONTRIBUTING.md',
 						},
@@ -163,5 +162,10 @@ export default defineConfig({
 				baseUrl: 'https://github.com/kindspells/astro-shield/edit/main/docs/',
 			},
 		}),
+		shield({ sri: { enableStatic: true } }),
 	],
+	build: {
+		format: 'directory',
+		inlineStylesheets: 'never',
+	},
 })
