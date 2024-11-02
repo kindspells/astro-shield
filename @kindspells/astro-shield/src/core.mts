@@ -996,7 +996,7 @@ export const getViteMiddlewarePlugin = (
 	}
 }
 
-const getAstroBuildDone = (
+export const getAstroBuildDone = (
 	state: IntegrationState,
 	sri: Required<SRIOptions>,
 	securityHeaders: SecurityHeadersOptions | undefined,
@@ -1042,15 +1042,21 @@ export const getAstroConfigSetup = (
 			})
 		}
 
-		updateConfig({
-			integrations: [
-				{
-					name: '@kindspells/astro-shield-post-config-setup',
-					hooks: {
-						'astro:build:done': getAstroBuildDone(state, sri, securityHeaders),
+		if (state.delayTransform) {
+			updateConfig({
+				integrations: [
+					{
+						name: '@kindspells/astro-shield-post-config-setup',
+						hooks: {
+							'astro:build:done': getAstroBuildDone(
+								state,
+								sri,
+								securityHeaders,
+							),
+						},
 					},
-				},
-			],
-		})
+				],
+			})
+		}
 	}
 }

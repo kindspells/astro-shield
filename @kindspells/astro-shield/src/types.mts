@@ -133,6 +133,20 @@ export type SecurityHeadersOptions = {
 
 export type ShieldOptions = {
 	/**
+	 * When set to `true`, the transformation of static pages will be delayed to
+	 * be executed as late as possible in the build process. This might be
+	 * necessary in case you are using many integrations that transform the HTML
+	 * output.
+	 *
+	 * If not set and any of the following conditions are met, then this option
+	 * will be automatically set to `true`:
+	 * - securityHeaders.enableOnStaticPages is set to `{ provider: 'vercel' }`
+	 *
+	 * Defaults to `false`.
+	 */
+	delayTransform?: boolean
+
+	/**
 	 * Options related to Subresource Integrity (SRI).
 	 */
 	sri?: SRIOptions | undefined
@@ -176,4 +190,7 @@ export type HashesCollection = {
 	perResourceSriHashes: MiddlewareHashes
 }
 
-export type IntegrationState = { config: Partial<AstroConfig> }
+export type IntegrationState = {
+	delayTransform: boolean
+	config: Partial<AstroConfig>
+}

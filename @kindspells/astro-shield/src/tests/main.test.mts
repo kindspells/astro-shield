@@ -10,25 +10,32 @@ import { describe, expect, it } from 'vitest'
 import defaultIntegrationExport, { shield } from '../main.mts'
 
 describe('sriCSP', () => {
-	it('is exported as default', () => {
-		expect(defaultIntegrationExport).toBe(shield)
-		expect(shield).toBeInstanceOf(Function)
-	})
+	const defaultIntegrationKeys = [
+		'astro:build:done',
+		'astro:config:setup',
+	] as Readonly<['astro:build:done', 'astro:config:setup']>
 
 	const checkIntegration = (
 		integration: AstroIntegration,
-		keys: (keyof AstroIntegration['hooks'])[] = ['astro:config:setup'] as const,
+		keys: Readonly<
+			(keyof AstroIntegration['hooks'])[]
+		> = defaultIntegrationKeys,
 	) => {
 		expect(Object.keys(integration).sort()).toEqual(['hooks', 'name'])
 		expect(integration.name).toBe('@kindspells/astro-shield')
 
-		const sortedKeys = keys.sort()
+		const sortedKeys = keys.slice().sort() // TODO: use toSorted when widely available
 		expect(Object.keys(integration.hooks).sort()).toEqual(sortedKeys)
 		for (const key of sortedKeys) {
 			expect(integration.hooks[key]).toBeTruthy()
 			expect(integration.hooks[key]).toBeInstanceOf(Function)
 		}
 	}
+
+	it('is exported as default', () => {
+		expect(defaultIntegrationExport).toBe(shield)
+		expect(shield).toBeInstanceOf(Function)
+	})
 
 	it('returns a valid AstroIntegration object for default config', () => {
 		const integration = shield({})
@@ -44,12 +51,12 @@ describe('sriCSP', () => {
 		const integration = shield({ sri: { enableStatic: false } })
 
 		// NOTE: it is too much work to verify that those hooks will do nothing
-		checkIntegration(integration, ['astro:config:setup'])
+		checkIntegration(integration, defaultIntegrationKeys)
 	})
 
 	it('returns hooks for static & dynamic content when we enable middleware', () => {
 		const integration = shield({ sri: { enableMiddleware: true } })
-		checkIntegration(integration, ['astro:config:setup'])
+		checkIntegration(integration, defaultIntegrationKeys)
 	})
 
 	it('returns hooks only for dynamic content when we enable middleware and disable static sri', () => {
@@ -59,6 +66,20 @@ describe('sriCSP', () => {
 				enableMiddleware: true,
 			},
 		})
+		checkIntegration(integration, defaultIntegrationKeys)
+	})
+
+	it('removes build:done from base config when delayTransform=true', () => {
+		const integration = shield({
+			delayTransform: true,
+		})
 		checkIntegration(integration, ['astro:config:setup'])
+	})
+
+	it('keeps build:done in base config when delayTransform=false', () => {
+		const integration = shield({
+			delayTransform: false,
+		})
+		checkIntegration(integration, ['astro:build:done', 'astro:config:setup'])
 	})
 })
