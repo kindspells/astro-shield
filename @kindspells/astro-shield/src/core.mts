@@ -242,7 +242,13 @@ export const updateStaticPageSriHashes = async (
 							const updatedSrc = src.startsWith(base)
 								? src.replace(base, '')
 								: src
-							const resourcePath = resolve(distDir, `.${updatedSrc}`)
+
+							// Prepare a relative path for resolve - depending on a trailing slash on base above
+							// after removing it, updatedSrc may or may not start with a slash
+							const resourcePath = resolve(
+								distDir,
+								updatedSrc.startsWith('/') ? `.${updatedSrc}` : updatedSrc,
+							)
 							resourceContent = await readFile(resourcePath)
 						} else {
 							// TODO: should we remove the element?
