@@ -20,7 +20,7 @@
 		"@astrojs/starlight": "^0.34.8",
 		"@astrojs/ts-plugin": "^1.10.4",
 		"@kindspells/astro-shield": "workspace:^",
-		"astro": "^5.12.8",
+		"astro": "^5.12.9",
 		"typescript": "^5.8.3"
 	}
 }
