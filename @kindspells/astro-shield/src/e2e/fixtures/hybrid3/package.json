@@ -8,7 +8,7 @@
 	},
 	"license": "MIT",
 	"dependencies": {
-		"@astrojs/node": "^9.3.0",
+		"@astrojs/node": "^9.4.1",
 		"astro": "^5.12.9"
 	},
 	"devDependencies": {
