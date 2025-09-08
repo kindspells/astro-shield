@@ -13,7 +13,7 @@
 	"dependencies": {
 		"astro-sst": "^3.1.4",
 		"sharp": "0.34.3",
-		"sst": "^3.17.10"
+		"sst": "^3.17.12"
 	},
 	"devDependencies": {
 		"@astrojs/check": "^0.9.4",
