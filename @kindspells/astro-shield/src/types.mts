@@ -129,6 +129,13 @@ export type SecurityHeadersOptions = {
 	 * Defaults to `undefined`.
 	 */
 	contentSecurityPolicy?: CSPOptions | undefined
+
+	/**
+	 * - If set, it will remove the `.html` extension from the URLs.
+	 * 
+	 * Defaults to `false`.
+	 */
+	removeHtmlExtension?: boolean
 }
 
 export type ShieldOptions = {

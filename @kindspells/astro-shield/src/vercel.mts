@@ -159,5 +159,12 @@ export const patchVercelHeadersConfig = async (
 
 	const mergedConfig = mergeVercelConfig(baseConfig, patchConfig)
 
+	if (securityHeadersOptions.removeHtmlExtension) {
+		for (const route of mergedConfig.routes ?? []) {
+			if (route.src.endsWith('.html'))
+				route.src = route.src.slice(0, -5)
+		}
+	}
+
 	await writeFile(configPath, serializeVercelConfig(mergedConfig))
 }

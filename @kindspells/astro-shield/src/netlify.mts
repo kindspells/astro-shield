@@ -459,5 +459,13 @@ export const patchNetlifyHeadersConfig = async (
 
 	const mergedConfig = mergeNetlifyHeadersConfig(baseConfig, patchConfig)
 
+	if (securityHeadersOptions.removeHtmlExtension) {
+		for (const entry of mergedConfig.entries) {
+			if (typeof entry === 'object' && 'path' in entry) {
+				entry.path = entry.path.replace(/\.html$/, '')
+			}
+		}
+	}
+
 	await writeFile(configPath, serializeNetlifyHeadersConfig(mergedConfig))
 }
